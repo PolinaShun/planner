@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Планировщик Полины</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-card: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent-green: #3fb950;
+            --accent-yellow: #d29922;
+            --accent-blue: #58a6ff;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+            --border: #30363d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        header .date {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        header .status {
+            display: inline-block;
+            padding: 6px 14px;
+            background: var(--accent-purple);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .card-icon {
+            font-size: 28px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-badge {
+            margin-left: auto;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-p0 {
+            background: rgba(248, 81, 73, 0.2);
+            color: var(--accent-red);
+        }
+
+        .badge-p1 {
+            background: rgba(210, 153, 34, 0.2);
+            color: var(--accent-yellow);
+        }
+
+        .badge-p2 {
+            background: rgba(88, 166, 255, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .task-item:hover {
+            background: var(--bg-primary);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        .checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .task-item.completed .checkbox {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .checkbox::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            display: none;
+        }
+
+        .task-item.completed .checkbox::after {
+            display: block;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-text {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .task-time {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .task-why {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .progress-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .progress-section h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar-container {
+            margin-bottom: 16px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .progress-label .name {
+            color: var(--text-secondary);
+        }
+
+        .progress-label .value {
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill.green { background: var(--accent-green); }
+        .progress-fill.yellow { background: var(--accent-yellow); }
+        .progress-fill.blue { background: var(--accent-blue); }
+        .progress-fill.purple { background: var(--accent-purple); }
+
+        .schedule-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .schedule-section h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .schedule-block {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .schedule-block h3 {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .schedule-block .time {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .schedule-block ul {
+            list-style: none;
+            font-size: 14px;
+        }
+
+        .schedule-block li {
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .schedule-block li::before {
+            content: '•';
+            color: var(--accent-blue);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2ea043;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+        }
+
+        .btn-reset {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #da3633;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-green);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .diploma-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .diploma-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .diploma-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .diploma-deadline {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .diploma-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-urgent {
+            background: rgba(248, 81, 73, 0.2);
+            color: var(--accent-red);
+        }
+
+        .status-progress {
+            background: rgba(210, 153, 34, 0.2);
+            color: var(--accent-yellow);
+        }
+
+        .status-waiting {
+            background: rgba(88, 166, 255, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .diploma-details {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .diploma-details strong {
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Планировщик Полины</h1>
+            <p class="date">Среда, 25 марта 2026</p>
+            <span class="status" id="progressStatus">0/4 задач выполнено</span>
+        </header>
+
+        <div class="grid">
+            <!-- Задачи на сегодня -->
+            <div class="card" style="grid-column: span 2;">
+                <div class="card-header">
+                    <span class="card-icon">🔥</span>
+                    <span class="card-title">Фокус дня</span>
+                    <span class="card-badge badge-p0">P0 Горит</span>
+                </div>
+                <ul class="task-list" id="todayTasks">
+                    <li class="task-item" data-task="content" onclick="toggleTask('content')">
+                        <div class="checkbox"></div>
+                        <div class="task-content">
+                            <div class="task-text"><strong>Контент: съёмка 1 рилс</strong></div>
+                            <div class="task-meta">
+                                <span class="task-time">⏱️ 30 мин</span>
+                                <span class="task-why">💡 Монтажёр ждёт, дедлайн 25.03</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="task-item" data-task="yulia" onclick="toggleTask('yulia')">
+                        <div class="checkbox"></div>
+                        <div class="task-content">
+                            <div class="task-text"><strong>Юлия: диплом (начать)</strong></div>
+                            <div class="task-meta">
+                                <span class="task-time">⏱️ 30-40 мин</span>
+                                <span class="task-why">💡 Дедлайн ~28.03, нужно 2-3 дня</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="task-item" data-task="freud" onclick="toggleTask('freud')">
+                        <div class="checkbox"></div>
+                        <div class="task-content">
+                            <div class="task-text"><strong>Фрейд: стр. 24→27 + 3 предл.</strong></div>
+                            <div class="task-meta">
+                                <span class="task-time">⏱️ 15 мин</span>
+                                <span class="task-why">💡 3 страницы, дедлайн 27.03</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="task-item" data-task="zarina" onclick="toggleTask('zarina')">
+                        <div class="checkbox"></div>
+                        <div class="task-content">
+                            <div class="task-text"><strong>Зарина: сверить ошибки</strong></div>
+                            <div class="task-meta">
+                                <span class="task-time">⏱️ 15 мин</span>
+                                <span class="task-why">💡 Комментарии преподавателя есть</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Дипломы -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📝</span>
+                    <span class="card-title">Дипломы</span>
+                </div>
+                <div class="diploma-card">
+                    <div class="diploma-header">
+                        <span class="diploma-name">Юлия (диплом)</span>
+                        <span class="diploma-status status-urgent">🔥 28.03</span>
+                    </div>
+                    <div class="diploma-details">
+                        <strong>Статус:</strong> ОС НР получено<br>
+                        <strong>Нужно:</strong> Начать правки (2-3 дня)<br>
+                        <strong>Приоритет:</strong> P0 (горит)
+                    </div>
+                </div>
+                <div class="diploma-card">
+                    <div class="diploma-header">
+                        <span class="diploma-name">Зарина (преддипломная)</span>
+                        <span class="diploma-status status-progress">31.03</span>
+                    </div>
+                    <div class="diploma-details">
+                        <strong>Статус:</strong> Отправлено, НР не ответил<br>
+                        <strong>2000₽:</strong> Не получено<br>
+                        <strong>Нужно:</strong> Сверить ошибки<br>
+                        <strong>Приоритет:</strong> P0
+                    </div>
+                </div>
+                <div class="diploma-card">
+                    <div class="diploma-header">
+                        <span class="diploma-name">Надежда (диплом + предд.)</span>
+                        <span class="diploma-status status-waiting">? дедлайн</span>
+                    </div>
+                    <div class="diploma-details">
+                        <strong>Статус:</strong> Глава 1 готова<br>
+                        <strong>Ждём:</strong> Оплату / ОС НР<br>
+                        <strong>Можно:</strong> Писать преддипломную<br>
+                        <strong>Приоритет:</strong> P1
+                    </div>
+                </div>
+            </div>
+
+            <!-- Расписание -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">⏰</span>
+                    <span class="card-title">План на день</span>
+                </div>
+                <div class="schedule-section" style="background: transparent; border: none; padding: 0;">
+                    <div class="schedule-grid">
+                        <div class="schedule-block">
+                            <h3>Блок 1</h3>
+                            <div class="time">45 мин</div>
+                            <ul>
+                                <li>Контент (30 мин)</li>
+                                <li>Фрейд (15 мин)</li>
+                                <li>Перерыв (5-10 мин)</li>
+                            </ul>
+                        </div>
+                        <div class="schedule-block">
+                            <h3>Блок 2</h3>
+                            <div class="time">55 мин</div>
+                            <ul>
+                                <li>Юлия (30-40 мин)</li>
+                                <li>Зарина (15 мин)</li>
+                                <li>Перерыв (5-10 мин)</li>
+                            </ul>
+                        </div>
+                        <div class="schedule-block">
+                            <h3>Остаток</h3>
+                            <div class="time">~1 час</div>
+                            <ul>
+                                <li>Дом (по желанию)</li>
+                                <li>Буфер</li>
+                                <li>Отдых ✅</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Прогресс-бары -->
+        <div class="progress-section">
+            <h2>📊 Прогресс недели (23-27.03)</h2>
+            
+            <div class="progress-bar-container">
+                <div class="progress-label">
+                    <span class="name">Контент (рилсы/неделя)</span>
+                    <span class="value" id="contentProgress">1/3</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill green" id="contentBar" style="width: 33%"></div>
+                </div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-label">
+                    <span class="name">Фрейд (лекция 1)</span>
+                    <span class="value" id="freudProgress">24/27 стр.</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill yellow" id="freudBar" style="width: 89%"></div>
+                </div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-label">
+                    <span class="name">Дом (зоны)</span>
+                    <span class="value" id="homeProgress">0/5</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill blue" id="homeBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-label">
+                    <span class="name">Дипломы (Зарина)</span>
+                    <span class="value" id="diplomaProgress">~40%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill purple" id="diplomaBar" style="width: 40%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Действия -->
+        <div class="actions">
+            <button class="btn btn-primary" onclick="exportReport()">
+                📥 Экспорт отчёта
+            </button>
+            <button class="btn btn-secondary" onclick="updateFreudProgress()">
+                📚 Обновить Фрейд
+            </button>
+            <button class="btn btn-secondary" onclick="addHomeZone()">
+                🏠 Добавить зону
+            </button>
+            <button class="btn btn-reset" onclick="resetAll()">
+                🔄 Сбросить всё
+            </button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✓ Сохранено!</div>
+
+    <script>
+        // Состояние приложения
+        let state = {
+            tasks: {
+                content: false,
+                yulia: false,
+                freud: false,
+                zarina: false
+            },
+            freudPages: 24,
+            homeZones: 0,
+            contentReels: 1,
+            lastUpdated: new Date().toISOString()
+        };
+
+        // Загрузка из localStorage
+        function loadState() {
+            const saved = localStorage.getItem('polinaPlanner');
+            if (saved) {
+                state = { ...state, ...JSON.parse(saved) };
+            }
+            render();
+        }
+
+        // Сохранение в localStorage
+        function saveState() {
+            state.lastUpdated = new Date().toISOString();
+            localStorage.setItem('polinaPlanner', JSON.stringify(state));
+            showToast();
+        }
+
+        // Переключение задачи
+        function toggleTask(taskId) {
+            state.tasks[taskId] = !state.tasks[taskId];
+            
+            // Обновляем счётчик контента
+            if (taskId === 'content' && state.tasks[taskId]) {
+                state.contentReels = Math.min(state.contentReels + 1, 3);
+            }
+            
+            saveState();
+            render();
+        }
+
+        // Обновление прогресса Фрейда
+        function updateFreudProgress() {
+            const newPages = prompt('Сколько страниц прочитала сейчас?', state.freudPages.toString());
+            if (newPages && !isNaN(newPages)) {
+                state.freudPages = parseInt(newPages);
+                saveState();
+                render();
+            }
+        }
+
+        // Добавление зоны дома
+        function addHomeZone() {
+            state.homeZones = Math.min(state.homeZones + 1, 5);
+            saveState();
+            render();
+        }
+
+        // Сброс всего
+        function resetAll() {
+            if (confirm('Сбросить все задачи и прогресс?')) {
+                state = {
+                    tasks: { content: false, yulia: false, freud: false, zarina: false },
+                    freudPages: 24,
+                    homeZones: 0,
+                    contentReels: 1,
+                    lastUpdated: new Date().toISOString()
+                };
+                saveState();
+                render();
+            }
+        }
+
+        // Экспорт отчёта
+        function exportReport() {
+            const completedTasks = Object.entries(state.tasks)
+                .filter(([_, done]) => done)
+                .map(([name, _]) => {
+                    const names = {
+                        content: 'Контент: съёмка 1 рилс',
+                        yulia: 'Юлия: диплом (начать)',
+                        freud: 'Фрейд: стр. 24→27 + 3 предл.',
+                        zarina: 'Зарина: сверить ошибки'
+                    };
+                    return `- [x] ${names[name]}`;
+                })
+                .join('\n');
+
+            const pendingTasks = Object.entries(state.tasks)
+                .filter(([_, done]) => !done)
+                .map(([name, _]) => {
+                    const names = {
+                        content: 'Контент: съёмка 1 рилс',
+                        yulia: 'Юлия: диплом (начать)',
+                        freud: 'Фрейд: стр. 24→27 + 3 предл.',
+                        zarina: 'Зарина: сверить ошибки'
+                    };
+                    return `- [ ] ${names[name]}`;
+                })
+                .join('\n');
+
+            const report = `# Отчёт Полины — ${new Date().toLocaleDateString('ru-RU')}
+
+## ✅ Выполнено сегодня
+${completedTasks || '_Ничего не выполнено_'}
+
+## ⏳ В работе
+${pendingTasks || '_Всё выполнено!_'}
+
+## 📊 Прогресс
+- Фрейд: ${state.freudPages}/27 стр.
+- Дом: ${state.homeZones}/5 зон
+- Контент: ${state.contentReels}/3 рилс
+
+---
+_Сгенерировано: ${new Date().toLocaleString('ru-RU')}_`;
+
+            const blob = new Blob([report], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `отчёт_${new Date().toISOString().split('T')[0]}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Показ уведомления
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Рендеринг
+        function render() {
+            // Задачи
+            Object.entries(state.tasks).forEach(([taskId, completed]) => {
+                const el = document.querySelector(`[data-task="${taskId}"]`);
+                if (el) {
+                    el.classList.toggle('completed', completed);
+                }
+            });
+
+            // Статус прогресса
+            const completedCount = Object.values(state.tasks).filter(Boolean).length;
+            document.getElementById('progressStatus').textContent = 
+                `${completedCount}/4 задач выполнено`;
+
+            // Прогресс-бары
+            document.getElementById('contentProgress').textContent = 
+                `${state.contentReels}/3`;
+            document.getElementById('contentBar').style.width = 
+                `${(state.contentReels / 3) * 100}%`;
+
+            const freudPercent = (state.freudPages / 27) * 100;
+            document.getElementById('freudProgress').textContent = 
+                `${state.freudPages}/27 стр.`;
+            document.getElementById('freudBar').style.width = 
+                `${freudPercent}%`;
+
+            document.getElementById('homeProgress').textContent = 
+                `${state.homeZones}/5`;
+            document.getElementById('homeBar').style.width = 
+                `${(state.homeZones / 5) * 100}%`;
+        }
+
+        // Инициализация
+        loadState();
+    </script>
+</body>
+</html>

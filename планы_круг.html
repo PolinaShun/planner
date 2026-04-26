@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Планы Полины — Circular</title>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --text: #1a1a1a;
+            --text-secondary: #737373;
+            --border: #e5e5e5;
+            
+            --green: #10b981;
+            --green-light: #d1fae5;
+            --yellow: #f59e0b;
+            --yellow-light: #fef3c7;
+            --blue: #3b82f6;
+            --blue-light: #dbeafe;
+            --red: #ef4444;
+            --red-light: #fee2e2;
+            --purple: #8b5cf6;
+            --purple-light: #ede9fe;
+            --pink: #ec4899;
+            --pink-light: #fce7f3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .date {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* Main Layout */
+        .main {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 40px;
+            align-items: start;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .circular-chart {
+            width: 100%;
+            height: auto;
+        }
+
+        /* Center Stats */
+        .center-stats {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .center-number {
+            font-size: 56px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .center-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 6px;
+        }
+
+        .center-progress {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Category Labels around circle */
+        .category-labels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .category-label {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: auto;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--surface);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+        }
+
+        .category-label:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        .category-label.active {
+            background: var(--text);
+            color: white;
+        }
+
+        .category-label .cat-icon {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .category-label .cat-name {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .category-label .cat-count {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        /* Legend */
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg);
+        }
+
+        .legend-item:hover {
+            background: var(--bg);
+            transform: translateX(4px);
+        }
+
+        .legend-item.active {
+            background: var(--text);
+            color: white;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .legend-text {
+            flex: 1;
+        }
+
+        .legend-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .legend-count {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        /* Tasks Panel */
+        .tasks-panel {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .tasks-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tasks-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .tasks-reset {
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .tasks-reset:hover {
+            background: var(--bg);
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            gap: 12px;
+            padding: 14px;
+            background: var(--bg);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .task-item:hover {
+            border-color: var(--border);
+            transform: translateX(4px);
+        }
+
+        .task-item.completed {
+            opacity: 0.5;
+        }
+
+        .task-item.completed .task-name {
+            text-decoration: line-through;
+        }
+
+        .task-check {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .task-item.completed .task-check {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        .task-check::after {
+            content: '✓';
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .task-item.completed .task-check::after {
+            display: block;
+        }
+
+        .task-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .task-tag {
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .tag-p0 { background: var(--red-light); color: var(--red); }
+        .tag-p1 { background: var(--yellow-light); color: var(--yellow); }
+        .tag-p2 { background: var(--blue-light); color: var(--blue); }
+
+        .task-progress {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--green);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--text);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 14px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+            .tasks-panel {
+                position: static;
+                max-height: none;
+            }
+
+            .legend {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .legend {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Планы Полины</h1>
+            <p class="date" id="currentDate"></p>
+        </header>
+
+        <div class="main">
+            <!-- Chart Section -->
+            <div class="chart-section">
+                <div class="chart-wrapper">
+                    <svg class="circular-chart" viewBox="0 0 600 600" id="chart"></svg>
+                    
+                    <div class="category-labels" id="categoryLabels"></div>
+                    
+                    <div class="center-stats">
+                        <div class="center-number" id="centerTotal">0</div>
+                        <div class="center-label">Всего задач</div>
+                        <div class="center-progress" id="centerProgress">0% выполнено</div>
+                    </div>
+                </div>
+
+                <div class="legend" id="legend"></div>
+
+                <div class="actions">
+                    <label class="btn btn-primary">
+                        📥 Trello
+                        <input type="file" class="file-input" accept=".json" onchange="importTrello(this)">
+                    </label>
+                    <button class="btn btn-secondary" onclick="exportData()">📤 Экспорт</button>
+                    <button class="btn btn-secondary" onclick="resetDone()">🔄 Сброс</button>
+                </div>
+            </div>
+
+            <!-- Tasks Panel -->
+            <div class="tasks-panel">
+                <div class="tasks-header">
+                    <div class="tasks-title" id="panelTitle">Все задачи</div>
+                    <div class="tasks-reset" onclick="showAll()">✕</div>
+                </div>
+                <ul class="task-list" id="taskList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let tasks = [];
+        let categories = {};
+        let selectedCategory = null;
+
+        const defaultCategories = {
+            'Учёба': { color: '#10b981', icon: '📚' },
+            'Клиенты': { color: '#8b5cf6', icon: '👥' },
+            'Контент': { color: '#3b82f6', icon: '🎬' },
+            'Дом': { color: '#ec4899', icon: '🏠' },
+            'Здоровье': { color: '#ef4444', icon: '🏥' },
+            'Личное': { color: '#f59e0b', icon: '💃' }
+        };
+
+        function loadState() {
+            const saved = localStorage.getItem('polinaCircularTasks');
+            const savedCats = localStorage.getItem('polinaCircularCats');
+            
+            if (saved) tasks = JSON.parse(saved);
+            if (savedCats) categories = JSON.parse(savedCats);
+            
+            if (tasks.length === 0) loadDefaultTasks();
+            if (Object.keys(categories).length === 0) categories = defaultCategories;
+            
+            render();
+        }
+
+        function loadDefaultTasks() {
+            tasks = [
+                { id: 1, name: 'Фрейд Лекция 3', category: 'Учёба', priority: 'p0', progress: '0/17 стр.', completed: false },
+                { id: 2, name: 'Нэнси Мак-Вильямс', category: 'Учёба', priority: 'p0', progress: '1/6', completed: false },
+                { id: 3, name: 'Транзактный анализ', category: 'Учёба', priority: 'p0', progress: '2 видео', completed: false },
+                { id: 4, name: 'Юлия — диплом', category: 'Клиенты', priority: 'p0', progress: 'Ждём ОС', completed: false },
+                { id: 5, name: 'Зарина — преддипломная', category: 'Клиенты', priority: 'p0', progress: '2000₽', completed: false },
+                { id: 6, name: 'Выложить рилсы', category: 'Контент', priority: 'p1', progress: '7/22', completed: false },
+                { id: 7, name: 'Дом — 1 зона', category: 'Дом', priority: 'p2', progress: '~20%', completed: false },
+                { id: 8, name: 'Танцы', category: 'Личное', priority: 'p2', progress: 'Записаться', completed: false },
+                { id: 9, name: 'Стоматолог', category: 'Здоровье', priority: 'p2', progress: '', completed: false }
+            ];
+        }
+
+        function saveState() {
+            localStorage.setItem('polinaCircularTasks', JSON.stringify(tasks));
+            localStorage.setItem('polinaCircularCats', JSON.stringify(categories));
+        }
+
+        function render() {
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ru-RU', { 
+                weekday: 'long', day: 'numeric', month: 'long' 
+            });
+
+            updateCenterStats();
+            renderChart();
+            renderCategoryLabels();
+            renderLegend();
+            renderTasks();
+        }
+
+        function updateCenterStats() {
+            const total = tasks.length;
+            const done = tasks.filter(t => t.completed).length;
+            const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+
+            document.getElementById('centerTotal').textContent = total;
+            document.getElementById('centerProgress').textContent = `${progress}% выполнено`;
+        }
+
+        function renderChart() {
+            const svg = document.getElementById('chart');
+            const cx = 300, cy = 300;
+            
+            // Count tasks per category (active only)
+            const catCounts = {};
+            Object.keys(categories).forEach(cat => {
+                catCounts[cat] = tasks.filter(t => t.category === cat && !t.completed).length;
+            });
+
+            const totalActive = Object.values(catCounts).reduce((a, b) => a + b, 0);
+            const catNames = Object.keys(categories).filter(c => catCounts[c] > 0);
+            
+            if (totalActive === 0) {
+                svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="200" fill="none" stroke="#f0f0f0" stroke-width="60"/>`;
+                return;
+            }
+
+            // Create concentric rings for each category
+            const ringSpacing = 55;
+            const baseRadius = 100 + (catNames.length * ringSpacing) / 2;
+            
+            let chartContent = '';
+            
+            catNames.forEach((cat, index) => {
+                const count = catCounts[cat];
+                const color = categories[cat]?.color || '#3b82f6';
+                const radius = baseRadius - (index * ringSpacing);
+                
+                // Create dots for this category (arranged in a ring)
+                const maxDots = 20; // max dots per ring
+                const dots = [];
+                
+                for (let i = 0; i < count && i < maxDots; i++) {
+                    const angle = (i / maxDots) * Math.PI * 2 - Math.PI / 2;
+                    const x = cx + radius * Math.cos(angle);
+                    const y = cy + radius * Math.sin(angle);
+                    dots.push(`<circle cx="${x}" cy="${y}" r="8" fill="${color}" class="task-dot" style="cursor:pointer" onclick="filterCategory('${cat}')"/>`);
+                }
+
+                // Ring guide
+                chartContent += `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="#f5f5f5" stroke-width="2"/>`;
+                chartContent += dots.join('');
+            });
+
+            // Outer border
+            svg.innerHTML = `
+                <circle cx="${cx}" cy="${cy}" r="280" fill="none" stroke="#e5e5e5" stroke-width="1"/>
+                ${chartContent}
+                <circle cx="${cx}" cy="${cy}" r="80" fill="none" stroke="#f5f5f5" stroke-width="1"/>
+            `;
+        }
+
+        function renderCategoryLabels() {
+            const container = document.getElementById('categoryLabels');
+            const cx = 300, cy = 300;
+            const radius = 260;
+            
+            const catCounts = {};
+            Object.keys(categories).forEach(cat => {
+                catCounts[cat] = tasks.filter(t => t.category === cat).length;
+            });
+
+            const cats = Object.entries(categories);
+            const angleStep = (Math.PI * 2) / cats.length;
+
+            container.innerHTML = cats.map(([name, data], i) => {
+                const angle = angleStep * i - Math.PI / 2;
+                const x = 50 + (radius * Math.cos(angle)) / 6; // percentage
+                const y = 50 + (radius * Math.sin(angle)) / 6;
+                const count = catCounts[name] || 0;
+                const active = tasks.filter(t => t.category === name && !t.completed).length;
+
+                return `
+                    <div class="category-label ${selectedCategory === name ? 'active' : ''}" 
+                         style="left: ${x}%; top: ${y}%"
+                         onclick="filterCategory('${name}')">
+                        <span class="cat-icon">${data.icon}</span>
+                        <span class="cat-name">${name}</span>
+                        <span class="cat-count">${active}/${count}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderLegend() {
+            const container = document.getElementById('legend');
+            
+            const catCounts = {};
+            Object.keys(categories).forEach(cat => {
+                catCounts[cat] = tasks.filter(t => t.category === cat).length;
+            });
+
+            container.innerHTML = Object.entries(categories).map(([name, data]) => {
+                const total = catCounts[name] || 0;
+                const active = tasks.filter(t => t.category === name && !t.completed).length;
+
+                return `
+                    <div class="legend-item ${selectedCategory === name ? 'active' : ''}" onclick="filterCategory('${name}')">
+                        <div class="legend-dot" style="background: ${data.color}"></div>
+                        <div class="legend-text">
+                            <div class="legend-name">${data.icon} ${name}</div>
+                            <div class="legend-count">${active} активн. из ${total}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('taskList');
+            let filtered = tasks;
+
+            if (selectedCategory) {
+                filtered = tasks.filter(t => t.category === selectedCategory);
+                const icon = categories[selectedCategory]?.icon || '📋';
+                document.getElementById('panelTitle').textContent = `${icon} ${selectedCategory}`;
+            } else {
+                document.getElementById('panelTitle').textContent = 'Все задачи';
+            }
+
+            filtered.sort((a, b) => a.completed - b.completed);
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<li style="text-align:center;padding:40px;color:var(--text-secondary)">Нет задач</li>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(task => `
+                <li class="task-item ${task.completed ? 'completed' : ''}" onclick="toggleTask(${task.id})">
+                    <div class="task-check"></div>
+                    <div class="task-info">
+                        <div class="task-name">${task.name}</div>
+                        <div class="task-meta">
+                            <span class="task-tag ${task.priority}">${task.priority}</span>
+                            ${task.progress ? `<span class="task-progress">${task.progress}</span>` : ''}
+                        </div>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveState();
+                render();
+                showToast(task.completed ? '✓ Выполнено' : '↺ В работу');
+            }
+        }
+
+        function filterCategory(cat) {
+            selectedCategory = selectedCategory === cat ? null : cat;
+            render();
+        }
+
+        function showAll() {
+            selectedCategory = null;
+            render();
+        }
+
+        function importTrello(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.labels) {
+                        data.labels.forEach(lbl => {
+                            if (!categories[lbl.name]) {
+                                categories[lbl.name] = { color: getColor(lbl.color), icon: '📌' };
+                            }
+                        });
+                    }
+
+                    if (data.lists) {
+                        let id = tasks.length ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+
+                        data.lists.forEach(list => {
+                            const isDone = list.name.toLowerCase().includes('done');
+                            
+                            if (list.cards) {
+                                list.cards.forEach(card => {
+                                    const cat = getCardCategory(card.idLabels, data.labels);
+                                    const pri = getCardPriority(card.idLabels, data.labels);
+                                    const prog = getCardProgress(card);
+
+                                    tasks.push({
+                                        id: id++,
+                                        name: card.name,
+                                        category: cat,
+                                        priority: pri,
+                                        progress: prog,
+                                        completed: isDone
+                                    });
+                                });
+                            }
+                        });
+                    }
+
+                    saveState();
+                    render();
+                    showToast('✓ Задачи импортированы');
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function getCardCategory(labelIds, labels) {
+            if (!labelIds || !labels) return 'Личное';
+            const names = labelIds.map(id => labels.find(l => l.id === id)?.name || '');
+            if (names.some(n => n.includes('КЛИЕНТЫ'))) return 'Клиенты';
+            if (names.some(n => n.includes('КОНТЕНТ'))) return 'Контент';
+            if (names.some(n => n.includes('ЗДОРОВЬЕ'))) return 'Здоровье';
+            return 'Личное';
+        }
+
+        function getCardPriority(labelIds, labels) {
+            if (!labelIds || !labels) return 'p1';
+            const names = labelIds.map(id => labels.find(l => l.id === id)?.name || '');
+            if (names.some(n => n.includes('P0') || n.includes('КРИТИЧНО'))) return 'p0';
+            if (names.some(n => n.includes('P2') || n.includes('ВАЖНО'))) return 'p1';
+            return 'p2';
+        }
+
+        function getCardProgress(card) {
+            if (card.desc) {
+                const m = card.desc.match(/(\d+[\/\-]\d+|\d+%)/i);
+                if (m) return m[0];
+            }
+            if (card.checklists?.[0]?.items) {
+                const items = card.checklists[0].items;
+                const done = items.filter(i => i.state === 'complete').length;
+                if (items.length) return `${done}/${items.length}`;
+            }
+            return '';
+        }
+
+        function getColor(c) {
+            const map = {
+                red: '#ef4444', orange: '#f97316', yellow: '#f59e0b',
+                green: '#10b981', blue: '#3b82f6', purple: '#8b5cf6',
+                pink: '#ec4899', cyan: '#06b6d4', black: '#737373'
+            };
+            return map[c] || '#3b82f6';
+        }
+
+        function exportData() {
+            const done = tasks.filter(t => t.completed).length;
+            const report = `# Планы — ${new Date().toLocaleDateString('ru-RU')}
+
+Всего: ${tasks.length} | Готово: ${done} | ${Math.round(done/tasks.length*100)}%
+
+${tasks.map(t => `- [${t.completed ? 'x' : ' '}] ${t.name} [${t.category}]`).join('\n')}
+`;
+            const blob = new Blob([report], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `планы_${new Date().toISOString().split('T')[0]}.md`;
+            a.click();
+            showToast('✓ Экспорт');
+        }
+
+        function resetDone() {
+            if (confirm('Сбросить выполненные?')) {
+                tasks.forEach(t => { if (t.completed) t.completed = false; });
+                saveState();
+                render();
+                showToast('↺ Сброс');
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+
+        loadState();
+    </script>
+</body>
+</html>

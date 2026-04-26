@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Планы Полины — Визуализация + Trello</title>
+    <style>
+        :root {
+            --bg-primary: #f6f8fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-hover: #f3f4f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --accent-red: #dc2626;
+            --accent-red-light: #fee2e2;
+            --accent-yellow: #d97706;
+            --accent-yellow-light: #fef3c7;
+            --accent-green: #16a34a;
+            --accent-green-light: #dcfce7;
+            --accent-blue: #2563eb;
+            --accent-blue-light: #dbeafe;
+            --accent-purple: #7c3aed;
+            --accent-purple-light: #ede9fe;
+            --accent-pink: #db2777;
+            --accent-pink-light: #fce7f3;
+            --border: #e5e7eb;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        header h1 {
+            font-size: 36px;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+
+        header .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .header-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-light {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-light:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #15803d;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .tab.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Focus Card */
+        .focus-card {
+            background: linear-gradient(135deg, var(--accent-red-light), var(--accent-yellow-light));
+            border: 2px solid var(--accent-red);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .focus-card h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .focus-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .focus-item {
+            background: var(--bg-card);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        .focus-item:hover {
+            transform: translateY(-4px);
+        }
+
+        .focus-number {
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .focus-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .focus-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Kanban */
+        .kanban {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kanban-column {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            border: 2px solid var(--border);
+            min-height: 400px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .kanban-header {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            z-index: 10;
+        }
+
+        .kanban-column.todo .kanban-header {
+            background: var(--accent-blue-light);
+            color: var(--accent-blue);
+        }
+
+        .kanban-column.progress .kanban-header {
+            background: var(--accent-yellow-light);
+            color: var(--accent-yellow);
+        }
+
+        .kanban-column.blocked .kanban-header {
+            background: var(--accent-red-light);
+            color: var(--accent-red);
+        }
+
+        .kanban-column.backlog .kanban-header {
+            background: var(--bg-hover);
+            color: var(--text-secondary);
+        }
+
+        .kanban-count {
+            background: rgba(0,0,0,0.1);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .kanban-item {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            border-left: 4px solid var(--accent-blue);
+            box-shadow: var(--shadow);
+            cursor: grab;
+            transition: all 0.2s;
+        }
+
+        .kanban-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .kanban-item:active {
+            cursor: grabbing;
+        }
+
+        .kanban-item.urgent {
+            border-left-color: var(--accent-red);
+        }
+
+        .kanban-item-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .kanban-item-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .kanban-tag {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .tag-deadline {
+            background: var(--accent-red-light);
+            color: var(--accent-red);
+        }
+
+        .tag-progress {
+            background: var(--accent-blue-light);
+            color: var(--accent-blue);
+        }
+
+        .tag-waiting {
+            background: var(--accent-yellow-light);
+            color: var(--accent-yellow);
+        }
+
+        .tag-label {
+            background: var(--accent-purple-light);
+            color: var(--accent-purple);
+        }
+
+        /* Progress Section */
+        .progress-section {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            border: 2px solid var(--border);
+            padding: 28px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .progress-section h2 {
+            font-size: 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .progress-item {
+            background: var(--bg-card);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        .progress-item:hover {
+            transform: translateY(-4px);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-name {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .progress-value {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: var(--bg-hover);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Timeline */
+        .timeline-section {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            border: 2px solid var(--border);
+            padding: 28px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .timeline-section h2 {
+            font-size: 24px;
+            margin-bottom: 24px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 14px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: 14px;
+            margin-bottom: 16px;
+            border-left: 5px solid var(--accent-blue);
+            box-shadow: var(--shadow);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .timeline-item:hover {
+            transform: translateX(8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 24px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            border: 4px solid var(--bg-secondary);
+            transition: all 0.2s;
+        }
+
+        .timeline-item:hover::before {
+            transform: scale(1.3);
+        }
+
+        .timeline-item.urgent::before {
+            background: var(--accent-red);
+        }
+
+        .timeline-item.urgent {
+            border-left-color: var(--accent-red);
+        }
+
+        .timeline-item.completed {
+            opacity: 0.6;
+            border-left-color: var(--accent-green);
+        }
+
+        .timeline-item.completed::before {
+            background: var(--accent-green);
+        }
+
+        .timeline-date {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .timeline-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .timeline-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Stats */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-blue);
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal h3 {
+            font-size: 22px;
+            margin-bottom: 16px;
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--accent-green);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Filter */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-bar input,
+        .filter-bar select {
+            padding: 10px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--bg-card);
+        }
+
+        .filter-bar input:focus,
+        .filter-bar select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .kanban {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kanban {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Import section */
+        .import-section {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            border: 2px solid var(--border);
+            padding: 28px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .import-section h2 {
+            font-size: 22px;
+            margin-bottom: 16px;
+        }
+
+        .import-section p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .imported-labels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+
+        .imported-label {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Планы Полины</h1>
+            <p class="subtitle">Интерактивная визуализация + Trello импорт • 2 апреля 2026</p>
+            <div class="header-controls">
+                <button class="btn btn-light" onclick="toggleCompleted()">
+                    👁️ Показать/скрыть выполненные
+                </button>
+                <button class="btn btn-light" onclick="exportData()">
+                    📥 Экспорт
+                </button>
+                <button class="btn btn-light" onclick="resetAll()">
+                    🔄 Сброс
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-number" id="statTotal">0</div>
+                <div class="stat-label">Всего задач</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statCompleted" style="color: var(--accent-green);">0</div>
+                <div class="stat-label">Выполнено</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statPending" style="color: var(--accent-yellow);">0</div>
+                <div class="stat-label">В работе</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statBlocked" style="color: var(--accent-red);">0</div>
+                <div class="stat-label">Заблокировано</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statProgress" style="color: var(--accent-purple);">0%</div>
+                <div class="stat-label">Общий прогресс</div>
+            </div>
+        </div>
+
+        <!-- Import Section -->
+        <div class="import-section">
+            <h2>📥 Импорт из Trello</h2>
+            <p>Загрузи файл экспорта Trello (JSON) чтобы импортировать все задачи</p>
+            <div class="file-input-wrapper">
+                <button class="btn btn-primary">📁 Выбрать файл Trello JSON</button>
+                <input type="file" id="trelloFile" accept=".json" onchange="importTrello(this)">
+            </div>
+            <div id="importedLabels" class="imported-labels"></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-view="kanban">📋 Канбан (Trello)</div>
+            <div class="tab" data-view="timeline">📅 Timeline</div>
+            <div class="tab" data-view="progress">📊 Прогресс</div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <input type="text" id="searchInput" placeholder="🔍 Поиск задач..." style="flex: 1; min-width: 200px;">
+            <select id="listFilter">
+                <option value="all">Все списки</option>
+                <option value="todo">📋 TO DO</option>
+                <option value="progress">🚀 IN PROGRESS</option>
+                <option value="blocked">🚧 BLOCKED</option>
+                <option value="backlog">📌 БЭКЛОГ</option>
+                <option value="done">✅ DONE</option>
+            </select>
+            <select id="labelFilter">
+                <option value="all">Все метки</option>
+            </select>
+        </div>
+
+        <!-- Focus Card -->
+        <div class="focus-card">
+            <h2>🔥 Фокус недели</h2>
+            <div class="focus-grid">
+                <div class="focus-item">
+                    <div class="focus-number" id="focusTodo">0</div>
+                    <div class="focus-label">Задач в TO DO</div>
+                    <div class="focus-value">Нужно сделать</div>
+                </div>
+                <div class="focus-item">
+                    <div class="focus-number" id="focusProgress">0</div>
+                    <div class="focus-label">В работе</div>
+                    <div class="focus-value">Активные задачи</div>
+                </div>
+                <div class="focus-item">
+                    <div class="focus-number" id="focusBlocked">0</div>
+                    <div class="focus-label">Заблокировано</div>
+                    <div class="focus-value">Требуют внимания</div>
+                </div>
+                <div class="focus-item">
+                    <div class="focus-number" style="font-size: 28px;" id="focusLabels">0</div>
+                    <div class="focus-label">Меток используется</div>
+                    <div class="focus-value">Категоризация</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Kanban -->
+        <div class="view active" id="view-kanban">
+            <div class="kanban">
+                <div class="kanban-column todo">
+                    <div class="kanban-header">
+                        📋 TO DO
+                        <span class="kanban-count" id="countTodo">0</span>
+                    </div>
+                    <div id="kanbanTodo"></div>
+                </div>
+
+                <div class="kanban-column progress">
+                    <div class="kanban-header">
+                        🚀 IN PROGRESS
+                        <span class="kanban-count" id="countProgress">0</span>
+                    </div>
+                    <div id="kanbanProgress"></div>
+                </div>
+
+                <div class="kanban-column blocked">
+                    <div class="kanban-header">
+                        🚧 BLOCKED
+                        <span class="kanban-count" id="countBlocked">0</span>
+                    </div>
+                    <div id="kanbanBlocked"></div>
+                </div>
+
+                <div class="kanban-column backlog">
+                    <div class="kanban-header">
+                        📌 БЭКЛОГ
+                        <span class="kanban-count" id="countBacklog">0</span>
+                    </div>
+                    <div id="kanbanBacklog"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Timeline -->
+        <div class="view" id="view-timeline">
+            <div class="timeline-section">
+                <h2>📅 Timeline (задачи без дедлайнов)</h2>
+                <div class="timeline" id="timeline"></div>
+            </div>
+        </div>
+
+        <!-- View: Progress -->
+        <div class="view" id="view-progress">
+            <div class="progress-section">
+                <h2>📊 Прогресс по меткам Trello</h2>
+                <div class="progress-grid" id="progressGrid"></div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast">✓ Сохранено!</div>
+    </div>
+
+    <script>
+        // Данные
+        let tasks = [];
+        let labels = {};
+        let lists = {
+            todo: [],
+            progress: [],
+            blocked: [],
+            backlog: [],
+            done: []
+        };
+
+        // Маппинг списков Trello
+        const listMapping = {
+            '📋 to do (планы на неделю)': 'todo',
+            '🚀 in progress (делаю сейчас)': 'progress',
+            '🚧 blocked (блокер / нужна помощь)': 'blocked',
+            '📌 бэклог (на потом)': 'backlog',
+            '✅ done (завершено)': 'done'
+        };
+
+        // Загрузка состояния
+        function loadState() {
+            const savedTasks = localStorage.getItem('polinaTrelloTasks');
+            const savedLabels = localStorage.getItem('polinaTrelloLabels');
+            
+            if (savedTasks) {
+                tasks = JSON.parse(savedTasks);
+            }
+            if (savedLabels) {
+                labels = JSON.parse(savedLabels);
+            }
+            
+            // Если есть данные из примера (Polina's plans), добавим их
+            if (tasks.length === 0) {
+                loadDefaultTasks();
+            }
+            
+            render();
+        }
+
+        // Загрузка задач по умолчанию
+        function loadDefaultTasks() {
+            tasks = [
+                { id: 1, name: 'Нэнси Мак-Вильямс — 6 уроков', list: 'todo', labels: ['🔴 P0-P1 КРИТИЧНО'], progress: '1/6 уроков', completed: false },
+                { id: 2, name: 'Фрейд Лекция 2 — дочитать', list: 'todo', labels: ['🔴 P0-P1 КРИТИЧНО'], progress: '34/41 стр.', completed: false },
+                { id: 3, name: 'Фрейд Лекция 3 — начать', list: 'todo', labels: ['🔴 P0-P1 КРИТИЧНО'], progress: '0/17 стр.', completed: false },
+                { id: 4, name: 'Транзактный анализ — скачать', list: 'todo', labels: ['🔴 P0-P1 КРИТИЧНО'], progress: '2 видео осталось', completed: false },
+                { id: 5, name: 'Юлия — диплом (правки)', list: 'blocked', labels: ['👥 КЛИЕНТЫ', '🔴 P0-P1 КРИТИЧНО'], progress: 'Ждём ОС', completed: false },
+                { id: 6, name: 'Зарина — преддипломная', list: 'blocked', labels: ['👥 КЛИЕНТЫ', '🔴 P0-P1 КРИТИЧНО'], progress: '2000₽ + ОС', completed: false },
+                { id: 7, name: 'Контент — выложить рилсы', list: 'progress', labels: ['📢 КОНТЕНТ', '🟡 P2 ВАЖНО'], progress: '7/22 выложено', completed: false },
+                { id: 8, name: 'Надежда — диплом', list: 'backlog', labels: ['👥 КЛИЕНТЫ', '🟢 P3 НА ПОТОМ'], progress: 'Ждём оплату', completed: false },
+                { id: 9, name: 'Дом — 1 зона/день', list: 'todo', labels: ['🟢 P3 НА ПОТОМ'], progress: '~20%', completed: false },
+                { id: 10, name: 'Танцы — записаться', list: 'backlog', labels: ['🟢 P3 НА ПОТОМ'], progress: 's17dance.ru', completed: false }
+            ];
+
+            labels = {
+                '🔴 P0-P1 КРИТИЧНО': 'red',
+                '🟡 P2 ВАЖНО': 'yellow',
+                '🟢 P3 НА ПОТОМ': 'green',
+                '📢 КОНТЕНТ': 'blue',
+                '👥 КЛИЕНТЫ': 'purple',
+                '💰 ФИНАНСЫ': 'orange',
+                '🏥 ЗДОРОВЬЕ': 'pink',
+                '⚙️ СИСТЕМА': 'black'
+            };
+        }
+
+        // Импорт Trello
+        function importTrello(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Импорт меток
+                    if (data.labels) {
+                        data.labels.forEach(label => {
+                            labels[label.name] = label.color;
+                        });
+                        displayImportedLabels();
+                    }
+
+                    // Импорт задач из списков
+                    if (data.lists) {
+                        let taskId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+                        
+                        data.lists.forEach(list => {
+                            const listName = list.name.toLowerCase();
+                            let targetList = 'backlog';
+                            
+                            // Определяем список
+                            for (const [key, value] of Object.entries(listMapping)) {
+                                if (listName.includes(key.split(' ')[0]) || listName.includes(key)) {
+                                    targetList = value;
+                                    break;
+                                }
+                            }
+
+                            // Импорт карточек
+                            if (list.cards) {
+                                list.cards.forEach(card => {
+                                    const cardLabels = [];
+                                    if (card.idLabels) {
+                                        card.idLabels.forEach(labelId => {
+                                            const label = data.labels.find(l => l.id === labelId);
+                                            if (label) cardLabels.push(label.name);
+                                        });
+                                    }
+
+                                    const progress = extractProgress(card);
+                                    
+                                    tasks.push({
+                                        id: taskId++,
+                                        name: card.name,
+                                        list: targetList,
+                                        labels: cardLabels,
+                                        progress: progress,
+                                        desc: card.desc || '',
+                                        completed: targetList === 'done',
+                                        checklists: card.checklists || []
+                                    });
+                                });
+                            }
+                        });
+                    }
+
+                    saveState();
+                    render();
+                    showToast(`✓ Импортировано ${tasks.length} задач и ${Object.keys(labels).length} меток`);
+                } catch (error) {
+                    alert('Ошибка импорта: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Извлечение прогресса из карточки
+        function extractProgress(card) {
+            if (card.desc) {
+                const match = card.desc.match(/(\d+[/\-]\d+|\d+%\s*|\d+ из \d+)/i);
+                if (match) return match[0];
+            }
+            if (card.checklists && card.checklists.length > 0) {
+                const total = card.checklists[0].items?.length || 0;
+                const done = card.checklists[0].items?.filter(i => i.state === 'complete')?.length || 0;
+                if (total > 0) return `${done}/${total}`;
+            }
+            return '';
+        }
+
+        // Отображение импортированных меток
+        function displayImportedLabels() {
+            const container = document.getElementById('importedLabels');
+            const labelFilter = document.getElementById('labelFilter');
+            
+            container.innerHTML = Object.entries(labels).map(([name, color]) => {
+                const bgColor = getLabelColor(color);
+                return `<span class="imported-label" style="background: ${bgColor}; color: white;">${name}</span>`;
+            }).join('');
+
+            // Обновляем фильтр
+            labelFilter.innerHTML = '<option value="all">Все метки</option>' + 
+                Object.keys(labels).map(name => `<option value="${name}">${name}</option>`).join('');
+        }
+
+        // Получение цвета метки
+        function getLabelColor(color) {
+            const colors = {
+                'red': '#dc2626',
+                'red_dark': '#991b1b',
+                'orange': '#ea580c',
+                'yellow': '#d97706',
+                'green': '#16a34a',
+                'blue': '#2563eb',
+                'blue_dark': '#1d4ed8',
+                'purple': '#7c3aed',
+                'pink': '#db2777',
+                'pink_light': '#f472b6',
+                'black': '#374151',
+                'black_dark': '#1f2937'
+            };
+            return colors[color] || '#6b7280';
+        }
+
+        // Сохранение состояния
+        function saveState() {
+            localStorage.setItem('polinaTrelloTasks', JSON.stringify(tasks));
+            localStorage.setItem('polinaTrelloLabels', JSON.stringify(labels));
+            updateStats();
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const pending = tasks.filter(t => !t.completed && t.list === 'progress').length;
+            const blocked = tasks.filter(t => t.list === 'blocked').length;
+            const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statCompleted').textContent = completed;
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statBlocked').textContent = blocked;
+            document.getElementById('statProgress').textContent = progress + '%';
+
+            // Focus counts
+            document.getElementById('focusTodo').textContent = tasks.filter(t => t.list === 'todo' && !t.completed).length;
+            document.getElementById('focusProgress').textContent = tasks.filter(t => t.list === 'progress' && !t.completed).length;
+            document.getElementById('focusBlocked').textContent = tasks.filter(t => t.list === 'blocked' && !t.completed).length;
+            document.getElementById('focusLabels').textContent = new Set(tasks.flatMap(t => t.labels)).size;
+
+            // Kanban counts
+            document.getElementById('countTodo').textContent = tasks.filter(t => t.list === 'todo').length;
+            document.getElementById('countProgress').textContent = tasks.filter(t => t.list === 'progress').length;
+            document.getElementById('countBlocked').textContent = tasks.filter(t => t.list === 'blocked').length;
+            document.getElementById('countBacklog').textContent = tasks.filter(t => t.list === 'backlog').length;
+        }
+
+        // Рендеринг
+        function render() {
+            renderKanban();
+            renderTimeline();
+            renderProgress();
+            updateStats();
+            displayImportedLabels();
+        }
+
+        // Рендеринг Kanban
+        function renderKanban() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const listFilter = document.getElementById('listFilter').value;
+            const selectedLabel = document.getElementById('labelFilter').value;
+
+            ['todo', 'progress', 'blocked', 'backlog'].forEach(listName => {
+                const container = document.getElementById('kanban' + listName.charAt(0).toUpperCase() + listName.slice(1));
+                container.innerHTML = '';
+
+                let filtered = tasks.filter(t => t.list === listName);
+
+                if (search) {
+                    filtered = filtered.filter(t => t.name.toLowerCase().includes(search));
+                }
+
+                if (listFilter !== 'all' && listFilter !== listName) {
+                    filtered = [];
+                }
+
+                if (selectedLabel !== 'all') {
+                    filtered = filtered.filter(t => t.labels.includes(selectedLabel));
+                }
+
+                filtered.forEach(task => {
+                    const item = createKanbanItem(task);
+                    container.appendChild(item);
+                });
+            });
+        }
+
+        function createKanbanItem(task) {
+            const div = document.createElement('div');
+            div.className = 'kanban-item' + (task.list === 'blocked' ? ' urgent' : '');
+            if (task.completed) div.classList.add('completed');
+            div.onclick = () => toggleTask(task.id);
+
+            let tags = '';
+            task.labels.forEach(label => {
+                const color = getLabelColor(labels[label]);
+                tags += `<span class="kanban-tag tag-label" style="background: ${color}20; color: ${color};">${label}</span>`;
+            });
+            if (task.progress) {
+                tags += `<span class="kanban-tag tag-progress">${task.progress}</span>`;
+            }
+
+            div.innerHTML = `
+                <div class="kanban-item-title">${task.completed ? '✅ ' : ''}${task.name}</div>
+                <div class="kanban-item-meta">${tags}</div>
+            `;
+            return div;
+        }
+
+        // Рендеринг Timeline
+        function renderTimeline() {
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+
+            // Группируем по спискам
+            const grouped = {
+                '🚀 В работе': tasks.filter(t => t.list === 'progress' && !t.completed),
+                '📋 В планах': tasks.filter(t => t.list === 'todo' && !t.completed),
+                '🚧 Заблокировано': tasks.filter(t => t.list === 'blocked' && !t.completed),
+                '📌 Бэклог': tasks.filter(t => t.list === 'backlog' && !t.completed),
+                '✅ Выполнено': tasks.filter(t => t.completed)
+            };
+
+            Object.entries(grouped).forEach(([groupName, groupTasks]) => {
+                if (groupTasks.length === 0) return;
+
+                const groupDiv = document.createElement('div');
+                groupDiv.style.marginBottom = '24px';
+                groupDiv.innerHTML = `<h3 style="margin-bottom: 12px; color: var(--text-secondary); font-size: 14px;">${groupName}</h3>`;
+                container.appendChild(groupDiv);
+
+                groupTasks.forEach(task => {
+                    const div = document.createElement('div');
+                    div.className = 'timeline-item' + (task.list === 'blocked' ? ' urgent' : '');
+                    if (task.completed) div.classList.add('completed');
+                    div.onclick = () => toggleTask(task.id);
+
+                    let labelsHtml = task.labels.map(l => `<span class="kanban-tag tag-label">${l}</span>`).join(' ');
+                    
+                    div.innerHTML = `
+                        <div class="timeline-title">${task.name}</div>
+                        <div class="timeline-desc">${task.progress || 'Нет данных'} ${labelsHtml}</div>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        // Рендеринг Progress
+        function renderProgress() {
+            const container = document.getElementById('progressGrid');
+            container.innerHTML = '';
+
+            // Считаем задачи по меткам
+            const labelCounts = {};
+            tasks.forEach(task => {
+                if (!task.completed) {
+                    task.labels.forEach(label => {
+                        labelCounts[label] = (labelCounts[label] || 0) + 1;
+                    });
+                }
+            });
+
+            // Считаем всего задач по меткам
+            const labelTotal = {};
+            tasks.forEach(task => {
+                task.labels.forEach(label => {
+                    labelTotal[label] = (labelTotal[label] || 0) + 1;
+                });
+            });
+
+            Object.entries(labelCounts).forEach(([label, count]) => {
+                const total = labelTotal[label] || count;
+                const percent = Math.round((count / total) * 100);
+                const color = getLabelColor(labels[label]);
+
+                const div = document.createElement('div');
+                div.className = 'progress-item';
+                div.innerHTML = `
+                    <div class="progress-header">
+                        <span class="progress-name">${label}</span>
+                        <span class="progress-value">${count} активн.</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percent}%; background: ${color};"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Переключение задачи
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                if (task.completed) {
+                    task.list = 'done';
+                } else {
+                    task.list = 'todo';
+                }
+                saveState();
+                render();
+                showToast('✓ ' + (task.completed ? 'Выполнено!' : 'Возвращено в работу'));
+            }
+        }
+
+        // Показать/скрыть выполненные
+        let showCompleted = true;
+        function toggleCompleted() {
+            showCompleted = !showCompleted;
+            document.querySelectorAll('.kanban-item.completed, .timeline-item.completed').forEach(el => {
+                el.style.display = showCompleted ? '' : 'none';
+            });
+            showToast(showCompleted ? '✓ Показаны все' : '✓ Скрыты выполненные');
+        }
+
+        // Экспорт данных
+        function exportData() {
+            const completed = tasks.filter(t => t.completed).length;
+            const report = `# Отчёт Полины — ${new Date().toLocaleDateString('ru-RU')}
+
+## Статистика
+- Всего задач: ${tasks.length}
+- Выполнено: ${completed}
+- В работе: ${tasks.filter(t => t.list === 'progress').length}
+- Заблокировано: ${tasks.filter(t => t.list === 'blocked').length}
+- Прогресс: ${Math.round((completed/tasks.length)*100)}%
+
+## 📋 TO DO
+${tasks.filter(t => t.list === 'todo').map(t => `- [${t.completed ? 'x' : ' '}] ${t.name} ${t.labels.join(' ')}`).join('\n')}
+
+## 🚀 IN PROGRESS
+${tasks.filter(t => t.list === 'progress').map(t => `- [${t.completed ? 'x' : ' '}] ${t.name} ${t.labels.join(' ')}`).join('\n')}
+
+## 🚧 BLOCKED
+${tasks.filter(t => t.list === 'blocked').map(t => `- [${t.completed ? 'x' : ' '}] ${t.name} ${t.labels.join(' ')}`).join('\n')}
+
+## 📌 BACKLOG
+${tasks.filter(t => t.list === 'backlog').map(t => `- [${t.completed ? 'x' : ' '}] ${t.name} ${t.labels.join(' ')}`).join('\n')}
+
+---
+_Сгенерировано: ${new Date().toLocaleString('ru-RU')}_`;
+
+            const blob = new Blob([report], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `trello_отчёт_${new Date().toISOString().split('T')[0]}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('✓ Отчёт экспортирован');
+        }
+
+        // Сброс
+        function resetAll() {
+            if (confirm('Сбросить все выполненные задачи?')) {
+                tasks.forEach(t => {
+                    if (t.completed) {
+                        t.completed = false;
+                        t.list = 'todo';
+                    }
+                });
+                saveState();
+                render();
+                showToast('✓ Выполненные задачи сброшены');
+            }
+        }
+
+        // Утилиты
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Переключение вкладок
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById('view-' + this.dataset.view).classList.add('active');
+            });
+        });
+
+        // Фильтры
+        document.getElementById('searchInput').addEventListener('input', renderKanban);
+        document.getElementById('listFilter').addEventListener('change', renderKanban);
+        document.getElementById('labelFilter').addEventListener('change', renderKanban);
+
+        // Инициализация
+        loadState();
+    </script>
+</body>
+</html>

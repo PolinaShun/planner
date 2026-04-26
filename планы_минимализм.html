@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Планы — Минимализм</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #fff;
+            color: #1a1a1a;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        header {
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .date {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 16px;
+        }
+
+        .task {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .task:hover {
+            opacity: 0.7;
+        }
+
+        .task.completed {
+            opacity: 0.5;
+        }
+
+        .task.completed .task-name {
+            text-decoration: line-through;
+        }
+
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .task.completed .checkbox {
+            background: #1a1a1a;
+            border-color: #1a1a1a;
+        }
+
+        .checkbox::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+            display: none;
+        }
+
+        .task.completed .checkbox::after {
+            display: block;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-name {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .task-meta {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-right: 8px;
+        }
+
+        .tag.p0 { background: #fee2e2; color: #dc2626; }
+        .tag.p1 { background: #fef3c7; color: #d97706; }
+        .tag.p2 { background: #dbeafe; color: #2563eb; }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            border-color: #1a1a1a;
+        }
+
+        .btn-primary {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+
+        .btn-primary:hover {
+            background: #333;
+        }
+
+        .import-section {
+            margin-bottom: 32px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+        }
+
+        .import-section h2 {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1a1a1a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 14px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 20px 16px;
+            }
+
+            .stats {
+                gap: 16px;
+            }
+
+            .stat-num {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Планы</h1>
+        <div class="date" id="currentDate"></div>
+    </header>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-num" id="statTotal">0</div>
+            <div class="stat-label">Всего</div>
+        </div>
+        <div class="stat">
+            <div class="stat-num" id="statDone">0</div>
+            <div class="stat-label">Готово</div>
+        </div>
+        <div class="stat">
+            <div class="stat-num" id="statTodo">0</div>
+            <div class="stat-label">Осталось</div>
+        </div>
+    </div>
+
+    <div class="import-section">
+        <h2>Импорт Trello</h2>
+        <div class="file-input-wrapper">
+            <button class="btn btn-primary">Загрузить JSON</button>
+            <input type="file" id="trelloFile" accept=".json" onchange="importTrello(this)">
+        </div>
+    </div>
+
+    <div class="filters">
+        <button class="filter-btn active" data-filter="all">Все</button>
+        <button class="filter-btn" data-filter="p0">🔥 P0</button>
+        <button class="filter-btn" data-filter="p1">📌 P1</button>
+        <button class="filter-btn" data-filter="p2">📦 P2</button>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Сейчас</div>
+        <div id="tasksNow"></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Потом</div>
+        <div id="tasksLater"></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Готово</div>
+        <div id="tasksDone"></div>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-primary" onclick="addTask()">+ Добавить</button>
+        <button class="btn" onclick="exportData()">Экспорт</button>
+        <button class="btn" onclick="resetDone()">Сброс</button>
+    </div>
+
+    <div class="toast" id="toast">✓</div>
+
+    <script>
+        let tasks = [];
+        let currentFilter = 'all';
+
+        // Загрузка
+        function loadState() {
+            const saved = localStorage.getItem('minimalTasks');
+            if (saved) {
+                tasks = JSON.parse(saved);
+            } else {
+                // Задачи по умолчанию
+                tasks = [
+                    { id: 1, name: 'Фрейд Лекция 3', meta: '02.04 • 0/17 стр.', priority: 'p0', section: 'now', completed: false },
+                    { id: 2, name: 'Нэнси Мак-Вильямс', meta: '08.04 • 1/6 уроков', priority: 'p0', section: 'now', completed: false },
+                    { id: 3, name: 'Контент — выложить рилсы', meta: '7/22 выложено', priority: 'p1', section: 'now', completed: false },
+                    { id: 4, name: 'Транзактный анализ', meta: '2 видео скачать', priority: 'p0', section: 'now', completed: false },
+                    { id: 5, name: 'Дом — 1 зона/день', meta: '~20%', priority: 'p2', section: 'later', completed: false },
+                    { id: 6, name: 'Танцы — записаться', meta: 's17dance.ru', priority: 'p2', section: 'later', completed: false },
+                    { id: 7, name: 'Юлия — диплом', meta: 'Ждём ОС', priority: 'p0', section: 'now', completed: false },
+                    { id: 8, name: 'Зарина — преддипломная', meta: '2000₽ + ОС', priority: 'p0', section: 'now', completed: false }
+                ];
+            }
+            render();
+        }
+
+        // Сохранение
+        function saveState() {
+            localStorage.setItem('minimalTasks', JSON.stringify(tasks));
+            render();
+        }
+
+        // Рендеринг
+        function render() {
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ru-RU', { 
+                weekday: 'long', 
+                day: 'numeric', 
+                month: 'long' 
+            });
+
+            // Статистика
+            const total = tasks.length;
+            const done = tasks.filter(t => t.completed).length;
+            const todo = total - done;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statDone').textContent = done;
+            document.getElementById('statTodo').textContent = todo;
+
+            // Фильтрация
+            let filtered = tasks;
+            if (currentFilter !== 'all') {
+                filtered = tasks.filter(t => t.priority === currentFilter);
+            }
+
+            // Рендеринг секций
+            renderSection('tasksNow', filtered.filter(t => t.section === 'now' && !t.completed));
+            renderSection('tasksLater', filtered.filter(t => t.section === 'later' && !t.completed));
+            renderSection('tasksDone', filtered.filter(t => t.completed));
+        }
+
+        function renderSection(containerId, sectionTasks) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = sectionTasks.map(task => `
+                <div class="task ${task.completed ? 'completed' : ''}" onclick="toggleTask(${task.id})">
+                    <div class="checkbox"></div>
+                    <div class="task-content">
+                        <div class="task-name">${task.name}</div>
+                        <div class="task-meta">
+                            <span class="tag ${task.priority}">${task.priority.toUpperCase()}</span>
+                            ${task.meta}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            if (sectionTasks.length === 0) {
+                container.innerHTML = '<div style="color: #ccc; padding: 20px 0; text-align: center;">—</div>';
+            }
+        }
+
+        // Переключение задачи
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                task.section = task.completed ? 'done' : 'now';
+                saveState();
+                showToast(task.completed ? '✓' : '↺');
+            }
+        }
+
+        // Добавить задачу
+        function addTask() {
+            const name = prompt('Название задачи:');
+            if (!name) return;
+
+            const meta = prompt('Комментарий (дата, прогресс):') || '';
+            const priority = prompt('Приоритет (p0/p1/p2):', 'p1') || 'p1';
+            const section = prompt('Раздел (now/later):', 'now') || 'now';
+
+            tasks.push({
+                id: Math.max(...tasks.map(t => t.id), 0) + 1,
+                name,
+                meta,
+                priority,
+                section,
+                completed: false
+            });
+
+            saveState();
+            showToast('+ Добавлено');
+        }
+
+        // Импорт Trello
+        function importTrello(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.lists) {
+                        let taskId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+                        let imported = 0;
+
+                        data.lists.forEach(list => {
+                            const listName = list.name.toLowerCase();
+                            const section = listName.includes('progress') || listName.includes('делаю') ? 'now' :
+                                          listName.includes('done') || listName.includes('завершено') ? 'done' :
+                                          listName.includes('backlog') || listName.includes('потом') ? 'later' : 'now';
+
+                            if (list.cards) {
+                                list.cards.forEach(card => {
+                                    const priority = getPriorityFromLabels(card.idLabels, data.labels);
+                                    
+                                    tasks.push({
+                                        id: taskId++,
+                                        name: card.name,
+                                        meta: extractMeta(card),
+                                        priority,
+                                        section: card.name.toLowerCase().includes('диплом') || card.name.toLowerCase().includes('клиент') ? 'now' : section,
+                                        completed: listName.includes('done') || listName.includes('завершено')
+                                    });
+                                    imported++;
+                                });
+                            }
+                        });
+
+                        saveState();
+                        showToast(`✓ Импортировано ${imported}`);
+                    }
+                } catch (error) {
+                    alert('Ошибка: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function getPriorityFromLabels(labelIds, labels) {
+            if (!labelIds || !labels) return 'p1';
+            
+            const labelNames = labelIds.map(id => {
+                const label = labels.find(l => l.id === id);
+                return label ? label.name : '';
+            });
+
+            if (labelNames.some(n => n.includes('P0') || n.includes('P1') || n.includes('КРИТИЧНО'))) return 'p0';
+            if (labelNames.some(n => n.includes('P2') || n.includes('ВАЖНО'))) return 'p1';
+            return 'p2';
+        }
+
+        function extractMeta(card) {
+            if (card.desc) {
+                const match = card.desc.match(/(\d+[/\-]\d+|\d+%|\d+ из \d+)/i);
+                if (match) return match[0];
+            }
+            if (card.checklists && card.checklists.length > 0) {
+                const items = card.checklists[0].items || [];
+                const done = items.filter(i => i.state === 'complete').length;
+                if (items.length > 0) return `${done}/${items.length}`;
+            }
+            return '';
+        }
+
+        // Экспорт
+        function exportData() {
+            const done = tasks.filter(t => t.completed).length;
+            const report = `# Планы — ${new Date().toLocaleDateString('ru-RU')}
+
+## Статистика
+Всего: ${tasks.length} | Готово: ${done} | Осталось: ${tasks.length - done}
+
+## Сейчас
+${tasks.filter(t => t.section === 'now' && !t.completed).map(t => `- [ ] ${t.name} (${t.meta})`).join('\n')}
+
+## Потом
+${tasks.filter(t => t.section === 'later' && !t.completed).map(t => `- [ ] ${t.name} (${t.meta})`).join('\n')}
+
+## Готово
+${tasks.filter(t => t.completed).map(t => `- [x] ${t.name}`).join('\n')}
+`;
+
+            const blob = new Blob([report], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `планы_${new Date().toISOString().split('T')[0]}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('✓ Экспорт');
+        }
+
+        // Сброс
+        function resetDone() {
+            if (confirm('Сбросить выполненные?')) {
+                tasks.forEach(t => {
+                    if (t.completed) {
+                        t.completed = false;
+                        t.section = 'now';
+                    }
+                });
+                saveState();
+                showToast('↺ Сброс');
+            }
+        }
+
+        // Фильтры
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentFilter = this.dataset.filter;
+                render();
+            });
+        });
+
+        // Уведомление
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1500);
+        }
+
+        // Старт
+        loadState();
+    </script>
+</body>
+</html>

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Планы Полины</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Paper */
+        .paper {
+            background: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            padding: 48px 56px 32px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .header-top {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .header-title {
+            font-size: 42px;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            margin-bottom: 12px;
+        }
+
+        .header-subtitle {
+            font-size: 16px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 48px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 6px;
+        }
+
+        /* Content */
+        .content {
+            padding: 48px 56px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 32px;
+        }
+
+        /* Task List */
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .task-item:hover {
+            background: #fafafa;
+            margin: 0 -56px;
+            padding-left: 56px;
+            padding-right: 56px;
+        }
+
+        .task-item.completed {
+            opacity: 0.4;
+        }
+
+        .task-item.completed .task-name {
+            text-decoration: line-through;
+        }
+
+        .task-number {
+            font-size: 14px;
+            font-weight: 600;
+            color: #9ca3af;
+            min-width: 24px;
+            padding-top: 2px;
+        }
+
+        .task-body {
+            flex: 1;
+        }
+
+        .task-name {
+            font-size: 17px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .task-desc {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .task-tag {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-p0 { background: #fee2e2; color: #dc2626; }
+        .tag-p1 { background: #fef3c7; color: #d97706; }
+        .tag-p2 { background: #dbeafe; color: #2563eb; }
+
+        .task-progress {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .task-check {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #e5e5e5;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-top: 2px;
+        }
+
+        .task-item.completed .task-check {
+            background: #1a1a1a;
+            border-color: #1a1a1a;
+        }
+
+        .task-check::after {
+            content: '✓';
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .task-item.completed .task-check::after {
+            display: block;
+        }
+
+        /* Categories Filter */
+        .categories {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .cat-btn {
+            padding: 8px 16px;
+            border: 1px solid #e5e5e5;
+            background: white;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cat-btn:hover {
+            border-color: #1a1a1a;
+            color: #1a1a1a;
+        }
+
+        .cat-btn.active {
+            background: #1a1a1a;
+            border-color: #1a1a1a;
+            color: white;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e5e5e5;
+            background: white;
+            color: #1a1a1a;
+        }
+
+        .btn:hover {
+            border-color: #1a1a1a;
+        }
+
+        .btn-primary {
+            background: #1a1a1a;
+            border-color: #1a1a1a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #333;
+            border-color: #333;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1a1a1a;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            .header, .content {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .header-title {
+                font-size: 32px;
+            }
+
+            .stats-row {
+                gap: 24px;
+            }
+
+            .task-item:hover {
+                margin: 0 -24px;
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="paper">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-top">планы на неделю</div>
+                <h1 class="header-title">НЕ МОЖЕШЬ ВСЁ<br>УДЕРЖАТЬ В ГОЛОВЕ?<br>И НЕ НАДО</h1>
+                <p class="header-subtitle">— все задачи записаны здесь, чтобы освободить голову для важного</p>
+                
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">Всего</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statDone">0</div>
+                        <div class="stat-label">Готово</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTodo">0</div>
+                        <div class="stat-label">Осталось</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statProgress">0%</div>
+                        <div class="stat-label">Прогресс</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <div class="section-title">Задачи</div>
+
+                <!-- Categories -->
+                <div class="categories" id="categories"></div>
+
+                <!-- Task List -->
+                <ul class="task-list" id="taskList"></ul>
+
+                <!-- Actions -->
+                <div class="actions">
+                    <label class="btn btn-primary">
+                        📥 Импорт Trello
+                        <input type="file" class="file-input" accept=".json" onchange="importTrello(this)">
+                    </label>
+                    <button class="btn" onclick="exportData()">📤 Экспорт</button>
+                    <button class="btn" onclick="resetDone()">🔄 Сброс</button>
+                    <button class="btn" onclick="addTask()">+ Задача</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let tasks = [];
+        let categories = {};
+        let selectedCategory = null;
+
+        const defaultCategories = {
+            'Учёба': { color: '#10b981' },
+            'Клиенты': { color: '#8b5cf6' },
+            'Контент': { color: '#3b82f6' },
+            'Дом': { color: '#ec4899' },
+            'Здоровье': { color: '#ef4444' },
+            'Личное': { color: '#f59e0b' }
+        };
+
+        function loadState() {
+            const saved = localStorage.getItem('polinaPinterestTasks');
+            const savedCats = localStorage.getItem('polinaPinterestCats');
+            
+            if (saved) tasks = JSON.parse(saved);
+            if (savedCats) categories = JSON.parse(savedCats);
+            
+            if (tasks.length === 0) loadDefaultTasks();
+            if (Object.keys(categories).length === 0) categories = defaultCategories;
+            
+            render();
+        }
+
+        function loadDefaultTasks() {
+            tasks = [
+                { id: 1, name: 'Фрейд Лекция 2', category: 'Учёба', priority: 'p0', progress: '34/41 стр.', completed: false },
+                { id: 2, name: 'Фрейд Лекция 3', category: 'Учёба', priority: 'p0', progress: '42/58 стр.', completed: false },
+                { id: 3, name: 'Нэнси Мак-Вильямс', category: 'Учёба', priority: 'p0', progress: '1/6', completed: false },
+                { id: 4, name: 'Транзактный анализ', category: 'Учёба', priority: 'p0', progress: '2 видео', completed: false },
+                { id: 5, name: 'Юлия — диплом', category: 'Клиенты', priority: 'p0', progress: 'Ждём ОС', completed: false },
+                { id: 6, name: 'Зарина — преддипломная', category: 'Клиенты', priority: 'p0', progress: '2000₽', completed: false },
+                { id: 7, name: 'Рилсы в Инсту (2)', category: 'Контент', priority: 'p1', progress: 'план на неделю', completed: false },
+                { id: 8, name: 'Рилсы в Ютуб (3)', category: 'Контент', priority: 'p1', progress: 'план на неделю', completed: false },
+                { id: 9, name: 'Посты в ТГ (2)', category: 'Контент', priority: 'p1', progress: 'на эту неделю', completed: false },
+                { id: 10, name: 'Посты в ТГ (4)', category: 'Контент', priority: 'p2', progress: 'на след. неделю', completed: false },
+                { id: 11, name: 'Дом — 1 зона', category: 'Дом', priority: 'p2', progress: '~20%', completed: false },
+                { id: 12, name: 'Танцы', category: 'Личное', priority: 'p2', progress: 'Записаться', completed: false },
+                { id: 13, name: 'Стоматолог', category: 'Здоровье', priority: 'p2', progress: '', completed: false }
+            ];
+        }
+
+        function saveState() {
+            localStorage.setItem('polinaPinterestTasks', JSON.stringify(tasks));
+            localStorage.setItem('polinaPinterestCats', JSON.stringify(categories));
+        }
+
+        function render() {
+            updateStats();
+            renderCategories();
+            renderTasks();
+        }
+
+        function updateStats() {
+            const total = tasks.length;
+            const done = tasks.filter(t => t.completed).length;
+            const todo = total - done;
+            const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statDone').textContent = done;
+            document.getElementById('statTodo').textContent = todo;
+            document.getElementById('statProgress').textContent = progress + '%';
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categories');
+            
+            const catCounts = {};
+            Object.keys(categories).forEach(cat => {
+                catCounts[cat] = tasks.filter(t => t.category === cat && !t.completed).length;
+            });
+
+            const allCount = tasks.filter(t => !t.completed).length;
+
+            container.innerHTML = `
+                <button class="cat-btn ${selectedCategory === null ? 'active' : ''}" onclick="filterCategory(null)">
+                    Все ${allCount > 0 ? '(' + allCount + ')' : ''}
+                </button>
+            ` + Object.entries(categories).map(([name]) => {
+                const count = catCounts[name] || 0;
+                return `
+                    <button class="cat-btn ${selectedCategory === name ? 'active' : ''}" onclick="filterCategory('${name}')">
+                        ${name} ${count > 0 ? '(' + count + ')' : ''}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('taskList');
+            let filtered = tasks;
+
+            if (selectedCategory) {
+                filtered = tasks.filter(t => t.category === selectedCategory);
+            }
+
+            filtered.sort((a, b) => a.completed - b.completed);
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<li style="text-align:center;padding:40px;color:#9ca3af">Нет задач</li>';
+                return;
+            }
+
+            container.innerHTML = filtered.map((task, index) => `
+                <li class="task-item ${task.completed ? 'completed' : ''}" onclick="toggleTask(${task.id})">
+                    <div class="task-number">${index + 1}/</div>
+                    <div class="task-check"></div>
+                    <div class="task-body">
+                        <div class="task-name">${task.name}</div>
+                        <div class="task-meta">
+                            <span class="task-tag ${task.priority}">${task.priority}</span>
+                            ${task.progress ? `<span class="task-progress">${task.progress}</span>` : ''}
+                            <span class="task-progress" style="margin-left:auto">${task.category}</span>
+                        </div>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveState();
+                render();
+                showToast(task.completed ? '✓ Выполнено' : '↺ В работу');
+            }
+        }
+
+        function filterCategory(cat) {
+            selectedCategory = cat;
+            render();
+        }
+
+        function importTrello(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.labels) {
+                        data.labels.forEach(lbl => {
+                            if (!categories[lbl.name]) {
+                                categories[lbl.name] = { color: getColor(lbl.color) };
+                            }
+                        });
+                    }
+
+                    if (data.lists) {
+                        let id = tasks.length ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+
+                        data.lists.forEach(list => {
+                            const isDone = list.name.toLowerCase().includes('done');
+                            
+                            if (list.cards) {
+                                list.cards.forEach(card => {
+                                    const cat = getCardCategory(card.idLabels, data.labels);
+                                    const pri = getCardPriority(card.idLabels, data.labels);
+                                    const prog = getCardProgress(card);
+
+                                    tasks.push({
+                                        id: id++,
+                                        name: card.name,
+                                        category: cat,
+                                        priority: pri,
+                                        progress: prog,
+                                        completed: isDone
+                                    });
+                                });
+                            }
+                        });
+                    }
+
+                    saveState();
+                    render();
+                    showToast('✓ Задачи импортированы');
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function getCardCategory(labelIds, labels) {
+            if (!labelIds || !labels) return 'Личное';
+            const names = labelIds.map(id => labels.find(l => l.id === id)?.name || '');
+            if (names.some(n => n.includes('КЛИЕНТЫ'))) return 'Клиенты';
+            if (names.some(n => n.includes('КОНТЕНТ'))) return 'Контент';
+            if (names.some(n => n.includes('ЗДОРОВЬЕ'))) return 'Здоровье';
+            return 'Личное';
+        }
+
+        function getCardPriority(labelIds, labels) {
+            if (!labelIds || !labels) return 'p1';
+            const names = labelIds.map(id => labels.find(l => l.id === id)?.name || '');
+            if (names.some(n => n.includes('P0') || n.includes('КРИТИЧНО'))) return 'p0';
+            if (names.some(n => n.includes('P2') || n.includes('ВАЖНО'))) return 'p1';
+            return 'p2';
+        }
+
+        function getCardProgress(card) {
+            if (card.desc) {
+                const m = card.desc.match(/(\d+[\/\-]\d+|\d+%)/i);
+                if (m) return m[0];
+            }
+            if (card.checklists?.[0]?.items) {
+                const items = card.checklists[0].items;
+                const done = items.filter(i => i.state === 'complete').length;
+                if (items.length) return `${done}/${items.length}`;
+            }
+            return '';
+        }
+
+        function getColor(c) {
+            const map = {
+                red: '#ef4444', orange: '#f97316', yellow: '#f59e0b',
+                green: '#10b981', blue: '#3b82f6', purple: '#8b5cf6',
+                pink: '#ec4899', cyan: '#06b6d4', black: '#737373'
+            };
+            return map[c] || '#3b82f6';
+        }
+
+        function exportData() {
+            const done = tasks.filter(t => t.completed).length;
+            const report = `# Планы — ${new Date().toLocaleDateString('ru-RU')}
+
+Всего: ${tasks.length} | Готово: ${done} | ${Math.round(done/tasks.length*100)}%
+
+${tasks.map(t => `- [${t.completed ? 'x' : ' '}] ${t.name} [${t.category}]`).join('\n')}
+`;
+            const blob = new Blob([report], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `планы_${new Date().toISOString().split('T')[0]}.md`;
+            a.click();
+            showToast('✓ Экспорт');
+        }
+
+        function resetDone() {
+            if (confirm('Сбросить выполненные?')) {
+                tasks.forEach(t => { if (t.completed) t.completed = false; });
+                saveState();
+                render();
+                showToast('↺ Сброс');
+            }
+        }
+
+        function addTask() {
+            const name = prompt('Название задачи:');
+            if (!name) return;
+            
+            const category = prompt('Категория (Учёба/Клиенты/Контент/Дом/Здоровье/Личное):', 'Личное');
+            const priority = prompt('Приоритет (p0/p1/p2):', 'p1');
+            const progress = prompt('Прогресс (необязательно):', '');
+
+            tasks.push({
+                id: Math.max(...tasks.map(t => t.id), 0) + 1,
+                name,
+                category: category || 'Личное',
+                priority: priority || 'p1',
+                progress: progress || '',
+                completed: false
+            });
+
+            saveState();
+            render();
+            showToast('+ Задача добавлена');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+
+        loadState();
+    </script>
+</body>
+</html>

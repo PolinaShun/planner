@@ -3,327 +3,475 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Планы Полины</title>
+    <title>Senior Planner | Polina</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f5; padding: 40px 20px; min-height: 100vh; color: #1a1a1a; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .paper { background: #fff; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px; position: relative; }
-        .header { padding: 48px 56px 32px; border-bottom: 1px solid #e5e5e5; position: relative; }
-        .header-top { font-size: 13px; color: #6b7280; margin-bottom: 16px; letter-spacing: 0.5px; }
-        .header-title { font-size: 42px; font-weight: 700; line-height: 1.1; letter-spacing: -1px; margin-bottom: 12px; }
-        .stats-row { display: flex; gap: 40px; margin-top: 24px; padding-top: 24px; border-top: 1px solid #f0f0f0; }
-        .stat-item { text-align: center; }
-        .stat-value { font-size: 32px; font-weight: 700; line-height: 1; }
-        .stat-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; }
-        .btn-red-top { position: absolute; top: 40px; right: 56px; background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); z-index: 10; }
-        .main-tabs { display: flex; border-bottom: 2px solid #e5e5e5; }
-        .main-tab { flex: 1; padding: 16px; text-align: center; font-size: 14px; font-weight: 600; color: #9ca3af; cursor: pointer; border: none; background: none; transition: 0.2s; position: relative; }
-        .main-tab.active { color: #1a1a1a; }
-        .main-tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: #1a1a1a; }
-        .tab-count { display: inline-block; background: #e5e5e5; color: #6b7280; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
-        .main-tab.active .tab-count { background: #1a1a1a; color: white; }
-        .time-filters { display: flex; gap: 8px; padding: 24px 56px; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; }
-        .time-btn { padding: 8px 20px; border: 1px solid #e5e5e5; background: white; border-radius: 20px; font-size: 13px; color: #6b7280; cursor: pointer; }
-        .time-btn.active { background: #1a1a1a; border-color: #1a1a1a; color: white; }
-        .content { padding: 24px 56px 40px; }
-        
-        .quick-input-group { padding: 0 56px 20px; border-bottom: 1px solid #f0f0f0; margin-top: 20px; }
-        .quick-input { width: 100%; padding: 12px 16px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s; }
-        .quick-input:focus { border-color: #1a1a1a; }
+        :root {
+            --bg-color: #f0f2f5;
+            --sidebar-color: #2c3e50;
+            --accent-rose: #d4a5a5;
+            --accent-blue: #7a94b5;
+            --accent-green: #27ae60;
+            --cal-bg: #fffcf5;
+            --text-main: #333;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --border-soft: #eee;
+            --border-color: #e0e0e0;
+        }
 
-        .task-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af; margin: 24px 0 12px; }
-        .task-list { list-style: none; }
-        .task-item { display: flex; gap: 16px; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: 8px; margin-bottom: 4px; transition: background 0.2s; }
-        .task-item:hover { background: #fafafa; }
-        .task-item.personal { background: #fdf2f2; border-color: #fee2e2; } /* Pastel peach/rose */
-        .task-item.work { background: #f0fff4; border-color: #c6f6d5; } /* Pastel green */
-        
-        .task-item.completed .task-name { text-decoration: line-through; opacity: 0.5; }
-        .task-check { width: 22px; height: 22px; border: 2px solid #e5e5e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 2px; flex-shrink: 0; background: white; }
-        .task-item.completed .task-check { background: #1a1a1a; border-color: #1a1a1a; }
-        .task-item.completed .task-check::after { content: '✓'; color: white; font-size: 13px; }
-        .task-name { font-size: 17px; font-weight: 500; margin-bottom: 4px; }
-        .task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .task-tag { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase; background: #eee; }
-        .tag-p0 { background: #fee2e2; color: #dc2626; }
-        .task-date { font-size: 11px; color: #ef4444; font-weight: 600; }
-        
-        .subtasks { margin-top: 10px; padding-left: 38px; }
-        .subtask-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6b7280; padding: 4px 0; }
-        .subtask-check { width: 14px; height: 14px; border: 1px solid #d1d5db; border-radius: 3px; }
-        .subtask-item.completed .subtask-text { text-decoration: line-through; opacity: 0.7; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #f0f2f5 0%, #d9e2e8 100%);
+            color: var(--text-main); 
+            height: 100vh; 
+            overflow: hidden; 
+            display: flex; 
+        }
 
-        .progress-tab { display: none; padding: 32px 56px; }
-        .progress-tab.active { display: block; }
-        .progress-card { background: #fafafa; border-radius: 10px; padding: 24px; margin-bottom: 16px; border: 1px solid #f0f0f0; }
-        .tick-bar { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
-        .tick { width: 24px; height: 24px; border-radius: 4px; background: #e5e5e5; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 10px; font-weight: 700; }
-        .tick.filled.purple { background: #8b5cf6; color: white; }
-        .tick.filled.blue { background: #3b82f6; color: white; }
-        .tick.filled.amber { background: #f59e0b; color: white; }
-        .tick.filled.rose { background: #ec4899; color: white; }
-        .tick.filled.green { background: #10b981; color: white; }
-        .metrics-row { display: flex; gap: 12px; margin-top: 12px; }
-        .metric-item { flex: 1; background: #fff; border-radius: 8px; padding: 16px; text-align: center; border: 1px solid #eee; cursor: pointer; }
-        .metric-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; }
-        .metric-value { font-size: 22px; font-weight: 700; }
-        .order-stages { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
-        .order-dot { width: 18px; height: 18px; border-radius: 3px; background: #e5e5e5; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; border: 1px solid rgba(0,0,0,0.05); }
-        .order-dot.done { background: #10b981; border-color: #10b981; }
-        .btn { padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid #e5e5e5; background: white; }
-        .btn-primary { background: #1a1a1a; color: white; border-color: #1a1a1a; }
-        .toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a1a; color: white; padding: 14px 24px; border-radius: 6px; transform: translateY(100px); opacity: 0; transition: 0.3s; z-index: 1000; }
-        .toast.show { transform: translateY(0); opacity: 1; }
+        /* SIDEBAR */
+        .sidebar { width: 70px; min-width: 70px; background-color: var(--sidebar-color); color: white; padding: 20px 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; transition: width 0.3s ease; overflow: hidden; z-index: 1000; }
+        .sidebar:hover { width: 180px; }
+        .sidebar .nav-item { width: 100%; padding: 12px 25px; display: flex; align-items: center; gap: 20px; white-space: nowrap; cursor: pointer; opacity: 0.5; transition: 0.2s; }
+        .sidebar .nav-item:hover, .sidebar .nav-item.active { opacity: 1; background: rgba(255,255,255,0.1); }
+        .sidebar .nav-text { font-size: 14px; opacity: 0; transition: opacity 0.2s; }
+        .sidebar:hover .nav-text { opacity: 1; }
+        .export-btn { margin-top: auto; opacity: 1 !important; color: #3498db !important; font-weight: 600; }
+
+        .main-content-wrapper { flex: 1; display: flex; height: 100vh; overflow: hidden; position: relative; }
+        .workspace { flex: 1; padding: 15px 50px; overflow-y: auto; background: transparent; display: flex; flex-direction: column; }
+        
+        .insights-panel { 
+            width: 340px; min-width: 250px; max-width: 600px;
+            padding: 30px 20px; background: rgba(255, 255, 255, 0.4); 
+            backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%);
+            overflow-y: auto; 
+            scrollbar-width: none; display: flex; flex-direction: column; gap: 20px;
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.03);
+        }
+        .insights-panel::-webkit-scrollbar { display: none; }
+        .resizer { width: 4px; cursor: col-resize; background: transparent; transition: background 0.2s; z-index: 10; }
+        .resizer:hover, .resizer.dragging { background: var(--accent-blue); opacity: 0.5; }
+
+        /* GLASS MODAL */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.15); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal { 
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(30px) saturate(150%); -webkit-backdrop-filter: blur(30px) saturate(150%);
+            padding: 35px; border-radius: 30px; width: 500px; display: flex; flex-direction: column; gap: 15px; 
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.08);
+        }
+        label { font-size: 10px; font-weight: 600; color: #888; text-transform: uppercase; }
+        input, select, textarea { padding: 12px; border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; font-family: inherit; background: rgba(255,255,255,0.5); }
+
+        /* INPUTS */
+        .task-input-row { display: flex; gap: 15px; margin-bottom: 25px; align-items: center; }
+        #task-name-quick { max-width: 450px; padding: 12px 18px; border: 1px solid rgba(0,0,0,0.05); border-radius: 15px; outline: none; font-family: inherit; flex: 1; font-size: 15px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); }
+        .btn-add { background: var(--sidebar-color); color: white; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; }
+        .btn-pro { background: var(--accent-blue); color: white; border: none; padding: 15px 45px; border-radius: 15px; cursor: pointer; font-size: 15px; font-weight: 600; transition: transform 0.2s; }
+
+        /* CARDS */
+        .task-list { display: flex; flex-direction: column; gap: 10px; min-height: 100px; padding: 10px; border-radius: 15px; background: rgba(0,0,0,0.02); border: 1px dashed transparent; }
+        .task-list.drag-over { border-color: var(--accent-blue); background: rgba(122, 148, 181, 0.05); }
+        .task-card { 
+            background: var(--card-bg); border: 1px solid rgba(255,255,255,0.5); padding: 15px 20px; border-radius: 18px; 
+            display: flex; align-items: center; justify-content: space-between; transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02); cursor: grab;
+            backdrop-filter: blur(5px);
+        }
+        .task-card:active { cursor: grabbing; }
+        .task-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); border-color: var(--accent-blue); }
+        .task-info { display: flex; align-items: center; gap: 12px; overflow: hidden; flex: 1; }
+        .task-actions { display: flex; gap: 10px; opacity: 0.1; transition: 0.3s; }
+        .task-card:hover .task-actions { opacity: 1; }
+        .action-icon { cursor: pointer; font-size: 14px; filter: grayscale(1); transition: 0.2s; }
+        .action-icon:hover { filter: grayscale(0); transform: scale(1.2); }
+
+        /* GRIDS */
+        .status-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-top: 3px; }
+        .freud-grid { grid-template-columns: repeat(7, 1fr); }
+        .status-block { width: 18px; height: 18px; border-radius: 4px; background: rgba(0,0,0,0.05); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 7px; color: #888; }
+        .status-block.active { background: var(--accent-green); color: white; }
+        .status-block.rose { background: var(--accent-rose) !important; color: white; }
+        .ferris-grid { grid-template-columns: repeat(6, 1fr); gap: 5px; }
+        .ferris-grid .status-block { width: 28px; height: 28px; font-size: 10px; }
+
+        #custom-calendar { position: fixed; display: none; width: 280px; background: rgba(255, 252, 245, 0.9); backdrop-filter: blur(20px); border-radius: 22px; box-shadow: 0 15px 50px rgba(0,0,0,0.12); padding: 20px; z-index: 3000; border: 1px solid rgba(255,255,255,0.5); }
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: 600; font-size: 12px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .cal-day { padding: 8px; text-align: center; border-radius: 8px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .cal-day:hover { background: var(--accent-rose); color: white; }
+
+        .active-view { display: flex !important; flex-direction: column; height: 100%; }
+        .view-content { display: none; }
+        .chart-container { background: rgba(255,255,255,0.5); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3); height: 280px; }
+        
+        .widget { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; padding: 15px; border-radius: 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.2); }
+        .item-header { display: flex; justify-content: space-between; align-items: center; }
+        .sub-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; color: #444; }
+        .small-icon { cursor: pointer; opacity: 0.3; transition: 0.3s; font-size: 12px; }
+        .small-icon:hover { opacity: 1; }
+
+        h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #999; margin-bottom: 10px; }
+        h1 { font-size: 26px; margin-bottom: 5px; color: var(--sidebar-color); }
+        
+        /* HEATMAP */
+        .heatmap-cell { width: 12px; height: 12px; border-radius: 2px; background: rgba(0,0,0,0.05); transition: 0.3s; }
+        .heatmap-cell.level-1 { background: #d4a5a5; opacity: 0.3; }
+        .heatmap-cell.level-2 { background: #d4a5a5; opacity: 0.6; }
+        .heatmap-cell.level-3 { background: #d4a5a5; opacity: 1; box-shadow: 0 0 10px rgba(212, 165, 165, 0.5); }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="paper">
-        <button class="btn-red-top" onclick="exportData()">ЭКСПОРТ</button>
-        <div class="header">
-            <div class="header-top" id="currentWeek">загрузка недели...</div>
-            <h1 class="header-title">ТЫ УЖЕ МНОГОЕ<br>СДЕЛАЛА.<br>ПРОСТО ЗАБЫЛА.</h1>
-            <div class="stats-row">
-                <div class="stat-item"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Всего</div></div>
-                <div class="stat-item"><div class="stat-value" id="statDone">0</div><div class="stat-label">Готово</div></div>
-                <div class="stat-item"><div class="stat-value" id="statTodo">0</div><div class="stat-label">Осталось</div></div>
-                <div class="stat-item"><div class="stat-value" id="statProgress">0%</div><div class="stat-label">Прогресс</div></div>
-            </div>
-        </div>
-        <div class="main-tabs">
-            <button class="main-tab active" id="tabTasks" onclick="switchTab('tasks')">Задачи <span class="tab-count" id="taskCount">0</span></button>
-            <button class="main-tab" id="tabProgress" onclick="switchTab('progress')">Прогресс <span class="tab-count" id="progressCount">0</span></button>
-        </div>
-        
-        <div id="tasksTab">
-            <div class="quick-input-group">
-                <input type="text" class="quick-input" id="quickInput" placeholder="Что нужно сделать? (напр: до 28.04 Написать пост)" onkeydown="handleQuickAdd(event)">
-            </div>
-            <div class="time-filters">
-                <button class="time-btn active" onclick="filterSlot(null, this)">Все</button>
-                <button class="time-btn" onclick="filterSlot('Сегодня', this)">Сегодня</button>
-                <button class="time-btn" onclick="filterSlot('Завтра', this)">Завтра</button>
-                <button class="time-btn" onclick="filterSlot('На неделе', this)">На неделе</button>
-                <button class="time-btn" onclick="filterSlot('Архив', this)" style="border-style:dashed; margin-left:auto">Архив</button>
-            </div>
-            <div class="content">
-                <div id="workSection">
-                    <div class="task-section-title">💼 В работе</div>
-                    <ul class="task-list" id="workTaskList"></ul>
-                </div>
-                <div id="personalSection">
-                    <div class="task-section-title">🏠 Личное и забота</div>
-                    <ul class="task-list" id="personalTaskList"></ul>
-                </div>
-                
-                <div style="margin-top:24px; display:flex; gap:10px">
-                    <button class="btn btn-primary" onclick="smartArchive()">✨ ПОДВЕСТИ ИТОГИ</button>
-                </div>
-            </div>
-        </div>
+    <div class="sidebar">
+        <div class="nav-item active" onclick="showView('tasks', this)"><span>📋</span> <span class="nav-text">Задачи</span></div>
+        <div class="nav-item" onclick="showView('backlog', this)"><span>🗂️</span> <span class="nav-text">Бэклог</span></div>
+        <div class="nav-item" onclick="showView('analytics', this)"><span>📊</span> <span class="nav-text">Аналитика</span></div>
+        <div class="nav-item" onclick="showView('archive', this)"><span>📦</span> <span class="nav-text">Архив</span></div>
+        <div class="nav-item export-btn" onclick="exportDB()"><span>💾</span> <span class="nav-text">Экспорт БД</span></div>
+    </div>
 
-        <div class="progress-tab" id="progressTab">
-            <!-- Progress content will be loaded here via JS -->
-            <div id="progressContent"></div>
+    <div class="main-content-wrapper">
+        <div class="workspace">
+            <div id="tasks-view" class="view-content active-view">
+                <div id="morning-greeting" style="display:none; background: linear-gradient(90deg, var(--accent-rose), #e6baba); color: white; padding: 18px 30px; border-radius: 25px; margin-bottom: 25px; font-size: 15px; box-shadow: 0 15px 30px rgba(212, 165, 165, 0.3); border: 1px solid rgba(255,255,255,0.2);">
+                    <span id="greeting-text">Доброе утро, Полина! ✨</span>
+                </div>
+                <h1>Фокус дня</h1>
+                <div class="task-input-row">
+                    <div style="position:relative; flex:1; display:flex; align-items:center;">
+                        <input type="text" id="task-name-quick" placeholder="Что нужно сделать?" onkeypress="if(event.key==='Enter')addTaskQuick()" style="padding-right: 45px; width: 100%;">
+                        <span id="voice-btn" onclick="startVoiceInput()" style="position:absolute; right:15px; cursor:pointer; font-size:18px; opacity:0.4; transition:0.3s;">🎤</span>
+                    </div>
+                    <button class="btn-add" onclick="addTaskQuick()">быстро добавить задачу</button>
+                </div>
+                <div style="display:flex; gap: 30px; flex: 1; overflow-x: auto; padding-bottom: 20px;">
+                    <div style="flex:1; min-width: 280px;"><h2>СЕГОДНЯ</h2><div id="list-today" class="task-list" data-type="today"></div></div>
+                    <div style="flex:1; min-width: 280px;"><h2>БАЛАНС / ЛИЧНОЕ</h2><div id="list-balance" class="task-list" data-type="personal"></div></div>
+                    <div style="flex:1; min-width: 280px;"><h2>МЕЧТЫ</h2><div id="list-dreams" class="task-list" data-type="dream"></div></div>
+                </div>
+                <div style="margin-top: 20px; display: flex; justify-content: center;"><button class="btn-pro" onclick="openProModal()">добавить задачу</button></div>
+            </div>
+            
+            <div id="backlog-view" class="view-content">
+                <h1>Бэклог</h1>
+                <div style="display:flex; gap: 30px; margin-top:20px; flex: 1; overflow-x: auto;">
+                    <div style="flex:1; min-width: 300px;">
+                        <h2>БЛИЖАЙШИЕ (7 дней)</h2>
+                        <div id="list-backlog-soon" class="task-list" data-type="backlog_soon"></div>
+                    </div>
+                    <div style="flex:1; min-width: 300px;">
+                        <h2>КОГДА-НИБУДЬ</h2>
+                        <div id="list-backlog-later" class="task-list" data-type="backlog_later"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="analytics-view" class="view-content">
+                <h1>Активность</h1>
+                <div id="heatmap-container" style="margin-bottom: 30px; background: rgba(255,255,255,0.4); backdrop-filter: blur(10px); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.3); overflow-x: auto;">
+                    <div id="heatmap" style="display: flex; gap: 5px;"></div>
+                    <div style="display:flex; justify-content: space-between; margin-top: 10px; font-size: 10px; color: #888;">
+                        <span>12 недель назад</span>
+                        <span>Сегодня</span>
+                    </div>
+                </div>
+                <h1>Вес</h1><div class="chart-container"><canvas id="weightChart"></canvas></div>
+                <h1>Продуктивность</h1><div class="chart-container"><canvas id="tasksChart"></canvas></div>
+            </div>
+
+            <div id="archive-view" class="view-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <h1>Архив задач</h1>
+                    <input type="text" id="archive-search" placeholder="Поиск в архиве..." oninput="searchArchive()" style="padding: 10px 20px; border-radius: 15px; border: 1px solid rgba(0,0,0,0.05); font-size: 13px; width: 300px; background: rgba(255,255,255,0.6);">
+                </div>
+                <div id="list-archived" class="task-list"></div>
+            </div>
+        </div>
+        <div class="resizer" id="panel-resizer"></div>
+        <div class="insights-panel" id="insights-panel">
+            <div class="widget">
+                <div class="item-header"><h2>ТЕЛО</h2><span class="small-icon" onclick="promptMetrics()">✏️</span></div>
+                <div id="body-text" style="font-size: 18px; font-weight: 300; color: #444; margin-bottom: 10px;">Загрузка...</div>
+                <div class="status-grid ferris-grid" id="ferris-grid"></div>
+            </div>
+            <div class="widget"><div class="item-header"><h2>ЗАКАЗЫ</h2><span class="small-icon" onclick="promptClient()">+</span></div><div id="clients-list"></div></div>
+            <div class="widget"><div class="item-header"><h2>УЧЕБА</h2><span class="small-icon" onclick="promptCounter()">+</span></div><div id="study-list"></div></div>
         </div>
     </div>
-</div>
-<div class="toast" id="toast"></div>
 
-<script>
-let tasks = [];
-let progressData = {};
-let selectedTimeSlot = null;
+    <!-- CALENDAR -->
+    <div id="custom-calendar">
+        <div class="cal-header"><span onclick="prevMonth()" style="cursor:pointer">‹</span><span id="cal-month-year">...</span><span onclick="nextMonth()" style="cursor:pointer">›</span><span onclick="closeCalendar()" style="cursor:pointer; color:#aaa; margin-left:10px">✕</span></div>
+        <div class="cal-grid" id="cal-days-grid"></div>
+    </div>
 
-async function api(path, method = 'GET', body = null) {
-    const options = { method, headers: { 'Content-Type': 'application/json' } };
-    if (body) options.body = JSON.stringify(body);
-    const res = await fetch(path, options);
-    return res.json();
-}
+    <div id="pro-modal" class="modal-overlay" onclick="closeProModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h3 id="modal-title" style="color: var(--sidebar-color); margin-bottom: 10px;">Новая задача</h3>
+            <div style="display:flex; flex-direction:column; gap:5px;"><label>НАЗВАНИЕ</label><input type="text" id="pro-name" placeholder="Что нужно сделать?"></div>
+            <div style="display:flex; flex-direction:column; gap:5px;"><label>ОПИСАНИЕ / ССЫЛКИ</label><textarea id="pro-desc" placeholder="Дополнительная информация" rows="3"></textarea></div>
+            <div style="display:flex; gap:15px">
+                <div style="flex:1; display:flex; flex-direction:column; gap:5px;"><label>КАТЕГОРИЯ</label><select id="pro-category"><option value="work">Рабочее</option><option value="personal">Личное</option><option value="dream">Мечты</option></select></div>
+            </div>
+            <div style="display:flex; gap:15px">
+                <div style="flex:1; display:flex; flex-direction:column; gap:5px;"><label>СТАРТ</label><input type="date" id="pro-start"></div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:5px;"><label>ДЕДЛАЙН</label><input type="date" id="pro-due"></div>
+            </div>
+            <button class="btn-add" id="modal-submit" onclick="saveTask()" style="width:100%; padding: 18px; margin-top: 10px; border-radius: 18px; font-size: 15px; letter-spacing: 1px;">СОХРАНИТЬ</button>
+        </div>
+    </div>
 
-async function loadData() {
-    tasks = await api('/api/tasks/');
-    progressData = await api('/api/stats/progress');
-    render();
-}
+    <script>
+        let currentInsights = {}, allTasks = [], archivedTasks = [], weightChart, tasksChart, activeTaskId = null, calDate = new Date(), editingTaskId = null, heatmapData = {};
 
-function render() {
-    const workList = document.getElementById('workTaskList');
-    const personalList = document.getElementById('personalTaskList');
-    
-    let filtered = tasks.filter(t => selectedTimeSlot === 'Архив' ? t.archived : !t.archived);
-    if (selectedTimeSlot && selectedTimeSlot !== 'Архив') {
-        filtered = filtered.filter(t => t.timeSlot === selectedTimeSlot);
-    }
+        async function loadAll() {
+            try {
+                const [tRes, arcRes, insRes, histRes] = await Promise.all([
+                    fetch('/api/tasks'),
+                    fetch('/api/tasks/archived'),
+                    fetch('/api/insights'),
+                    fetch('/api/history')
+                ]);
+                
+                allTasks = await tRes.json();
+                archivedTasks = await arcRes.json();
+                currentInsights = await insRes.json();
+                const history = await histRes.json();
+                heatmapData = history.heatmap;
+                
+                renderTasks(allTasks);
+                renderArchive(archivedTasks);
+                renderInsights();
+                checkMorningGreeting();
+                if (document.getElementById('analytics-view').classList.contains('active-view')) {
+                    updateCharts(history);
+                }
+            } catch(e) { console.error("Critical Load Failure", e); }
+        }
 
-    const renderTask = t => `
-        <li class="task-item ${t.completed?'completed':''} ${t.is_personal?'personal':'work'}" onclick="toggleTask(${t.id})">
-            <div class="task-check"></div>
-            <div class="task-body" style="flex:1">
-                <div class="task-name">${t.name}</div>
-                <div class="task-meta">
-                    <span class="task-tag tag-${t.priority}">${t.priority}</span>
-                    ${t.due_date ? `<span class="task-date">📅 до ${new Date(t.due_date).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'})}</span>` : ''}
-                    <button onclick="event.stopPropagation(); cycleSlot(${t.id})" style="background:none; border:1px solid rgba(0,0,0,0.1); border-radius:10px; font-size:10px; padding:2px 8px; color:#9ca3af; cursor:pointer">${t.time_slot} ⇄</button>
-                    <button onclick="event.stopPropagation(); togglePersonal(${t.id})" style="background:none; border:1px solid rgba(0,0,0,0.1); border-radius:10px; font-size:10px; padding:2px 8px; color:#9ca3af; cursor:pointer">${t.is_personal?'💼':'🏠'}</button>
-                </div>
-                ${t.subtasks && t.subtasks.length ? `
-                    <div class="subtasks">
-                        ${t.subtasks.map((s, idx) => `
-                            <div class="subtask-item ${s.completed?'completed':''}" onclick="event.stopPropagation(); toggleSubtask(${t.id}, ${idx})">
-                                <div class="subtask-check" style="background:${s.completed?'#1a1a1a':'none'}"></div>
-                                <div class="subtask-text">${s.name}</div>
+        function renderTasks(tasks) {
+            const lists = {
+                today: document.getElementById('list-today'),
+                personal: document.getElementById('list-balance'),
+                dream: document.getElementById('list-dreams'),
+                backlogSoon: document.getElementById('list-backlog-soon'),
+                backlogLater: document.getElementById('list-backlog-later')
+            };
+            Object.values(lists).forEach(l => { if(l) l.innerHTML = ''; });
+            const now = new Date(); now.setHours(0,0,0,0);
+            const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+            tasks.forEach(t => {
+                const linkified = (t.name || "").replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--accent-blue); pointer-events:auto; text-decoration:none; font-weight:600;">🔗 ссылка</a>');
+                const html = `
+                    <div class="task-card" data-id="${t.id}">
+                        <div class="task-info">
+                            <input type="checkbox" ${t.completed?'checked':''} onclick="completeTask(${t.id}, this)" style="width: 18px; height: 18px; cursor:pointer;">
+                            <div style="display:flex; flex-direction:column; margin-left: 5px;">
+                               <span style="font-size:14px; font-weight:500; color: #333;">${linkified}</span>
+                               ${t.due_date ? `<span style="font-size:10px; color:var(--accent-blue); margin-top:2px;">📅 ${t.due_date}</span>` : ''}
                             </div>
-                        `).join('')}
-                    </div>
-                ` : ''}
-            </div>
-        </li>
-    `;
+                        </div>
+                        <div class="task-actions">
+                            <span class="action-icon" onclick="startEdit(${t.id})">✏️</span>
+                            <span class="action-icon" onclick="toggleCalendar(event, ${t.id})">📅</span>
+                            <span class="action-icon" onclick="archiveTask(${t.id})">📦</span>
+                        </div>
+                    </div>`;
 
-    workList.innerHTML = filtered.filter(t => !t.is_personal).map(renderTask).join('');
-    personalList.innerHTML = filtered.filter(t => t.is_personal).map(renderTask).join('');
+                const d = t.due_date ? new Date(t.due_date) : null;
+                if(d) d.setHours(0,0,0,0);
 
-    // Stats
-    const activeTasks = tasks.filter(t => !t.archived);
-    const done = activeTasks.filter(t => t.completed).length;
-    document.getElementById('statTotal').textContent = activeTasks.length;
-    document.getElementById('statDone').textContent = done;
-    document.getElementById('statTodo').textContent = activeTasks.length - done;
-    document.getElementById('statProgress').textContent = (activeTasks.length ? Math.round((done/activeTasks.length)*100) : 0) + '%';
-    document.getElementById('taskCount').textContent = activeTasks.filter(t=>!t.completed).length;
-    
-    renderProgress();
-}
+                if (t.is_dream) lists.dream.innerHTML += html;
+                else if (d && d > now) {
+                    if (d <= nextWeek) lists.backlogSoon.innerHTML += html;
+                    else lists.backlogLater.innerHTML += html;
+                }
+                else if (t.is_personal) lists.personal.innerHTML += html;
+                else lists.today.innerHTML += html;
+            });
+            initSortable();
+        }
 
-function renderProgress() {
-    const container = document.getElementById('progressContent');
-    const { clients, counters, metrics } = progressData;
-    
-    if (!clients) return;
+        function initSortable() {
+            ['list-today', 'list-balance', 'list-dreams', 'list-backlog-soon', 'list-backlog-later'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && !el._sortable) {
+                    el._sortable = new Sortable(el, { group: 'tasks', animation: 200, ghostClass: 'sortable-ghost', onEnd: async function(evt) {
+                        const taskId = evt.item.dataset.id; const toType = evt.to.dataset.type; await updateTaskType(taskId, toType);
+                    }});
+                }
+            });
+        }
 
-    container.innerHTML = `
-        <div class="progress-card">
-            <div style="display:flex; justify-content:space-between; margin-bottom:12px"><b>💰 Консультации (Заглушка)</b></div>
-            <div style="font-weight:700">Эта часть будет привязана к финансам позже</div>
-        </div>
+        async function updateTaskType(taskId, type) {
+            let params = new URLSearchParams();
+            if (type === 'dream') params.append('is_dream', 'true');
+            else if (type === 'personal') params.append('is_personal', 'true');
+            else if (type === 'today') { params.append('is_dream', 'false'); params.append('is_personal', 'false'); }
+            await fetch(`/api/tasks/${taskId}?${params.toString()}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: taskId}) });
+            loadAll();
+        }
+
+        function renderArchive(tasks) {
+            const list = document.getElementById('list-archived'); if(!list) return;
+            const searchInput = document.getElementById('archive-search'); const search = searchInput ? searchInput.value.toLowerCase() : '';
+            const filtered = tasks.filter(t => t.name.toLowerCase().includes(search));
+            list.innerHTML = filtered.length ? filtered.map(t => `<div class="task-card" style="cursor:default; opacity:0.7;"><span style="font-size:13px; color:#666">${t.name}</span><span class="action-icon" style="filter:none;" onclick="restoreTask(${t.id})">🔄</span></div>`).join('') : '<div style="text-align:center; color:#999; padding:40px;">Задач не найдено</div>';
+        }
+
+        function searchArchive() { renderArchive(archivedTasks); }
+
+        function startVoiceInput() {
+            const btn = document.getElementById('voice-btn'); const input = document.getElementById('task-name-quick');
+            if (!('webkitSpeechRecognition' in window)) { alert("Голосовой ввод не поддерживается вашим браузером. Попробуйте Chrome."); return; }
+            const recognition = new webkitSpeechRecognition(); recognition.lang = 'ru-RU';
+            recognition.onstart = () => { btn.innerText = '🔴'; btn.style.opacity = '1'; };
+            recognition.onresult = (event) => { const text = event.results[0][0].transcript; input.value = text; if(text) setTimeout(addTaskQuick, 800); };
+            recognition.onend = () => { btn.innerText = '🎤'; btn.style.opacity = '0.4'; };
+            recognition.start();
+        }
+
+        function checkMorningGreeting() {
+            const now = new Date(); const hour = now.getHours(); const greeting = document.getElementById('morning-greeting'); const text = document.getElementById('greeting-text');
+            if (hour >= 5 && hour <= 11) {
+                const dayNames = ["воскресенье", "понедельник", "вторник", "среду", "четверг", "пятницу", "субботу"];
+                const todayName = dayNames[now.getDay()];
+                let contextHint = "Хорошего начала дня!";
+                const pendingFreud = allTasks.filter(t => t.name.toLowerCase().includes('фрейд') && !t.completed).length;
+                if(pendingFreud) contextHint = "Сегодня отличное время для Фрейда. Удачи с чтением!";
+                text.innerText = `Доброе утро, Полина! ✨ Прекрасный день, чтобы покорить эту ${todayName}. ${contextHint}`;
+                greeting.style.display = 'block';
+            } else { greeting.style.display = 'none'; }
+        }
+
+        function renderInsights() {
+            if(currentInsights.body) {
+                document.getElementById('body-text').innerText = `${currentInsights.body.weight || 53.75} кг | ${currentInsights.body.waist || 61} см`;
+                const fGrid = document.getElementById('ferris-grid');
+                fGrid.innerHTML = (currentInsights.body.workout_history || []).map((d, i) => `<div class="status-block ${d?'rose':''}" onclick="toggleWorkout(${i})">${i+1}</div>`).join('');
+            } else { document.getElementById('body-text').innerText = "Данные не введены"; }
+
+            document.getElementById('clients-list').innerHTML = (currentInsights.clients || []).map(c => {
+                let blks = ''; for(let i=1; i<=c.stages_total; i++) blks += `<div class="status-block ${i<=c.stages_done?'active':''}" onclick="toggleClient(${c.id}, ${i})">${i}</div>`;
+                return `<div class="widget" style="gap:5px"><div class="sub-header"><span>${c.name}</span><span class="small-icon" onclick="archiveClient(${c.id})">✕</span></div><div class="status-grid">${blks}</div></div>`;
+            }).join('');
+
+            document.getElementById('study-list').innerHTML = (currentInsights.counters || []).map(s => {
+                let blks = ''; const isF = s.name.toLowerCase().includes('фрейд'); const target = isF ? 35 : s.target;
+                for(let i=1; i<=target; i++) blks += `<div class="status-block ${i<=s.value?'rose':''}" onclick="toggleCounter(${s.id}, ${i})">${i}</div>`;
+                return `<div class="widget" style="gap:5px"><div class="sub-header"><span>${s.name}</span><span class="small-icon" onclick="deleteCounter(${s.id})">✕</span></div><div class="status-grid ${isF?'freud-grid':''}">${blks}</div></div>`;
+            }).join('');
+        }
+
+        async function addTaskQuick() { const n = document.getElementById('task-name-quick').value; if(n) { await fetch('/api/tasks?name='+encodeURIComponent(n), {method:'POST'}); document.getElementById('task-name-quick').value=''; loadAll(); } }
+        async function completeTask(id, el) { el.closest('.task-card').style.opacity = '0.3'; await fetch(`/api/tasks/${id}/toggle`, {method:'POST'}); setTimeout(async () => { await fetch(`/api/tasks/${id}/archive`, {method:'POST'}); loadAll(); }, 500); }
+        async function archiveTask(id) { await fetch(`/api/tasks/${id}/archive`, {method:'POST'}); loadAll(); }
+        async function restoreTask(id) { await fetch(`/api/tasks/${id}/restore`, {method:'POST'}); loadAll(); }
         
-        <div class="progress-card">
-            <div style="display:flex; justify-content:space-between; margin-bottom:12px"><b>🏋️‍♀️ Тело (Феррис)</b></div>
-            <div class="metrics-row">
-                <div class="metric-item"><div class="metric-label">ВЕС</div><div class="metric-value">${metrics?.weight || '-'}</div></div>
-                <div class="metric-item"><div class="metric-label">ТАЛИЯ</div><div class="metric-value">${metrics?.waist || '-'}</div></div>
-                <div class="metric-item"><div class="metric-label">БЁДРА</div><div class="metric-value">${metrics?.hips || '-'}</div></div>
-            </div>
-        </div>
+        function startEdit(id) { 
+            editingTaskId = id; const t = allTasks.find(x => x.id === id); 
+            if(t) { 
+                document.getElementById('modal-title').innerText = "Редактировать задачу";
+                document.getElementById('pro-name').value = t.name; document.getElementById('pro-desc').value = t.description || ''; 
+                document.getElementById('pro-category').value = t.is_dream ? 'dream' : (t.is_personal ? 'personal' : 'work');
+                document.getElementById('pro-start').value = t.start_date || ''; document.getElementById('pro-due').value = t.due_date || '';
+                document.getElementById('pro-modal').style.display = 'flex'; 
+            } 
+        }
 
-        <div class="progress-card">
-            <b>📝 Заказы (Клиенты)</b>
-            <div id="ordersGrid" style="margin-top:12px">
-                ${clients.map(c => `
-                    <div style="margin-bottom:12px">
-                        <div style="display:flex; justify-content:space-between">
-                            <span>${c.name}</span>
-                            <small style="color:#9ca3af">${c.stages_done}/${c.stages_total}</small>
-                        </div>
-                        <div class="order-stages">
-                            ${Array.from({length: c.stages_total}).map((_, i) => `
-                                <div class="order-dot ${i < c.stages_done ? 'done' : ''}">${i < c.stages_done ? '✓' : ''}</div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
+        async function saveTask() {
+            const n = document.getElementById('pro-name').value; const d = document.getElementById('pro-desc').value; const cat = document.getElementById('pro-category').value; const start = document.getElementById('pro-start').value; const due = document.getElementById('pro-due').value;
+            if(!n) { alert("Название обязательно"); return; }
+            const params = new URLSearchParams({ name: n, description: d, is_dream: cat === 'dream', is_personal: cat === 'personal' });
+            if(start) params.append('start_date', start); if(due) params.append('due_date', due);
+            const url = editingTaskId ? `/api/tasks/${editingTaskId}?${params.toString()}` : `/api/tasks?${params.toString()}`;
+            const method = editingTaskId ? 'PUT' : 'POST';
+            await fetch(url, { method: method }); closeProModal(); loadAll();
+        }
 
-        <div class="progress-card">
-            <b>🎓 Учёба</b>
-            <div style="margin:12px 0 8px">Фрейд (${counters.freud.value}/${counters.freud.target})</div>
-            <div class="tick-bar">${renderTicks(counters.freud, 'purple')}</div>
-            <div style="margin:12px 0 8px">Мак-Вильямс (${counters.nancy.value}/${counters.nancy.target})</div>
-            <div class="tick-bar">${renderTicks(counters.nancy, 'blue')}</div>
-        </div>
+        function closeProModal() { document.getElementById('pro-modal').style.display = 'none'; editingTaskId = null; }
+        function openProModal() { editingTaskId = null; document.getElementById('modal-title').innerText = "Новая задача"; document.getElementById('pro-name').value=''; document.getElementById('pro-desc').value=''; document.getElementById('pro-start').value=''; document.getElementById('pro-due').value=''; document.getElementById('pro-modal').style.display='flex'; }
 
-        <div class="progress-card">
-            <b>📱 Контент</b>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px">
-                <div><small>ТГ</small><div class="tick-bar">${renderTicks(counters.tg, 'rose')}</div></div>
-                <div><small>РИЛС</small><div class="tick-bar">${renderTicks(counters.reels, 'rose')}</div></div>
-            </div>
-        </div>
-    `;
-}
+        async function promptMetrics() {
+            const w = prompt("Вес (кг):", currentInsights.body ? currentInsights.body.weight : 53.75); 
+            const wa = prompt("Талия (см):", currentInsights.body ? currentInsights.body.waist : 61);
+            if(w !== null && wa !== null) { await fetch(`/api/body/metrics?weight=${w}&waist=${wa}&hips=89&chest=85`, {method:'POST'}); loadAll(); }
+        }
 
-function renderTicks(counter, color) {
-    return Array.from({length: counter.target}).map((_, i) => `
-        <div class="tick ${i < counter.value ? 'filled ' + color : ''}"></div>
-    `).join('');
-}
+        async function promptClient() { const n = prompt("Название заказа:"); if(n) { await fetch('/api/client?name='+encodeURIComponent(n), {method:'POST'}); loadAll(); } }
+        async function promptCounter() { const n = prompt("Название предмета:"); const t = prompt("Цель (кол-во):", 10); if(n&&t) { await fetch(`/api/counter?name=${encodeURIComponent(n)}&target=${t}`, {method:'POST'}); loadAll(); } }
+        async function toggleWorkout(idx) { await fetch(`/api/body/workout?day_index=${idx}`, {method:'POST'}); loadAll(); }
+        async function toggleClient(id, idx) { await fetch(`/api/client/${id}/toggle?stage_idx=${idx}`, {method:'POST'}); loadAll(); }
+        async function toggleCounter(id, val) { await fetch(`/api/counter/${id}/set?value=${val}`, {method:'POST'}); loadAll(); }
+        async function archiveClient(id) { if(confirm("В архив?")) { await fetch(`/api/client/${id}`, {method:'DELETE'}); loadAll(); } }
+        async function deleteCounter(id) { if(confirm("Удалить?")) { await fetch(`/api/counter/${id}`, {method:'DELETE'}); loadAll(); } }
+        function exportDB() { window.location.href = '/api/export'; setTimeout(() => { alert("Экспортировано. Файл planner.db сохранен."); }, 1000); }
 
-async function handleQuickAdd(e) {
-    if (e.key === 'Enter' && e.target.value.trim()) {
-        const val = e.target.value;
-        await api('/api/tasks/', 'POST', { name: val });
-        e.target.value = '';
-        await loadData();
-        showToast('✅ Добавлено');
-    }
-}
+        function showView(v, el) { 
+            document.querySelectorAll('.view-content').forEach(x => x.classList.remove('active-view')); document.getElementById(v+'-view').classList.add('active-view'); 
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); 
+            loadAll(); 
+        }
 
-async function toggleTask(id) {
-    const t = tasks.find(x => x.id === id);
-    await api(`/api/tasks/${id}`, 'PATCH', { completed: !t.completed });
-    await loadData();
-}
+        async function updateCharts(d) {
+            if(!d) { const res = await fetch('/api/history'); d = await res.json(); heatmapData = d.heatmap; }
+            if(weightChart) weightChart.destroy(); if(tasksChart) tasksChart.destroy();
+            const opt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }, scales: { y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,0.02)' } }, x: { grid: { display: false } } } };
+            
+            weightChart = new Chart(document.getElementById('weightChart').getContext('2d'), { 
+                type: 'line', data: { labels: d.body.dates, datasets: [ { label: 'Вес (кг)', data: d.body.weight, borderColor: '#d4a5a5', backgroundColor: 'rgba(212, 165, 165, 0.1)', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff', borderWeight: 3 }, { label: 'Цель (56кг)', data: d.body.target, borderColor: 'rgba(122, 148, 181, 0.5)', borderDash: [5, 5], fill: false, pointRadius: 0 } ] }, options: opt 
+            });
+            tasksChart = new Chart(document.getElementById('tasksChart').getContext('2d'), { 
+                type: 'line', data: { labels: d.tasks.dates, datasets: [ { label: 'Рабочее (%)', data: d.tasks.work, borderColor: '#7a94b5', tension: 0.4, fill: false, borderWeight: 3 }, { label: 'Личное (%)', data: d.tasks.personal, borderColor: '#d4a5a5', tension: 0.4, fill: false, borderWeight: 3 } ] }, options: opt 
+            });
+            renderHeatmap();
+        }
 
-async function togglePersonal(id) {
-    const t = tasks.find(x => x.id === id);
-    await api(`/api/tasks/${id}`, 'PATCH', { is_personal: !t.is_personal });
-    await loadData();
-}
+        function renderHeatmap() {
+            const container = document.getElementById('heatmap'); container.innerHTML = '';
+            const today = new Date(); today.setHours(0,0,0,0);
+            for(let i=0; i<12; i++) {
+                let column = document.createElement('div'); column.style.display = 'flex'; column.style.flexDirection = 'column'; column.style.gap = '5px';
+                for(let j=0; j<7; j++) {
+                    const dayOffset = (11 - i) * 7 + (6 - j);
+                    const date = new Date(today); date.setDate(today.getDate() - dayOffset);
+                    const dateStr = date.toISOString().split('T')[0];
+                    const count = heatmapData[dateStr] || 0;
+                    let cell = document.createElement('div'); cell.className = 'heatmap-cell';
+                    if(count > 0) cell.classList.add(count > 3 ? 'level-3' : (count > 1 ? 'level-2' : 'level-1'));
+                    cell.title = `${dateStr}: ${count} задач`;
+                    column.appendChild(cell);
+                }
+                container.appendChild(column);
+            }
+        }
 
-async function cycleSlot(id) {
-    const t = tasks.find(x => x.id === id);
-    const slots = ['Сегодня', 'Завтра', 'На неделе'];
-    const next = slots[(slots.indexOf(t.time_slot) + 1) % slots.length];
-    await api(`/api/tasks/${id}`, 'PATCH', { time_slot: next });
-    await loadData();
-}
+        let currentCalMonth = new Date().getMonth(); let currentCalYear = new Date().getFullYear();
+        function toggleCalendar(e, id) { activeTaskId = id; const cal = document.getElementById('custom-calendar'); const rect = e.target.getBoundingClientRect(); cal.style.left = Math.min(window.innerWidth - 300, rect.left - 120) + 'px'; cal.style.top = (rect.bottom + window.scrollY + 10) + 'px'; cal.style.display = 'block'; renderCal(); }
+        function closeCalendar() { document.getElementById('custom-calendar').style.display = 'none'; }
+        function prevMonth() { currentCalMonth--; if(currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; } renderCal(); }
+        function nextMonth() { currentCalMonth++; if(currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; } renderCal(); }
+        function renderCal() {
+            const grid = document.getElementById('cal-days-grid'); const monthNames = ["ЯНВАРЬ", "ФЕВРАЛЬ", "МАРТ", "АПРЕЛЬ", "МАЙ", "ИЮНЬ", "ИЮЛЬ", "АВГУСТ", "СЕНТЯБРЬ", "ОКТЯБРЬ", "НОЯБРЬ", "ДЕКАБРЬ"];
+            document.getElementById('cal-month-year').innerText = `${monthNames[currentCalMonth]} ${currentCalYear}`; grid.innerHTML = '';
+            const firstDay = new Date(currentCalYear, currentCalMonth, 1).getDay(); const daysInMonth = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+            for(let i=0; i<startOffset; i++) grid.innerHTML += '<div></div>';
+            for(let d=1; d<=daysInMonth; d++) { const dateStr = `${currentCalYear}-${String(currentCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; grid.innerHTML += `<div class="cal-day" onclick="setTaskDate('${dateStr}')">${d}</div>`; }
+        }
+        async function setTaskDate(dateStr) { await fetch(`/api/tasks/${activeTaskId}/dates?due_date=${dateStr}`, { method: 'POST' }); closeCalendar(); loadAll(); }
+        const resizer = document.getElementById('panel-resizer'); const panel = document.getElementById('insights-panel'); let isResizing = false;
+        resizer.addEventListener('mousedown', (e) => { isResizing = true; document.body.style.cursor = 'col-resize'; resizer.classList.add('dragging'); });
+        document.addEventListener('mousemove', (e) => { if (!isResizing) return; const width = window.innerWidth - e.clientX; if (width > 250 && width < 600) { panel.style.width = `${width}px`; } });
+        document.addEventListener('mouseup', () => { isResizing = false; document.body.style.cursor = 'default'; resizer.classList.remove('dragging'); });
 
-async function smartArchive() {
-    const res = await api('/api/tasks/smart-archive', 'POST');
-    await loadData();
-    showToast(`✨ ${res.stats.archived_count} задач архивировано!`);
-}
-
-function filterSlot(s, btn) {
-    selectedTimeSlot = s;
-    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    render();
-}
-
-function switchTab(t) {
-    document.getElementById('tasksTab').style.display = t === 'tasks' ? 'block' : 'none';
-    document.getElementById('progressTab').style.display = t === 'progress' ? 'block' : 'none';
-    document.getElementById('tabTasks').classList.toggle('active', t === 'tasks');
-    document.getElementById('tabProgress').classList.toggle('active', t === 'progress');
-}
-
-function showToast(m) {
-    const t = document.getElementById('toast');
-    t.textContent = m;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2000);
-}
-
-// Set current week
-const now = new Date();
-document.getElementById('currentWeek').textContent = `неделя ${now.toLocaleDateString('ru-RU')}`;
-
-loadData();
-</script>
+        window.onload = loadAll;
+    </script>
 </body>
 </html>

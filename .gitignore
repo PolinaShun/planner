@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# База данных и личные данные
+planner.db
+backups/
+clip.png
+актуально_31марта.md
+контекст_по_датам.md
+архив/
+
+# Локальные настройки
+.env
+.vscode/
+*.bat
+!run.bat
+!setup.bat
+
+# Gemini & Memory
+.gemini/
+MEMORY.md
+context_summary.md
+START.md

@@ -1,40 +1,65 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.db.database import get_db
 from app.models.models import Task
+from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
 import datetime
-from typing import Optional
+from typing import Optional, List
 
 router = APIRouter()
 
-@router.get("/tasks")
+@router.get("/tasks", response_model=List[TaskResponse])
 async def get_tasks(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Task).filter(Task.archived == False))
+    # Только верхнеуровневые задачи, подзадачи подгружаются через relationship
+    result = await db.execute(
+        select(Task)
+        .filter(Task.archived == False, Task.parent_id == None)
+        .options(selectinload(Task.subtasks))
+    )
     return result.scalars().all()
 
-@router.post("/tasks")
-async def add_task(name: str, description: Optional[str] = None, start_date: Optional[datetime.date] = None, due_date: Optional[datetime.date] = None, is_dream: bool = False, is_personal: bool = False, db: AsyncSession = Depends(get_db)):
-    is_p = is_personal or "личн" in name.lower() or "баланс" in name.lower()
-    is_sc = "для себ" in name.lower() or "уход" in name.lower()
-    new_task = Task(name=name, description=description, start_date=start_date, due_date=due_date, is_personal=is_p, is_selfcare=is_sc, is_dream=is_dream)
+@router.post("/tasks", response_model=TaskResponse)
+async def add_task(task_data: TaskCreate, db: AsyncSession = Depends(get_db)):
+    name_lower = task_data.name.lower()
+    
+    # Если это подзадача, наследуем категорию от родителя, если не указано иное
+    is_p = task_data.is_personal
+    is_dr = task_data.is_dream
+    
+    if task_data.parent_id:
+        parent_res = await db.execute(select(Task).filter(Task.id == task_data.parent_id))
+        parent = parent_res.scalar_one_or_none()
+        if parent:
+            is_p = parent.is_personal if task_data.is_personal is False else task_data.is_personal
+            is_dr = parent.is_dream if task_data.is_dream is False else task_data.is_dream
+    else:
+        is_p = task_data.is_personal or "личн" in name_lower or "баланс" in name_lower
+        
+    is_sc = "для себ" in name_lower or "уход" in name_lower
+    
+    new_task = Task(
+        **task_data.model_dump(exclude={"is_personal", "is_dream"}),
+        is_personal=is_p,
+        is_dream=is_dr,
+        is_selfcare=is_sc
+    )
     db.add(new_task)
     await db.commit()
     await db.refresh(new_task)
     return new_task
 
-@router.put("/tasks/{task_id}")
-async def update_task(task_id: int, name: Optional[str] = None, description: Optional[str] = None, start_date: Optional[datetime.date] = None, due_date: Optional[datetime.date] = None, is_dream: Optional[bool] = None, is_personal: Optional[bool] = None, db: AsyncSession = Depends(get_db)):
+@router.put("/tasks/{task_id}", response_model=TaskResponse)
+async def update_task(task_id: int, task_data: TaskUpdate, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Task).filter(Task.id == task_id))
     task = result.scalar_one_or_none()
     if task:
-        if name is not None: task.name = name
-        if description is not None: task.description = description
-        if start_date is not None: task.start_date = start_date
-        if due_date is not None: task.due_date = due_date
-        if is_dream is not None: task.is_dream = is_dream
-        if is_personal is not None: task.is_personal = is_personal
+        update_data = task_data.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(task, key, value)
         await db.commit()
+        await db.refresh(task)
         return task
     raise HTTPException(status_code=404, detail="Task not found")
 
@@ -44,6 +69,10 @@ async def toggle_task(task_id: int, db: AsyncSession = Depends(get_db)):
     task = result.scalar_one_or_none()
     if task:
         task.completed = not task.completed
+        if task.completed:
+            task.completed_at = datetime.date.today()
+        else:
+            task.completed_at = None
         await db.commit()
     return {"status": "ok"}
 
@@ -57,8 +86,11 @@ async def archive_task(task_id: int, db: AsyncSession = Depends(get_db)):
     return {"status": "ok"}
 
 @router.get("/tasks/archived")
-async def get_archived_tasks(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Task).filter(Task.archived == True))
+async def get_archived_tasks(q: Optional[str] = None, db: AsyncSession = Depends(get_db)):
+    query = select(Task).filter(Task.archived == True)
+    if q:
+        query = query.filter(Task.name.ilike(f"%{q}%"))
+    result = await db.execute(query)
     return result.scalars().all()
 
 @router.post("/tasks/{task_id}/restore")

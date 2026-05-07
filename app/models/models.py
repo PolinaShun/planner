@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean, Float, JSON, Date
+from sqlalchemy import Column, Integer, String, Boolean, Float, JSON, Date, ForeignKey
+from sqlalchemy.orm import relationship
 from app.db.database import Base
 import datetime
 
@@ -18,6 +19,10 @@ class Task(Base):
     start_date = Column(Date, nullable=True)
     due_date = Column(Date, nullable=True)
     created_at = Column(Date, default=datetime.date.today)
+    completed_at = Column(Date, nullable=True)
+    
+    parent_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
+    subtasks = relationship("Task", backref="parent", remote_side=[id])
 
 class Client(Base):
     __tablename__ = "clients"

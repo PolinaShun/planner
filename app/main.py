@@ -11,7 +11,17 @@ import shutil
 
 from app.api import tasks, stats
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(title="Senior Planner Polina")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Static files and templates
 if not os.path.exists("static"):

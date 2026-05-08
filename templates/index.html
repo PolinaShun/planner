@@ -73,13 +73,32 @@
         .action-icon { cursor: pointer; font-size: 14px; filter: grayscale(1) brightness(1.5); transition: 0.2s; }
 
         /* GRIDS */
-        .status-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-top: 3px; }
-        .freud-grid { grid-template-columns: repeat(7, 1fr); gap: 5px !important; }
-        .status-block { width: 18px; height: 18px; border-radius: 4px; background: rgba(255,255,255,0.05); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 7px; color: #6a7a72; }
+        .status-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; margin-top: 10px; }
+        .freud-grid { grid-template-columns: repeat(7, 1fr); gap: 8px !important; }
+        .status-block { 
+            width: 100%; 
+            aspect-ratio: 1/1; 
+            max-width: 35px;
+            border-radius: 6px; 
+            background: rgba(255,255,255,0.05); 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 9px; 
+            color: #6a7a72; 
+            transition: 0.2s;
+        }
+        .status-block:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
         .status-block.rose { background: var(--accent-rose) !important; color: white; }
+        .status-block.active { background: var(--accent-sage) !important; color: #141d18; }
 
         #custom-calendar { position: fixed; display: none; width: 280px; background: rgba(20, 29, 24, 0.98); backdrop-filter: blur(30px); border-radius: 22px; box-shadow: 0 15px 50px rgba(0,0,0,0.5); padding: 20px; z-index: 3000; border: 1px solid rgba(255,255,255,0.05); color: white; }
-        .cal-day { color: #d0d7d0; }
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: 600; font-size: 14px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }
+        .cal-day { padding: 8px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 13px; color: #d0d7d0; }
+        .cal-day:hover { background: rgba(255,255,255,0.1); color: var(--accent-sage); }
+        .cal-day.today { background: var(--accent-sage); color: #141d18; font-weight: 600; }
 
         .widget { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; padding: 20px; border-radius: 25px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.03); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .sub-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; color: #8da399; }
@@ -97,6 +116,9 @@
         .active-view { display: flex !important; flex-direction: column; min-height: 100%; }
         
         .chart-container { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); height: 280px; }
+        #analytics-grid .widget { cursor: grab; }
+        #analytics-grid .widget:active { cursor: grabbing; }
+        .sortable-ghost-widget { opacity: 0.3; background: var(--accent-sage) !important; }
     </style>
 </head>
 <body>
@@ -146,16 +168,36 @@
                         <div id="body-text" style="font-size: 15px; font-weight: 500; color: #8da399; margin-bottom: 15px; line-height: 1.6;">Загрузка...</div>
                         <div class="status-grid freud-grid" id="ferris-grid"></div>
                     </div>
+                    
+                    <div class="widget" style="padding: 20px;">
+                        <div class="item-header"><h2>КОНТЕНТ</h2></div>
+                        <div id="content-checklist" style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
+                            <div style="display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="toggleContent('tg')">
+                                <input type="checkbox" id="check-tg" style="width:20px; height:20px; pointer-events:none;">
+                                <span style="font-size:14px; font-weight:500; color:#d0d7d0;">Telegram Пост</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="toggleContent('reels')">
+                                <input type="checkbox" id="check-reels" style="width:20px; height:20px; pointer-events:none;">
+                                <span style="font-size:14px; font-weight:500; color:#d0d7d0;">Instagram Reels</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="toggleContent('vk')">
+                                <input type="checkbox" id="check-vk" style="width:20px; height:20px; pointer-events:none;">
+                                <span style="font-size:14px; font-weight:500; color:#d0d7d0;">VK Лонгрид</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="clients-list" style="display:contents;"></div>
                     <div id="study-list" style="display:contents;"></div>
                 </div>
                 
                 <h2 style="margin-top: 40px; margin-bottom: 20px;">Аналитика 2026</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
-                    <div class="widget"><h2>ВЕС (КГ)</h2><div style="height: 200px;"><canvas id="weightChart"></canvas></div></div>
-                    <div class="widget"><h2>ПРОГРЕСС ТРЕНИРОВОК (%)</h2><div style="height: 200px;"><canvas id="monthlyWorkoutChart"></canvas></div></div>
-                    <div class="widget"><h2>АРХИВ: <span id="prev-workout-header-text">...</span></h2><div id="prev-workout-grid" class="status-grid freud-grid"></div></div>
-                    <div class="widget"><h2>ПРОДУКТИВНОСТЬ</h2><div style="height: 200px;"><canvas id="tasksChart"></canvas></div></div>
+                <div id="analytics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+                    <div class="widget" data-chart="weight"><h2>ВЕС (КГ)</h2><div style="height: 200px;"><canvas id="weightChart"></canvas></div></div>
+                    <div class="widget" data-chart="workout-monthly"><h2>ПРОГРЕСС ТРЕНИРОВОК (%)</h2><div style="height: 200px;"><canvas id="monthlyWorkoutChart"></canvas></div></div>
+                    <div class="widget" data-chart="workout-archive"><h2>АРХИВ: <span id="prev-workout-header-text">...</span></h2><div id="prev-workout-grid" class="status-grid freud-grid"></div></div>
+                    <div class="widget" data-chart="tasks"><h2>ПРОДУКТИВНОСТЬ</h2><div style="height: 200px;"><canvas id="tasksChart"></canvas></div></div>
+                    <div class="widget" id="content-chart-widget" data-chart="content"><h2>ДИСЦИПЛИНА КОНТЕНТА</h2><div style="height: 200px;"><canvas id="contentChart"></canvas></div></div>
                 </div>
             </div>
 
@@ -382,8 +424,14 @@
             } else { greeting.style.display = 'none'; }
         }
 
+        async function toggleContent(platform) {
+            await fetch(`/api/content/toggle?platform=${platform}`, { method: 'POST' });
+            loadAll();
+        }
+
         function renderInsights() {
             if(currentInsights.body) {
+                // ... (старый код тела)
                 const monthName = currentInsights.month_name || "МЕСЯЦ";
                 const b = currentInsights.body;
                 document.getElementById('body-text').innerHTML = `
@@ -397,9 +445,15 @@
                 const fGrid = document.getElementById('ferris-grid');
                 const history = b.workout_history || [];
                 fGrid.style.gridTemplateColumns = 'repeat(7, 1fr)'; 
-                fGrid.style.gap = '5px';
-                fGrid.innerHTML = `<div style="grid-column: 1 / -1; font-size: 9px; font-weight: 600; color: #6a7a72; margin-bottom: 5px;">${monthName}</div>` + 
-                    history.map((d, i) => `<div class="status-block ${d?'rose':''}" style="width:20px; height:20px; font-size:8px;" onclick="toggleWorkout(${i})">${i+1}</div>`).join('');
+                fGrid.innerHTML = `<div style="grid-column: 1 / -1; font-size: 10px; font-weight: 600; color: #6a7a72; margin-bottom: 8px;">${monthName}</div>` + 
+                    history.map((d, i) => `<div class="status-block ${d?'rose':''}" onclick="toggleWorkout(${i})">${i+1}</div>`).join('');
+            }
+
+            if(currentInsights.content) {
+                const c = currentInsights.content;
+                document.getElementById('check-tg').checked = c.tg;
+                document.getElementById('check-reels').checked = c.reels;
+                document.getElementById('check-vk').checked = c.vk;
             }
 
             document.getElementById('clients-list').innerHTML = (currentInsights.clients || []).map(c => {
@@ -409,11 +463,14 @@
 
             const studyItems = (currentInsights.counters || []).map(s => {
                 let blks = ''; const isF = s.name.toLowerCase().includes('фрейд'); const target = isF ? 35 : s.target;
-                for(let i=1; i<=target; i++) blks += `<div class="status-block ${i<=s.value?'rose':''}" style="width:18px; height:18px; font-size:7px;" onclick="toggleCounter(${s.id}, ${i})">${i}</div>`;
+                for(let i=1; i<=target; i++) blks += `<div class="status-block ${i<=s.value?'rose':''}" onclick="toggleCounter(${s.id}, ${i})">${i}</div>`;
+                
+                const cols = target <= 10 ? target : 7;
+                
                 return `
-                    <div style="margin-bottom:15px;">
-                        <div class="sub-header" style="margin-bottom:5px;"><span>${s.name}</span><span class="small-icon" onclick="deleteCounter(${s.id})">✕</span></div>
-                        <div class="status-grid freud-grid">${blks}</div>
+                    <div style="margin-bottom:20px;">
+                        <div class="sub-header" style="margin-bottom:8px;"><span>${s.name}</span><span class="small-icon" onclick="deleteCounter(${s.id})">✕</span></div>
+                        <div class="status-grid" style="grid-template-columns: repeat(${cols}, 1fr);">${blks}</div>
                     </div>`;
             }).join('');
             
@@ -546,7 +603,11 @@
                 responsive: true, maintainAspectRatio: false, 
                 plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 }, color: '#888' } } }, 
                 scales: { 
-                    y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#888', font: { size: 10 } } }, 
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(255,255,255,0.03)' }, 
+                        ticks: { color: '#888', font: { size: 10 }, stepSize: 1, precision: 0 } 
+                    }, 
                     x: { grid: { display: false }, ticks: { color: '#888', font: { size: 10 }, autoSkip: true, maxTicksLimit: 8 } } 
                 } 
             };
@@ -555,7 +616,13 @@
             weightChart = new Chart(document.getElementById('weightChart').getContext('2d'), { 
                 type: 'line', 
                 data: { labels: d.body.dates, datasets: [ { label: 'Вес', data: d.body.weight, borderColor: '#d4a5a5', backgroundColor: 'rgba(212, 165, 165, 0.1)', fill: true, tension: 0.4, pointRadius: 2, borderWeight: 2 }, { label: 'Цель', data: d.body.target, borderColor: 'rgba(52, 152, 219, 0.3)', borderDash: [5, 5], fill: false, pointRadius: 0 } ] }, 
-                options: commonOpt 
+                options: { 
+                    ...commonOpt, 
+                    scales: { 
+                        ...commonOpt.scales, 
+                        y: { ...commonOpt.scales.y, beginAtZero: false, ticks: { ...commonOpt.scales.y.ticks, stepSize: null } } 
+                    } 
+                } 
             });
 
             // 2. Месячный прогресс
@@ -586,6 +653,27 @@
                 type: 'line', 
                 data: { labels: d.tasks.dates, datasets: [ { label: 'Работа', data: d.tasks.work, borderColor: '#3498db', tension: 0.4, fill: false, borderWeight: 2, pointRadius: 2 }, { label: 'Личное', data: d.tasks.personal, borderColor: '#d4a5a5', tension: 0.4, fill: false, borderWeight: 2, pointRadius: 2 } ] }, 
                 options: commonOpt 
+            });
+
+            // 5. Контент
+            if (window.contentChartObj) window.contentChartObj.destroy();
+            window.contentChartObj = new Chart(document.getElementById('contentChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: d.content_history.dates,
+                    datasets: [
+                        { label: 'TG', data: d.content_history.tg, borderColor: '#0088cc', backgroundColor: '#0088cc', tension: 0, stepped: true, pointRadius: 0, borderWeight: 2 },
+                        { label: 'Reels', data: d.content_history.reels, borderColor: '#e1306c', backgroundColor: '#e1306c', tension: 0, stepped: true, pointRadius: 0, borderWeight: 2 },
+                        { label: 'VK', data: d.content_history.vk, borderColor: '#27ae60', backgroundColor: '#27ae60', tension: 0, stepped: true, pointRadius: 0, borderWeight: 2 }
+                    ]
+                },
+                options: { 
+                    ...commonOpt, 
+                    scales: { 
+                        ...commonOpt.scales, 
+                        y: { min: 0, max: 1.2, ticks: { stepSize: 1, callback: (val) => val === 1 ? 'ДА' : (val === 0 ? 'НЕТ' : '') } } 
+                    } 
+                }
             });
         }
 
@@ -668,7 +756,40 @@
         }
         async function setTaskDate(dateStr) { await fetch(`/api/tasks/${activeTaskId}/dates?due_date=${dateStr}`, { method: 'POST' }); closeCalendar(); loadAll(); }
 
-        window.onload = loadAll;
+        function initAnalyticsSortable() {
+            const el = document.getElementById('analytics-grid');
+            if (el && !el._sortable) {
+                el._sortable = new Sortable(el, {
+                    animation: 250,
+                    ghostClass: 'sortable-ghost-widget',
+                    onEnd: saveAnalyticsOrder
+                });
+            }
+        }
+
+        function saveAnalyticsOrder() {
+            const grid = document.getElementById('analytics-grid');
+            const order = Array.from(grid.querySelectorAll('.widget')).map(el => el.dataset.chart);
+            localStorage.setItem('analytics_order', JSON.stringify(order));
+        }
+
+        function applyAnalyticsOrder() {
+            const order = JSON.parse(localStorage.getItem('analytics_order'));
+            if (order) {
+                const grid = document.getElementById('analytics-grid');
+                const widgets = Array.from(grid.querySelectorAll('.widget'));
+                order.forEach(id => {
+                    const widget = widgets.find(w => w.dataset.chart === id);
+                    if (widget) grid.appendChild(widget);
+                });
+            }
+        }
+
+        window.onload = async () => {
+            await loadAll();
+            applyAnalyticsOrder();
+            initAnalyticsSortable();
+        };
     </script>
 </body>
 </html>

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, and_
 from app.db.database import get_db
-from app.models.models import Client, Counter, BodyMetric, Task
+from app.models.models import Client, Counter, BodyMetric, Task, ContentMetric
 import datetime
 
 router = APIRouter()
@@ -16,6 +16,14 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
     clients = clients_res.scalars().all()
     counters_res = await db.execute(select(Counter))
     counters = counters_res.scalars().all()
+    
+    # Контент за сегодня
+    content_res = await db.execute(select(ContentMetric).filter(ContentMetric.date == today))
+    content = content_res.scalar_one_or_none()
+    if not content:
+        content = ContentMetric(date=today, tg=False, reels=False, vk=False)
+        db.add(content)
+        await db.commit()
     
     # Автоматическое переключение месяца для BodyMetric
     body_res = await db.execute(select(BodyMetric).order_by(BodyMetric.date.desc()))
@@ -55,6 +63,7 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
         "clients": clients,
         "counters": counters,
         "body": body,
+        "content": content,
         "month_name": current_month_name,
         "stats": {
             "total": len(tasks),
@@ -62,6 +71,22 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
             "rate": int((len(done)/len(tasks))*100) if tasks else 0
         }
     }
+
+@router.post("/content/toggle")
+async def toggle_content(platform: str, db: AsyncSession = Depends(get_db)):
+    today = datetime.date.today()
+    res = await db.execute(select(ContentMetric).filter(ContentMetric.date == today))
+    content = res.scalar_one_or_none()
+    if not content:
+        content = ContentMetric(date=today)
+        db.add(content)
+    
+    if platform == 'tg': content.tg = not content.tg
+    elif platform == 'reels': content.reels = not content.reels
+    elif platform == 'vk': content.vk = not content.vk
+    
+    await db.commit()
+    return {"status": "ok"}
 
 @router.post("/client")
 async def add_client(name: str, db: AsyncSession = Depends(get_db)):
@@ -209,9 +234,9 @@ async def get_history(db: AsyncSession = Depends(get_db)):
     metrics = metrics_res.scalars().all()
     today = datetime.date.today()
     work_history, personal_history, dates = [], [], []
+    content_tg, content_reels, content_vk = [], [], []
     heatmap_data = {}
 
-    # ... (старый код heatmap и задач)
     for i in range(83, -1, -1):
         day = today - datetime.timedelta(days=i)
         day_str = day.strftime("%Y-%m-%d")
@@ -220,17 +245,22 @@ async def get_history(db: AsyncSession = Depends(get_db)):
 
     for i in range(13, -1, -1):
         day = today - datetime.timedelta(days=i)
-        w_total = await db.execute(select(Task).filter(and_(Task.created_at <= day, Task.is_personal == False)))
-        w_done = await db.execute(select(Task).filter(and_(Task.completed_at <= day, Task.completed == True, Task.is_personal == False)))
-        wt, wd = len(w_total.scalars().all()), len(w_done.scalars().all())
-        work_history.append(int((wd/wt)*100) if wt > 0 else 0)
-        p_total = await db.execute(select(Task).filter(and_(Task.created_at <= day, Task.is_personal == True)))
-        p_done = await db.execute(select(Task).filter(and_(Task.completed_at <= day, Task.completed == True, Task.is_personal == True)))
-        pt, pd = len(p_total.scalars().all()), len(p_done.scalars().all())
-        personal_history.append(int((pd/pt)*100) if pt > 0 else 0)
+        # Задачи
+        w_done_day = await db.execute(select(Task).filter(and_(Task.completed_at == day, Task.completed == True, Task.is_personal == False)))
+        work_history.append(len(w_done_day.scalars().all()))
+        p_done_day = await db.execute(select(Task).filter(and_(Task.completed_at == day, Task.completed == True, Task.is_personal == True)))
+        personal_history.append(len(p_done_day.scalars().all()))
+        
+        # Контент
+        c_res = await db.execute(select(ContentMetric).filter(ContentMetric.date == day))
+        c_met = c_res.scalar_one_or_none()
+        content_tg.append(1 if c_met and c_met.tg else 0)
+        content_reels.append(1 if c_met and c_met.reels else 0)
+        content_vk.append(1 if c_met and c_met.vk else 0)
+        
         dates.append(day.strftime("%d.%m"))
 
-    # Получаем данные по тренировкам за прошлый месяц
+    # ... (старый код тренировок)
     prev_month_start = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
     prev_month_end = today.replace(day=1) - datetime.timedelta(days=1)
     
@@ -242,14 +272,12 @@ async def get_history(db: AsyncSession = Depends(get_db)):
     
     workout_stats = {"done": 0, "total": 0, "month": MONTH_NAMES[prev_month_end.month], "history": []}
     if all_prev_metrics:
-        # Выбираем запись, где больше всего True
         best_record = max(all_prev_metrics, key=lambda m: sum(1 for d in (m.workout_history or []) if d))
         history_list = best_record.workout_history or []
         workout_stats["done"] = sum(1 for d in history_list if d)
         workout_stats["total"] = len(history_list)
         workout_stats["history"] = history_list
 
-    # Получаем данные по тренировкам по месяцам (за текущий год)
     monthly_workout_stats = []
     for m_idx in range(1, 13):
         m_start = datetime.date(today.year, m_idx, 1)
@@ -260,18 +288,16 @@ async def get_history(db: AsyncSession = Depends(get_db)):
         m_metrics = m_res.scalars().all()
         if m_metrics:
             best_m = max(m_metrics, key=lambda x: sum(1 for d in x.workout_history if d))
-            done = sum(1 for d in best_m.workout_history if d)
-            total = len(best_m.workout_history)
-            monthly_workout_stats.append({
-                "month": MONTH_NAMES[m_idx],
-                "percent": int((done/total)*100) if total > 0 else 0
-            })
+            done = sum(1 for d in (best_m.workout_history or []) if d)
+            total = len(best_m.workout_history or [])
+            monthly_workout_stats.append({"month": MONTH_NAMES[m_idx], "percent": int((done/total)*100) if total > 0 else 0})
         elif m_idx <= today.month:
             monthly_workout_stats.append({"month": MONTH_NAMES[m_idx], "percent": 0})
 
     return {
         "body": {"dates": [m.date.strftime("%d.%m.%y") for m in metrics], "weight": [m.weight for m in metrics], "target": [56.0] * len(metrics)},
         "tasks": {"dates": dates, "work": work_history, "personal": personal_history},
+        "content_history": {"dates": dates, "tg": content_tg, "reels": content_reels, "vk": content_vk},
         "heatmap": heatmap_data,
         "prev_workout": workout_stats,
         "monthly_workouts": monthly_workout_stats,

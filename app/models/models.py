@@ -50,3 +50,11 @@ class BodyMetric(Base):
     calories = Column(Integer, nullable=True)
     protein = Column(Integer, nullable=True)
     workout_history = Column(JSON, default=list) # List of 30 booleans
+
+class ContentMetric(Base):
+    __tablename__ = "content_metrics"
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(Date, default=datetime.date.today, unique=True)
+    tg = Column(Boolean, default=False)
+    reels = Column(Boolean, default=False)
+    vk = Column(Boolean, default=False)

@@ -12,7 +12,6 @@ router = APIRouter()
 
 @router.get("/tasks", response_model=List[TaskResponse])
 async def get_tasks(db: AsyncSession = Depends(get_db)):
-    # Только верхнеуровневые задачи, подзадачи подгружаются через relationship
     result = await db.execute(
         select(Task)
         .filter(Task.archived == False, Task.parent_id == None)
@@ -23,13 +22,12 @@ async def get_tasks(db: AsyncSession = Depends(get_db)):
 @router.post("/tasks", response_model=TaskResponse)
 async def add_task(task_data: TaskCreate, db: AsyncSession = Depends(get_db)):
     name_lower = task_data.name.lower()
-    
-    # Если это подзадача, наследуем категорию от родителя, если не указано иное
     is_p = task_data.is_personal
     is_dr = task_data.is_dream
     
     if task_data.parent_id:
-        parent_res = await db.execute(select(Task).filter(Task.id == task_data.parent_id))
+        parent_stmt = select(Task).filter(Task.id == task_data.parent_id)
+        parent_res = await db.execute(parent_stmt)
         parent = parent_res.scalar_one_or_none()
         if parent:
             is_p = parent.is_personal if task_data.is_personal is False else task_data.is_personal
@@ -40,27 +38,42 @@ async def add_task(task_data: TaskCreate, db: AsyncSession = Depends(get_db)):
     is_sc = "для себ" in name_lower or "уход" in name_lower
     
     new_task = Task(
-        **task_data.model_dump(exclude={"is_personal", "is_dream"}),
+        name=task_data.name,
+        description=task_data.description,
+        priority=task_data.priority,
+        time_slot=task_data.time_slot,
+        parent_id=task_data.parent_id,
         is_personal=is_p,
         is_dream=is_dr,
-        is_selfcare=is_sc
+        is_selfcare=is_sc,
+        start_date=task_data.start_date,
+        due_date=task_data.due_date
     )
     db.add(new_task)
     await db.commit()
-    await db.refresh(new_task)
-    return new_task
+    
+    # ПЕРЕЗАГРУЗКА с подзадачами ОБЯЗАТЕЛЬНА
+    final_stmt = select(Task).filter(Task.id == new_task.id).options(selectinload(Task.subtasks))
+    final_res = await db.execute(final_stmt)
+    return final_res.scalar_one()
 
 @router.put("/tasks/{task_id}", response_model=TaskResponse)
 async def update_task(task_id: int, task_data: TaskUpdate, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Task).filter(Task.id == task_id))
+    result = await db.execute(
+        select(Task)
+        .filter(Task.id == task_id)
+        .options(selectinload(Task.subtasks))
+    )
     task = result.scalar_one_or_none()
     if task:
         update_data = task_data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(task, key, value)
         await db.commit()
-        await db.refresh(task)
-        return task
+        
+        refresh_stmt = select(Task).filter(Task.id == task.id).options(selectinload(Task.subtasks))
+        refresh_res = await db.execute(refresh_stmt)
+        return refresh_res.scalar_one()
     raise HTTPException(status_code=404, detail="Task not found")
 
 @router.post("/tasks/auto-archive")
@@ -81,7 +94,11 @@ async def auto_archive_tasks(db: AsyncSession = Depends(get_db)):
 
 @router.post("/tasks/{task_id}/toggle")
 async def toggle_task(task_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Task).filter(Task.id == task_id))
+    result = await db.execute(
+        select(Task)
+        .filter(Task.id == task_id)
+        .options(selectinload(Task.subtasks))
+    )
     task = result.scalar_one_or_none()
     if task:
         task.completed = not task.completed
@@ -108,6 +125,15 @@ async def get_archived_tasks(q: Optional[str] = None, db: AsyncSession = Depends
         query = query.filter(Task.name.ilike(f"%{q}%"))
     result = await db.execute(query)
     return result.scalars().all()
+
+@router.delete("/tasks/{task_id}")
+async def delete_task(task_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    task = result.scalar_one_or_none()
+    if task:
+        await db.delete(task)
+        await db.commit()
+    return {"status": "ok"}
 
 @router.post("/tasks/{task_id}/restore")
 async def restore_task(task_id: int, db: AsyncSession = Depends(get_db)):

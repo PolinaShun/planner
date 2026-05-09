@@ -1,0 +1,169 @@
+{
+  "consultations": [
+    {
+      "name": "Элина",
+      "amount": 2500,
+      "dayIdx": 3,
+      "dayLabel": "Чт"
+    },
+    {
+      "name": "Юлия",
+      "amount": 3000,
+      "dayIdx": 0,
+      "dayLabel": "Пн"
+    },
+    {
+      "name": "Денис",
+      "amount": 3000,
+      "dayIdx": 0,
+      "dayLabel": "Пн"
+    },
+    {
+      "name": "Елена",
+      "amount": 2500,
+      "dayIdx": 0,
+      "dayLabel": "Пн"
+    },
+    {
+      "name": "Александра",
+      "amount": 3000,
+      "dayIdx": 0,
+      "dayLabel": "Пн"
+    }
+  ],
+  "streak": 5,
+  "metrics": {
+    "weight": 53.75,
+    "waist": 67,
+    "hips": 93,
+    "chest": 85
+  },
+  "freudLectures": 1,
+  "nancyVideos": 0,
+  "orders": {
+    "yulia": {
+      "stages": [
+        "Введение",
+        "Глава 1",
+        "Глава 2",
+        "Заключение",
+        "Список лит.",
+        "Приложения"
+      ],
+      "done": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "name": "Юлия — диплом"
+    },
+    "nadezhda": {
+      "stages": [
+        "Введение",
+        "Глава 1 (перераб.)",
+        "Глава 2",
+        "Глава 3",
+        "Заключение",
+        "Список лит."
+      ],
+      "done": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "name": "Надежда — ВКР"
+    },
+    "daria": {
+      "stages": [
+        "Введение",
+        "Глава 1",
+        "Глава 2",
+        "Заключение",
+        "Список лит."
+      ],
+      "done": [
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "name": "Дарья — диплом (новый)"
+    },
+    "zarina": {
+      "stages": [
+        "Эссе 1",
+        "Эссе 2",
+        "Эссе 3",
+        "Эссе 4",
+        "Эссе 5",
+        "Эссе 6",
+        "Эссе 7"
+      ],
+      "done": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "name": "Зарина — 7 эссе"
+    }
+  },
+  "selfcare": [
+    {
+      "name": "Забрать телефон",
+      "note": "вторник",
+      "checked": true
+    },
+    {
+      "name": "Записаться на танцы",
+      "note": "эта/след. неделя",
+      "checked": false
+    },
+    {
+      "name": "Косметолог",
+      "note": "май",
+      "checked": false
+    },
+    {
+      "name": "Гиря — заниматься",
+      "note": "каждое утро",
+      "checked": true
+    }
+  ],
+  "content": {
+    "tg": 0,
+    "reels": 0,
+    "stories": 0,
+    "threads": 0
+  },
+  "contentTarget": {
+    "tg": 4,
+    "reels": 5,
+    "stories": 7,
+    "threads": 5
+  },
+  "taxPaid": [
+    true,
+    true,
+    false,
+    false,
+    false,
+    false
+  ],
+  "weekStart": "2026-04-13",
+  "tasks_summary": {
+    "done": 17,
+    "total": 24,
+    "last_updated": "2026-04-21"
+  }
+}

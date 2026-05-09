@@ -1,0 +1,5 @@
+Как сейчас запустить проект (если сервер упадет):
+
+   1 cd "C:\Users\Polina\flash\квен\планировщик"
+   2 $env:PYTHONPATH="."
+   3 python -m uvicorn app.main:app --port 8000 --host 0.0.0.0

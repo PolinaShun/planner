@@ -36,12 +36,19 @@ class TaskResponse(TaskBase):
     is_selfcare: bool
     is_recurring: bool
     created_at: date
-    subtasks: Optional[List['TaskResponse']] = Field(default_factory=list)
+    subtasks: List['TaskResponse'] = []
 
     @field_validator('subtasks', mode='before')
     @classmethod
     def validate_subtasks(cls, v):
-        return v or []
+        if v is None:
+            return []
+        # Если это ленивая загрузка SQLAlchemy, которая еще не была загружена,
+        # возвращаем пустой список, чтобы избежать ошибок ленивой загрузки.
+        try:
+            return list(v)
+        except Exception:
+            return []
 
     class Config:
         from_attributes = True

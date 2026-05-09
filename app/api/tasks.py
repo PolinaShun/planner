@@ -63,6 +63,22 @@ async def update_task(task_id: int, task_data: TaskUpdate, db: AsyncSession = De
         return task
     raise HTTPException(status_code=404, detail="Task not found")
 
+@router.post("/tasks/auto-archive")
+async def auto_archive_tasks(db: AsyncSession = Depends(get_db)):
+    today = datetime.date.today()
+    result = await db.execute(
+        select(Task).filter(
+            Task.completed == True,
+            Task.archived == False,
+            Task.created_at < today
+        )
+    )
+    tasks = result.scalars().all()
+    for task in tasks:
+        task.archived = True
+    await db.commit()
+    return {"archived_count": len(tasks)}
+
 @router.post("/tasks/{task_id}/toggle")
 async def toggle_task(task_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Task).filter(Task.id == task_id))

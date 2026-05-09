@@ -3,793 +3,530 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Senior Planner | Polina</title>
+    <title>Планировщик Полины | Senior Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #1e2b24;
-            --sidebar-color: #141d18;
-            --accent-rose: #d4a5a5;
-            --accent-sage: #8da399;
+            --bg-color: #000000;
+            --sidebar-color: #0a0f0d;
             --accent-green: #27ae60;
-            --cal-bg: #1c2823;
+            --accent-green-glow: rgba(39, 174, 96, 0.4);
+            --accent-rose: #e66767;
             --text-main: #d0d7d0;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --border-soft: rgba(255,255,255,0.08);
-            --border-color: rgba(255,255,255,0.03);
+            --card-bg: #0d1310;
+            --border-color: rgba(255, 255, 255, 0.08);
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: linear-gradient(135deg, #2c3a32 0%, #1e2b24 100%);
-            color: var(--text-main); 
-            height: 100vh; 
-            overflow: hidden; 
-            display: flex; 
-        }
-
+        body { font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
+        
         /* SIDEBAR */
-        .sidebar { width: 180px; min-width: 180px; background-color: var(--sidebar-color); color: white; padding: 20px 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; overflow: hidden; z-index: 1000; border-right: 1px solid rgba(255,255,255,0.03); }
-        .sidebar .nav-item { width: 100%; padding: 12px 25px; display: flex; align-items: center; gap: 20px; white-space: nowrap; cursor: pointer; opacity: 0.4; transition: 0.2s; }
-        .sidebar .nav-item:hover, .sidebar .nav-item.active { opacity: 1; background: rgba(255,255,255,0.03); }
-        .sidebar .nav-text { font-size: 14px; opacity: 1; }
-        .export-btn { margin-top: auto; opacity: 1 !important; color: var(--accent-sage) !important; font-weight: 600; }
-
-        .main-content-wrapper { flex: 1; display: flex; height: 100vh; overflow: hidden; position: relative; }
-        .workspace { flex: 1; padding: 15px 50px 100px 50px; overflow-y: auto; background: transparent; display: flex; flex-direction: column; }
+        .sidebar { width: 240px; min-width: 240px; background-color: var(--sidebar-color); border-right: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; padding: 30px 15px; z-index: 1000; }
+        .sidebar .brand { padding: 0 15px; margin-bottom: 45px; font-weight: 800; font-size: 20px; color: #fff; display: flex; align-items: center; gap: 12px; }
+        .sidebar .nav-item { width: 100%; padding: 16px 20px; margin-bottom: 10px; cursor: pointer; opacity: 0.6; transition: 0.3s; display: flex; align-items: center; gap: 15px; font-size: 15px; font-weight: 600; border-radius: 16px; border: 1px solid transparent; }
+        .sidebar .nav-item:hover { opacity: 1; background: rgba(255,255,255,0.02); }
+        .sidebar .nav-item.active { opacity: 1; background: var(--accent-green); color: #000; font-weight: 800; border: 2px solid rgba(39, 174, 96, 0.5); box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3); }
+        .export-btn { margin-top: auto !important; border: 1px solid var(--accent-green) !important; color: var(--accent-green) !important; opacity: 1 !important; justify-content: center; }
         
-        /* GLASS MODAL */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .modal { 
-            background: rgba(20, 29, 24, 0.95); 
-            backdrop-filter: blur(30px) saturate(150%);
-            padding: 35px; border-radius: 30px; width: 500px; display: flex; flex-direction: column; gap: 15px; 
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            color: white;
-        }
-        label { font-size: 10px; font-weight: 600; color: #6a7a72; text-transform: uppercase; }
-        input, select, textarea { padding: 12px; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; font-family: inherit; background: rgba(255,255,255,0.02); color: white; }
-        input::placeholder { color: rgba(255,255,255,0.2); }
-
-        /* INPUTS */
-        .task-input-row { display: flex; gap: 15px; margin-bottom: 25px; align-items: center; }
-        #task-name-quick { max-width: 600px; padding: 15px 20px; border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; outline: none; font-family: inherit; flex: 1; font-size: 15px; background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); color: white; }
-        .btn-add { display: none; }
-        .btn-pro { background: var(--accent-sage); color: #141d18; border: none; padding: 15px 45px; border-radius: 15px; cursor: pointer; font-size: 15px; font-weight: 600; transition: transform 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-
-        /* CARDS */
-        .task-list { display: flex; flex-direction: column; gap: 10px; min-height: 100px; padding: 10px; border-radius: 15px; background: rgba(0,0,0,0.1); border: 1px dashed transparent; }
-        .task-card { 
-            background: var(--card-bg); border: 1px solid rgba(255,255,255,0.03); padding: 15px 20px; border-radius: 18px; 
-            display: flex; align-items: center; justify-content: space-between; transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); cursor: grab;
-            backdrop-filter: blur(10px);
-        }
-        .task-info span { color: #d0d7d0 !important; }
-        .action-icon { cursor: pointer; font-size: 14px; filter: grayscale(1) brightness(1.5); transition: 0.2s; }
-
-        /* GRIDS */
-        .status-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; margin-top: 10px; }
-        .freud-grid { grid-template-columns: repeat(7, 1fr); gap: 8px !important; }
-        .status-block { 
-            width: 100%; 
-            aspect-ratio: 1/1; 
-            max-width: 35px;
-            border-radius: 6px; 
-            background: rgba(255,255,255,0.05); 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 9px; 
-            color: #6a7a72; 
-            transition: 0.2s;
-        }
-        .status-block:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
-        .status-block.rose { background: var(--accent-rose) !important; color: white; }
-        .status-block.active { background: var(--accent-sage) !important; color: #141d18; }
-
-        #custom-calendar { position: fixed; display: none; width: 280px; background: rgba(20, 29, 24, 0.98); backdrop-filter: blur(30px); border-radius: 22px; box-shadow: 0 15px 50px rgba(0,0,0,0.5); padding: 20px; z-index: 3000; border: 1px solid rgba(255,255,255,0.05); color: white; }
-        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: 600; font-size: 14px; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }
-        .cal-day { padding: 8px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 13px; color: #d0d7d0; }
-        .cal-day:hover { background: rgba(255,255,255,0.1); color: var(--accent-sage); }
-        .cal-day.today { background: var(--accent-sage); color: #141d18; font-weight: 600; }
-
-        .widget { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; padding: 20px; border-radius: 25px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.03); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .sub-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; color: #8da399; }
-
-        h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #6a7a72; margin-bottom: 10px; }
-        h1 { font-size: 26px; margin-bottom: 5px; color: #d0d7d0; }
-
-        /* FULL CALENDAR VIEW */
-        .full-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 20px; flex: 1; }
-        .full-cal-day { background: rgba(255,255,255,0.02); border-radius: 15px; min-height: 120px; padding: 10px; border: 1px solid rgba(255,255,255,0.02); }
-        .full-cal-day.today { border-color: var(--accent-sage); background: rgba(141, 163, 153, 0.05); }
-        .full-cal-task { font-size: 10px; padding: 4px 8px; border-radius: 6px; background: rgba(141, 163, 153, 0.1); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #8da399; }
-        
+        /* WORKSPACE */
+        .main-content-wrapper { flex: 1; height: 100vh; overflow: hidden; position: relative; }
+        .workspace { height: 100vh; padding: 40px 60px; overflow-y: auto; background: #000; padding-bottom: 150px; }
         .view-content { display: none; }
-        .active-view { display: flex !important; flex-direction: column; min-height: 100%; }
+        .active-view { display: flex !important; flex-direction: column; }
         
-        .chart-container { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); height: 280px; }
-        #analytics-grid .widget { cursor: grab; }
-        #analytics-grid .widget:active { cursor: grabbing; }
-        .sortable-ghost-widget { opacity: 0.3; background: var(--accent-sage) !important; }
+        /* WIDGETS */
+        .widget { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 28px; padding: 30px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transition: 0.3s; }
+        .widget h2 { font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* DASHBOARD LAYOUT */
+        .dashboard-grid { display: flex; gap: 40px; align-items: flex-start; }
+        .tasks-col { flex: 1; }
+        .focus-col { width: 380px; display: flex; flex-direction: column; gap: 25px; }
+
+        /* SECTION HEADERS */
+        .section-header { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; }
+        .section-header::before { content: ''; width: 5px; height: 22px; background: var(--accent-green); border-radius: 10px; }
+
+        /* COURSE TRACKERS */
+        .course-card { background: #080c0a; border: 1px solid rgba(255,255,255,0.06); padding: 25px; border-radius: 22px; margin-bottom: 20px; }
+        .streak-grid-30 { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; margin: 15px 0; }
+        .streak-day { aspect-ratio: 1/1; background: rgba(255, 255, 255, 0.03); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #444; cursor: pointer; transition: 0.2s; }
+        .streak-day.done { background: var(--accent-green); color: #000; box-shadow: 0 0 12px var(--accent-green-glow); }
+        
+        /* QUICK INPUT */
+        .input-box { background: #0a0f0d; border: 1px solid rgba(39, 174, 96, 0.2); border-radius: 20px; padding: 12px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px; }
+        .input-box input { flex: 1; background: transparent; border: none; color: #fff; font-size: 16px; outline: none; padding: 10px 15px; }
+        .category-select { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 20px; color: #aaa; font-size: 13px; outline: none; cursor: pointer; }
+        
+        /* CARDS */
+        .task-list { display: flex; flex-direction: column; gap: 10px; }
+        .task-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 18px 25px; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
+        .checkbox { width: 24px; height: 24px; border: 2px solid #333; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+        .checkbox.checked { background: var(--accent-green); border-color: var(--accent-green); color: #000; }
+        .subtask-list { margin-left: 40px; border-left: 1px solid var(--border-color); padding-left: 15px; margin-top: 5px; }
+        .action-icon { cursor: pointer; opacity: 0.4; transition: 0.2s; font-size: 14px; }
+        .action-icon:hover { opacity: 1; transform: scale(1.1); }
+
+        /* CALENDAR */
+        .full-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 15px; max-width: 1300px; }
+        .full-cal-day { background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 22px; height: 140px; padding: 20px; cursor: pointer; transition: 0.2s; position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; }
+        .full-cal-day:hover { border-color: var(--accent-green); background: rgba(255,255,255,0.03); }
+        .full-cal-day span { font-size: 28px; font-weight: 800; opacity: 0.12; position: absolute; top: 20px; left: 25px; transition: 0.3s; pointer-events: none; }
+        .full-cal-day:hover span { opacity: 0.3; transform: scale(1.05); }
+        .full-cal-day.active { background: rgba(39, 174, 96, 0.08); border-color: var(--accent-green); }
+        .full-cal-day.active span { opacity: 1; color: var(--accent-green); }
+        .full-cal-day.today { border-color: var(--accent-rose); border-width: 2px; }
+        .full-cal-day.today span { opacity: 1; color: var(--accent-rose); }
+        
+        .dots-container { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; max-width: 80px; margin-bottom: 2px; }
+        .task-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green-glow); }
+        .cal-task-count { position: absolute; bottom: 12px; right: 18px; font-size: 14px; font-weight: 900; color: var(--accent-green); opacity: 0.9; }
+        .calendar-details { margin-top: 35px; padding: 15px 35px 25px 35px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 28px; max-width: 900px; min-height: 100px; }
+        .calendar-details h2 { font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8; }
+
+        /* BODY TRACKER GRID */
+        .status-grid { display: grid; gap: 8px; }
+        .status-block { aspect-ratio: 1/1; background: rgba(255,255,255,0.03); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #444; cursor: pointer; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); }
+        .status-block.rose { background: var(--accent-rose); color: #fff; box-shadow: 0 0 15px rgba(230, 103, 103, 0.3); border-color: transparent; }
+        #focus-ferris-grid { grid-template-columns: repeat(7, 1fr) !important; }
+
+        /* CONTENT TRACKER */
+        .streak-square { width: 12px; height: 12px; border-radius: 3px; transition: 0.2s; }
+        .streak-square:hover { transform: scale(1.3); z-index: 10; }
+
+        /* MODALS */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(20px); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal { background: #080c0a; border: 1px solid var(--border-color); padding: 45px; border-radius: 40px; width: 550px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
+        .modal h2 { font-size: 20px; font-weight: 800; letter-spacing: 2px; margin-bottom: 10px; }
+        
+        .modal input[type="text"], 
+        .modal textarea, 
+        .modal select { 
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 16px; 
+            padding: 16px 20px; 
+            color: #fff; 
+            font-family: inherit; 
+            font-size: 15px; 
+            outline: none; 
+            transition: 0.3s; 
+        }
+        .modal input:focus, .modal textarea:focus, .modal select:focus { 
+            border-color: var(--accent-green); 
+            background: rgba(39, 174, 96, 0.05); 
+            box-shadow: 0 0 15px rgba(39, 174, 96, 0.1); 
+        }
+        .modal textarea { resize: none; line-height: 1.6; }
+        .modal select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 20px center; }
+        .modal select option { background: #080c0a; color: #fff; padding: 10px; }
+        
+        .btn-add { background: var(--accent-green); color: #000; border: none; padding: 18px; border-radius: 18px; font-weight: 800; cursor: pointer; font-size: 14px; letter-spacing: 1.5px; transition: 0.3s; text-transform: uppercase; }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(39, 174, 96, 0.3); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <div class="nav-item active" onclick="showView('tasks', this)"><span>📋</span> <span class="nav-text">Задачи</span></div>
-        <div class="nav-item" onclick="showView('backlog', this)"><span>🗂️</span> <span class="nav-text">Бэклог</span></div>
-        <div class="nav-item" onclick="showView('insights', this)"><span>✨</span> <span class="nav-text">Прогресс</span></div>
-        <div class="nav-item" onclick="showView('full-calendar', this)"><span>📅</span> <span class="nav-text">Календарь</span></div>
-        <div class="nav-item" onclick="showView('archive', this)"><span>📦</span> <span class="nav-text">Архив</span></div>
-        <div class="nav-item export-btn" onclick="exportDB()"><span>💾</span> <span class="nav-text">Экспорт БД</span></div>
+        <div class="brand">Планировщик Полины</div>
+        <div class="nav-item active" onclick="showView('tasks', this)">📊 <span>Дашборд</span></div>
+        <div class="nav-item" onclick="showView('full-calendar', this)">📅 <span>Календарь</span></div>
+        <div class="nav-item" onclick="showView('insights', this)">✨ <span>Прогресс</span></div>
+        <div class="nav-item" onclick="showView('content-hub', this)">📢 <span>Контент-хаб</span></div>
+        <div class="nav-item" onclick="showView('archive', this)">📦 <span>Архив</span></div>
+        <div class="nav-item export-btn" onclick="exportDB()">💾 <span>Бэкап системы</span></div>
     </div>
 
     <div class="main-content-wrapper">
         <div class="workspace">
             <div id="tasks-view" class="view-content active-view">
-                <div id="morning-greeting" style="display:none; background: linear-gradient(90deg, var(--accent-rose), #c08e8e); color: white; padding: 18px 30px; border-radius: 25px; margin-bottom: 25px; font-size: 15px; box-shadow: 0 15px 30px rgba(0,0,0,0.2);">
-                    <span id="greeting-text">Доброе утро, Полина! ✨</span>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:40px;">
+                    <div><h1>Дашборд</h1><p id="current-date-display" style="opacity:0.4; font-size:14px;">Сегодня — 09.05.2026</p></div>
+                    <button class="btn-add" style="width:auto; padding:12px 30px;" onclick="openProModal()">+ Новая задача</button>
                 </div>
-                <h1>Фокус дня</h1>
-                <div class="task-input-row">
-                    <div style="position:relative; flex:1; display:flex; align-items:center;">
-                        <input type="text" id="task-name-quick" placeholder="Что нужно сделать?" onkeypress="if(event.key==='Enter')addTaskQuick()" style="padding-right: 45px; width: 100%;">
-                        <span id="voice-btn" onclick="startVoiceInput()" style="position:absolute; right:15px; cursor:pointer; font-size:18px; opacity:0.4; transition:0.3s;">🎤</span>
-                    </div>
-                </div>
-                <div style="display:flex; flex-direction:column; gap: 30px; flex: 1; padding-bottom: 20px;">
-                    <div><h2>ВСЕ ЗАДАЧИ</h2><div id="list-all-active" class="task-list" data-type="today"></div></div>
-                </div>
-                <div style="margin-top: 20px; display: flex; justify-content: center;"><button class="btn-pro" onclick="openProModal()">добавить задачу</button></div>
-            </div>
-            
-            <div id="backlog-view" class="view-content">
-                <h1>Бэклог</h1>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-top:20px;">
-                    <div><h2>БЛИЖАЙШИЕ (7 дней)</h2><div id="list-backlog-soon" class="task-list" data-type="backlog_soon"></div></div>
-                    <div><h2>КОГДА-НИБУДЬ</h2><div id="list-backlog-later" class="task-list" data-type="backlog_later"></div></div>
-                </div>
-            </div>
 
-            <div id="insights-view" class="view-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h1>Прогресс и Аналитика</h1>
-                </div>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
-                    <div class="widget" style="padding: 20px;">
-                        <div class="item-header"><h2>ТЕЛО</h2><span class="small-icon" onclick="promptMetrics()">✏️</span></div>
-                        <div id="body-text" style="font-size: 15px; font-weight: 500; color: #8da399; margin-bottom: 15px; line-height: 1.6;">Загрузка...</div>
-                        <div class="status-grid freud-grid" id="ferris-grid"></div>
-                    </div>
-                    
-                    <div class="widget" style="padding: 20px;">
-                        <div class="item-header"><h2>КОНТЕНТ</h2></div>
-                        <div id="content-checklist" style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
-                            <div style="display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="toggleContent('tg')">
-                                <input type="checkbox" id="check-tg" style="width:20px; height:20px; pointer-events:none;">
-                                <span style="font-size:14px; font-weight:500; color:#d0d7d0;">Telegram Пост</span>
+                <div class="dashboard-grid">
+                    <!-- LEFT COLUMN: TASKS -->
+                    <div class="tasks-col">
+                        <div class="section-header">Список задач</div>
+                        <div class="widget">
+                            <div class="input-box">
+                                <input type="text" id="task-name-quick" placeholder="Что нужно сделать сегодня?" onkeypress="if(event.key==='Enter')addTaskQuick()">
+                                <select id="quick-category" class="category-select">
+                                    <option value="work">💼 Работа</option>
+                                    <option value="personal">👤 Личное</option>
+                                    <option value="someday">⏳ Когда-нибудь</option>
+                                    <option value="dream">⭐ Мечты</option>
+                                </select>
+                                <button class="btn-add" style="width:auto; padding:10px 25px;" onclick="addTaskQuick()">Добавить</button>
                             </div>
-                            <div style="display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="toggleContent('reels')">
-                                <input type="checkbox" id="check-reels" style="width:20px; height:20px; pointer-events:none;">
-                                <span style="font-size:14px; font-weight:500; color:#d0d7d0;">Instagram Reels</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="toggleContent('vk')">
-                                <input type="checkbox" id="check-vk" style="width:20px; height:20px; pointer-events:none;">
-                                <span style="font-size:14px; font-weight:500; color:#d0d7d0;">VK Лонгрид</span>
-                            </div>
+                            <div id="list-all-active" class="task-list"></div>
                         </div>
                     </div>
 
-                    <div id="clients-list" style="display:contents;"></div>
-                    <div id="study-list" style="display:contents;"></div>
-                </div>
-                
-                <h2 style="margin-top: 40px; margin-bottom: 20px;">Аналитика 2026</h2>
-                <div id="analytics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
-                    <div class="widget" data-chart="weight"><h2>ВЕС (КГ)</h2><div style="height: 200px;"><canvas id="weightChart"></canvas></div></div>
-                    <div class="widget" data-chart="workout-monthly"><h2>ПРОГРЕСС ТРЕНИРОВОК (%)</h2><div style="height: 200px;"><canvas id="monthlyWorkoutChart"></canvas></div></div>
-                    <div class="widget" data-chart="workout-archive"><h2>АРХИВ: <span id="prev-workout-header-text">...</span></h2><div id="prev-workout-grid" class="status-grid freud-grid"></div></div>
-                    <div class="widget" data-chart="tasks"><h2>ПРОДУКТИВНОСТЬ</h2><div style="height: 200px;"><canvas id="tasksChart"></canvas></div></div>
-                    <div class="widget" id="content-chart-widget" data-chart="content"><h2>ДИСЦИПЛИНА КОНТЕНТА</h2><div style="height: 200px;"><canvas id="contentChart"></canvas></div></div>
+                    <!-- RIGHT COLUMN: FOCUS & COURSE TRACKERS -->
+                    <div class="focus-col">
+                        <div class="section-header">Фокусы</div>
+                        
+                        <!-- COURSE TRACKERS (NOW HERE) -->
+                        <div id="study-trackers-container" style="display:flex; flex-direction:column; gap:0;"></div>
+
+                        <div class="widget">
+                            <h2>🏆 Прогресс сегодня</h2>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                                <span style="font-size:36px; font-weight:800; color:var(--accent-green);" id="today-stats-ratio">0/0</span>
+                                <span style="font-size:12px; color:#555; margin-bottom:8px;">выполнено</span>
+                            </div>
+                            <div style="width:100%; height:6px; background:rgba(255,255,255,0.05); border-radius:10px; margin-top:20px; overflow:hidden;">
+                                <div id="today-stats-bar" style="height:100%; background:var(--accent-green); width:0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="widget">
+                            <h2>⚖️ Тело</h2>
+                            <div id="focus-body-text" style="color:#8da399; font-size: 14px; margin-bottom: 15px; font-weight:500;"></div>
+                            <div class="status-grid" id="focus-ferris-grid" style="grid-template-columns: repeat(7, 1fr);"></div>
+                        </div>
+
+                        <div class="widget">
+                            <h2>📅 Контент</h2>
+                            <div id="focus-grid-tg" style="display:flex; gap:4px; align-items:center; margin-top:8px;"></div>
+                            <div id="focus-grid-reels" style="display:flex; gap:4px; align-items:center; margin-top:10px;"></div>
+                            <div id="focus-grid-vk" style="display:flex; gap:5px; align-items:center; margin-top:10px;"></div>
+                            <div id="focus-streak-dates" style="display:flex; gap:5px; margin-left:40px; margin-top:10px;"></div>
+                        </div>
+
+                        <div class="widget">
+                            <h2>📈 Продуктивность</h2>
+                            <div style="height: 120px;"><canvas id="focusTasksChart"></canvas></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div id="full-calendar-view" class="view-content">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h1>Календарь задач</h1>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                    <h1>Календарь</h1>
                     <div style="display:flex; gap:10px; align-items:center;">
-                        <button class="small-icon" onclick="prevFullMonth()" style="background:none; border:none; color:white; font-size:20px;">‹</button>
-                        <span id="full-cal-title" style="font-weight:600; min-width:120px; text-align:center;">МАЙ 2026</span>
-                        <button class="small-icon" onclick="nextFullMonth()" style="background:none; border:none; color:white; font-size:20px;">›</button>
+                        <button class="btn-add" style="width:auto; padding:8px 15px;" onclick="prevFullMonth()">‹</button>
+                        <span id="full-cal-title" style="font-weight:700; min-width:140px; text-align:center;"></span>
+                        <button class="btn-add" style="width:auto; padding:8px 15px;" onclick="nextFullMonth()">›</button>
                     </div>
                 </div>
                 <div class="full-cal-grid" id="full-calendar-grid"></div>
+                <div id="calendar-day-details" class="calendar-details">
+                    <h2 id="selected-date-label">Выберите дату</h2>
+                    <div id="calendar-day-tasks" class="task-list"></div>
+                </div>
             </div>
 
-            <div id="archive-view" class="view-content">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-                    <h1>Архив задач</h1>
-                    <input type="text" id="archive-search" placeholder="Поиск в архиве..." oninput="searchArchive()" style="padding: 10px 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); font-size: 13px; width: 300px; background: rgba(255,255,255,0.03);">
+            <div id="insights-view" class="view-content">
+                <h1>Аналитика</h1>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap:25px;">
+                    <div class="widget"><h2>Вес (кг)</h2><div style="height:250px;"><canvas id="weightChart"></canvas></div></div>
+                    <div class="widget"><h2>Задачи</h2><div style="height:250px;"><canvas id="tasksChart"></canvas></div></div>
+                    <div id="study-list" style="display:contents;"></div>
                 </div>
-                <div id="list-archived" class="task-list"></div>
             </div>
+
+            <div id="content-hub-view" class="view-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                    <h1>Контент-хаб</h1>
+                    <button class="btn-add" style="width:auto; padding:10px 25px;" onclick="openPostModal()">+ СОЗДАТЬ ПОСТ</button>
+                </div>
+                <div id="posts-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:25px;"></div>
+            </div>
+
+            <div id="archive-view" class="view-content"><h1>Архив</h1><input type="text" id="archive-search" placeholder="Поиск..." oninput="searchArchive()" style="margin-bottom:25px;"><div id="list-archived" class="task-list"></div></div>
         </div>
     </div>
 
-    <!-- CALENDAR -->
-    <div id="custom-calendar">
-        <div class="cal-header"><span onclick="prevMonth()" style="cursor:pointer">‹</span><span id="cal-month-year">...</span><span onclick="nextMonth()" style="cursor:pointer">›</span><span onclick="closeCalendar()" style="cursor:pointer; color:#aaa; margin-left:10px">✕</span></div>
-        <div class="cal-grid" id="cal-days-grid"></div>
+    <!-- MODALS -->
+    <div id="pro-modal" class="modal-overlay" onclick="if(event.target===this) closeProModal()">
+        <div class="modal">
+            <h2 id="modal-title" style="color:var(--accent-green);">НОВАЯ ЗАДАЧА</h2>
+            <input type="text" id="pro-name" placeholder="Название">
+            <textarea id="pro-desc" placeholder="Описание / Ссылки" rows="3"></textarea>
+            <select id="pro-category">
+                <option value="work">💼 Работа</option>
+                <option value="personal">👤 Личное</option>
+                <option value="someday">⏳ Когда-нибудь</option>
+                <option value="dream">⭐ Мечты</option>
+            </select>
+            <div style="display:flex; gap:15px"><input type="text" id="pro-start" placeholder="Старт" onclick="toggleCalendar(event,'pro-start')"><input type="text" id="pro-due" placeholder="Дедлайн" onclick="toggleCalendar(event,'pro-due')"></div>
+            <button class="btn-add" onclick="saveTask()">СОХРАНИТЬ</button>
+        </div>
     </div>
 
-    <div id="pro-modal" class="modal-overlay" onclick="closeProModal()">
-        <div class="modal" onclick="event.stopPropagation()">
-            <h3 id="modal-title" style="color: var(--sidebar-color); margin-bottom: 10px;">Новая задача</h3>
-            <div style="display:flex; flex-direction:column; gap:5px;"><label>НАЗВАНИЕ</label><input type="text" id="pro-name" placeholder="Что нужно сделать?"></div>
-            <div style="display:flex; flex-direction:column; gap:5px;"><label>ОПИСАНИЕ / ССЫЛКИ</label><textarea id="pro-desc" placeholder="Дополнительная информация" rows="3"></textarea></div>
+    <div id="custom-calendar" style="position:fixed; display:none; width:260px; background:#050806; border:1px solid #333; border-radius:20px; padding:20px; z-index:3000;">
+        <div class="cal-header" style="display:flex; justify-content:space-between; cursor:grab; margin-bottom:15px;"><span onclick="prevMonth()">‹</span><span id="cal-month-year"></span><span onclick="nextMonth()">›</span><span onclick="closeCalendar()">✕</span></div>
+        <div class="cal-grid" id="cal-days-grid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px;"></div>
+    </div>
+
+    <!-- POST MODAL -->
+    <div id="post-modal" class="modal-overlay" onclick="if(event.target===this) closePostModal()">
+        <div class="modal" style="width:650px;">
+            <h2 id="post-modal-title" style="color:var(--accent-green);">НОВЫЙ ПОСТ</h2>
+            <input type="text" id="post-title" placeholder="Заголовок">
+            <textarea id="post-content" placeholder="Текст поста..." rows="12" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:15px; padding:20px; color:#fff; font-family:inherit; outline:none; resize:none; font-size:15px; line-height:1.6;"></textarea>
             <div style="display:flex; gap:15px">
-                <div style="flex:1; display:flex; flex-direction:column; gap:5px;"><label>КАТЕГОРИЯ</label><select id="pro-category"><option value="work">Рабочее</option><option value="personal">Личное</option><option value="dream">Мечты</option></select></div>
+                <select id="post-platform" class="category-select" style="flex:1;"><option value="tg">Telegram</option><option value="reels">Instagram (Reels)</option><option value="vk">VK</option></select>
+                <select id="post-status" class="category-select" style="flex:1;"><option value="draft">Черновик</option><option value="planned">Запланирован</option><option value="published">Опубликован</option></select>
             </div>
-            <div style="display:flex; gap:15px">
-                <div style="flex:1; display:flex; flex-direction:column; gap:5px;"><label>СТАРТ</label><input type="date" id="pro-start"></div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:5px;"><label>ДЕДЛАЙН</label><input type="date" id="pro-due"></div>
-            </div>
-            <button class="btn-add" id="modal-submit" onclick="saveTask()" style="width:100%; padding: 18px; margin-top: 10px; border-radius: 18px; font-size: 15px; letter-spacing: 1px;">СОХРАНИТЬ</button>
+            <button class="btn-add" onclick="savePost()">СОХРАНИТЬ В БАЗУ</button>
         </div>
     </div>
 
     <script>
-        let currentInsights = {}, allTasks = [], archivedTasks = [], weightChart, tasksChart, activeTaskId = null, calDate = new Date(), editingTaskId = null, heatmapData = {};
+        let allTasks = [], currentInsights = {}, editingTaskId = null, activeParentId = null, activeTaskId = null;
+        let allPosts = [], editingPostId = null;
+        let weightChart, tasksChart, focusTasksChart;
+        let curFullMonth = new Date().getMonth(), curFullYear = new Date().getFullYear();
+        let curCalMonth = new Date().getMonth(), curCalYear = new Date().getFullYear();
 
         async function loadAll() {
-            console.log("Starting full data load...");
-            try {
-                // Fetch and render tasks first
-                const tRes = await fetch('/api/tasks');
-                if (tRes.ok) {
-                    allTasks = await tRes.json();
-                    console.log("Tasks loaded:", allTasks.length);
-                    renderTasks(allTasks);
-                    checkMorningGreeting(); // Show greeting after tasks are known
-                }
+            // Auto-archive check
+            const now = new Date();
+            const lastArchiveDate = localStorage.getItem('last_auto_archive');
+            const todayStr = now.toISOString().split('T')[0];
+            if(now.getHours() >= 4 && lastArchiveDate !== todayStr) {
+                console.log('Running auto-archive...');
+                await fetch('/api/tasks/auto-archive', {method:'POST'});
+                localStorage.setItem('last_auto_archive', todayStr);
+            }
 
-                // Fetch and render archive
-                const arcRes = await fetch('/api/tasks/archived');
-                if (arcRes.ok) {
-                    archivedTasks = await arcRes.json();
-                    renderArchive(archivedTasks);
+            const [tRes, insRes, hRes, pRes] = await Promise.all([ fetch('/api/tasks'), fetch('/api/insights'), fetch('/api/history'), fetch('/api/posts') ]);
+            if(tRes.ok) { allTasks = await tRes.json(); renderTasks(); }
+            if(insRes.ok) { currentInsights = await insRes.json(); renderInsights(); }
+            if(hRes.ok) { updateCharts(await hRes.json()); }
+            if(pRes.ok) { allPosts = await pRes.json(); renderPosts(); }
+            
+            // Proactive migration from localStorage if exists
+            const localPosts = JSON.parse(localStorage.getItem('polina_content_hub_posts') || '[]');
+            if(localPosts.length > 0) {
+                console.log('Migrating posts from localStorage...');
+                for(const lp of localPosts) {
+                    await fetch('/api/posts', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:lp.title, content:lp.content, platform:lp.platform||'tg', status:lp.status||'draft'})});
                 }
-
-                // Fetch and render insights
-                const insRes = await fetch('/api/insights');
-                if (insRes.ok) {
-                    currentInsights = await insRes.json();
-                    renderInsights();
-                }
-
-                // Fetch and render history/charts
-                const histRes = await fetch('/api/history');
-                if (histRes.ok) {
-                    const history = await histRes.json();
-                    heatmapData = history.heatmap;
-                    // Всегда обновляем графики, так как они теперь в разделе Прогресс
-                    updateCharts(history);
-                }
-            } catch(e) { 
-                console.error("Data Load Error:", e);
-                // alert removed for system stability
+                localStorage.removeItem('polina_content_hub_posts');
+                loadAll();
             }
         }
 
-        function renderTasks(tasks) {
-            const listAll = document.getElementById('list-all-active');
-            const listSoon = document.getElementById('list-backlog-soon');
-            const listLater = document.getElementById('list-backlog-later');
-            
-            if (listAll) listAll.innerHTML = '';
-            if (listSoon) listSoon.innerHTML = '';
-            if (listLater) listLater.innerHTML = '';
-            
+        function renderTaskHTML(t, isSub = false) {
+            const subHtml = (t.subtasks && t.subtasks.length) ? `<div class="subtask-list">${t.subtasks.map(st => renderTaskHTML(st, true)).join('')}</div>` : '';
+            return `<div class="task-container"><div class="task-card ${isSub?'subtask-card':''}" data-id="${t.id}"><div style="display:flex; align-items:center; gap:15px"><div class="checkbox ${t.completed?'checked':''}" onclick="completeTask(${t.id})">${t.completed?'✓':''}</div><span style="${t.completed?'text-decoration:line-through; opacity:0.4;':''}">${t.name}</span></div><div style="display:flex; gap:10px;">${!isSub?`<span class="action-icon" onclick="openProModal(${t.id})">📂+</span>`:''}<span class="action-icon" onclick="startEdit(${t.id})">✏️</span><span class="action-icon" onclick="archiveTask(${t.id})">📦</span></div></div>${subHtml}</div>`;
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('list-all-active');
+            if(list) list.innerHTML = '';
+            let done = 0, total = 0;
             const now = new Date(); now.setHours(0,0,0,0);
-            const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-            tasks.forEach(t => {
-                const linkified = (t.name || "").replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--accent-sage); pointer-events:auto; text-decoration:none; font-weight:600;">🔗 ссылка</a>');
-                const html = `
-                    <div class="task-card" data-id="${t.id}">
-                        <div class="task-info" style="display:flex; align-items:center;">
-                            <input type="checkbox" ${t.completed?'checked':''} onclick="completeTask(${t.id}, this)" style="width: 18px; height: 18px; cursor:pointer;">
-                            <div style="display:flex; flex-direction:column; margin-left: 15px;">
-                               <span style="font-size:14px; font-weight:500; color: #d0d7d0;">${linkified}</span>
-                               ${t.due_date ? `<span style="font-size:10px; color:var(--accent-sage); margin-top:2px;">📅 ${t.due_date}</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <span class="action-icon" onclick="startEdit(${t.id})">✏️</span>
-                            <span class="action-icon" onclick="toggleCalendar(event, ${t.id})">📅</span>
-                            <span class="action-icon" onclick="archiveTask(${t.id})">📦</span>
-                        </div>
-                    </div>`;
-
-                const d = t.due_date ? new Date(t.due_date) : null;
-                if(d) d.setHours(0,0,0,0);
-
-                // Если есть дедлайн и он в будущем (больше сегодня) - в бэклог
-                if (d && d > now) {
-                    if (d <= nextWeek) {
-                        if (listSoon) listSoon.innerHTML += html;
-                    } else {
-                        if (listLater) listLater.innerHTML += html;
-                    }
-                } else {
-                    // Все остальные активные задачи (без дедлайна, просроченные или на сегодня) - в один список
-                    if (listAll) listAll.innerHTML += html;
-                }
+            allTasks.forEach(t => {
+                if(!t.completed_at || new Date(t.completed_at).getTime() === now.getTime()) total++;
+                if(t.completed) done++;
+                if(list) list.innerHTML += renderTaskHTML(t);
             });
-            initSortable();
-        }
-
-        function initSortable() {
-            ['list-all-active', 'list-backlog-soon', 'list-backlog-later'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el && !el._sortable) {
-                    el._sortable = new Sortable(el, { group: 'tasks', animation: 200, ghostClass: 'sortable-ghost', onEnd: async function(evt) {
-                        const taskId = evt.item.dataset.id; const toType = evt.to.dataset.type; await updateTaskType(taskId, toType);
-                    }});
-                }
-            });
-        }
-
-        async function updateTaskType(taskId, type) {
-            let payload = { id: parseInt(taskId) };
-            if (type === 'dream') {
-                payload.is_dream = true;
-                payload.is_personal = false;
-                payload.due_date = null;
-            }
-            else if (type === 'personal') {
-                payload.is_personal = true;
-                payload.is_dream = false;
-                payload.due_date = null;
-            }
-            else if (type === 'today') {
-                payload.is_dream = false;
-                payload.is_personal = false;
-                payload.due_date = null;
-            }
-            else if (type === 'backlog_soon') {
-                const soon = new Date(); soon.setDate(soon.getDate() + 3);
-                payload.due_date = soon.toISOString().split('T')[0];
-                payload.is_dream = false;
-                payload.is_personal = false;
-            }
-            else if (type === 'backlog_later') {
-                const later = new Date(); later.setDate(later.getDate() + 14);
-                payload.due_date = later.toISOString().split('T')[0];
-                payload.is_dream = false;
-                payload.is_personal = false;
-            }
-            
-            await fetch(`/api/tasks/${taskId}`, { 
-                method: 'PUT', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify(payload) 
-            });
-            loadAll();
-        }
-
-        function renderArchive(tasks) {
-            const list = document.getElementById('list-archived'); if(!list) return;
-            list.innerHTML = tasks.length ? tasks.map(t => `<div class="task-card" style="cursor:default; opacity:0.7;"><span style="font-size:13px; color:#666">${t.name}</span><span class="action-icon" style="filter:none;" onclick="restoreTask(${t.id})">🔄</span></div>`).join('') : '<div style="text-align:center; color:#999; padding:40px;">Задач не найдено</div>';
-        }
-
-        let archiveSearchTimeout;
-        function searchArchive() {
-            clearTimeout(archiveSearchTimeout);
-            archiveSearchTimeout = setTimeout(async () => {
-                const q = document.getElementById('archive-search').value;
-                const res = await fetch(`/api/tasks/archived?q=${encodeURIComponent(q)}`);
-                const tasks = await res.json();
-                renderArchive(tasks);
-            }, 300);
-        }
-
-        function startVoiceInput() {
-            const btn = document.getElementById('voice-btn'); const input = document.getElementById('task-name-quick');
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert("Голосовой ввод не поддерживается вашим браузером. Попробуйте Chrome или Safari."); return; }
-            const recognition = new SpeechRecognition(); recognition.lang = 'ru-RU';
-            recognition.onstart = () => { btn.innerText = '🔴'; btn.style.opacity = '1'; };
-            recognition.onresult = (event) => { const text = event.results[0][0].transcript; input.value = text; if(text) setTimeout(addTaskQuick, 1000); };
-            recognition.onend = () => { btn.innerText = '🎤'; btn.style.opacity = '0.4'; };
-            recognition.start();
-        }
-
-        async function checkMorningGreeting() {
-            const now = new Date(); const hour = now.getHours(); const greeting = document.getElementById('morning-greeting'); const text = document.getElementById('greeting-text');
-            if (hour >= 5 && hour <= 11) {
-                try {
-                    const res = await fetch('/api/morning_greeting');
-                    const data = await res.json();
-                    text.innerText = data.text;
-                    greeting.style.display = 'block';
-                } catch(e) { console.error("Failed to fetch greeting", e); greeting.style.display = 'none'; }
-            } else { greeting.style.display = 'none'; }
-        }
-
-        async function toggleContent(platform) {
-            await fetch(`/api/content/toggle?platform=${platform}`, { method: 'POST' });
-            loadAll();
+            const ratioEl = document.getElementById('today-stats-ratio'); if(ratioEl) ratioEl.innerText = `${done}/${total}`;
+            const barEl = document.getElementById('today-stats-bar'); if(barEl) barEl.style.width = (total>0 ? (done/total)*100 : 0) + '%';
+            if(document.getElementById('full-calendar-view').classList.contains('active-view')) renderFullCalendar();
         }
 
         function renderInsights() {
             if(currentInsights.body) {
-                // ... (старый код тела)
-                const monthName = currentInsights.month_name || "МЕСЯЦ";
                 const b = currentInsights.body;
-                document.getElementById('body-text').innerHTML = `
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; font-family: inherit; color: #8da399;">
-                        <div>Вес: <span style="color:#8da399; font-weight:600;">${b.weight || '--'} кг</span></div>
-                        <div>Талия: <span style="color:#8da399; font-weight:600;">${b.waist || '--'} см</span></div>
-                        <div>Бедра: <span style="color:#8da399; font-weight:600;">${b.hips || '--'} см</span></div>
-                        <div>Грудь: <span style="color:#8da399; font-weight:600;">${b.chest || '--'} см</span></div>
-                    </div>`;
-                
-                const fGrid = document.getElementById('ferris-grid');
+                const text = `Вес: ${b.weight||'--'} кг | Талия: ${b.waist||'--'} см`;
+                const el = document.getElementById('focus-body-text'); if(el) el.innerText = text;
                 const history = b.workout_history || [];
-                fGrid.style.gridTemplateColumns = 'repeat(7, 1fr)'; 
-                fGrid.innerHTML = `<div style="grid-column: 1 / -1; font-size: 10px; font-weight: 600; color: #6a7a72; margin-bottom: 8px;">${monthName}</div>` + 
-                    history.map((d, i) => `<div class="status-block ${d?'rose':''}" onclick="toggleWorkout(${i})">${i+1}</div>`).join('');
+                const gridHtml = history.map((d, i) => `<div class="status-block ${d?'rose':''}" onclick="toggleWorkout(${i})">${i+1}</div>`).join('');
+                const gEl = document.getElementById('focus-ferris-grid'); if(gEl) gEl.innerHTML = gridHtml;
             }
-
-            if(currentInsights.content) {
-                const c = currentInsights.content;
-                document.getElementById('check-tg').checked = c.tg;
-                document.getElementById('check-reels').checked = c.reels;
-                document.getElementById('check-vk').checked = c.vk;
+            const studyContainer = document.getElementById('study-trackers-container');
+            if(studyContainer) {
+                studyContainer.innerHTML = (currentInsights.counters || []).map(s => {
+                    const target = s.name.toLowerCase().includes('фрейд') ? 35 : 30;
+                    let days = ''; for(let i=1; i<=target; i++) days += `<div class="streak-day ${i<=s.value?'done':''}" onclick="toggleCounter(${s.id}, ${i})">${i}</div>`;
+                    return `<div class="course-card"><h2>✨ ${s.name}</h2><div class="streak-grid-30">${days}</div><div style="width:100%; height:4px; background:rgba(255,255,255,0.05); border-radius:10px; overflow:hidden;"><div style="height:100%; background:var(--accent-green); width:${(s.value/target)*100}%;"></div></div></div>`;
+                }).join('');
             }
-
-            document.getElementById('clients-list').innerHTML = (currentInsights.clients || []).map(c => {
-                let blks = ''; for(let i=1; i<=c.stages_total; i++) blks += `<div class="status-block ${i<=c.stages_done?'active':''}" onclick="toggleClient(${c.id}, ${i})">${i}</div>`;
-                return `<div class="widget" style="gap:5px"><div class="sub-header"><span>${c.name}</span><span class="small-icon" onclick="archiveClient(${c.id})">✕</span></div><div class="status-grid">${blks}</div></div>`;
-            }).join('');
-
-            const studyItems = (currentInsights.counters || []).map(s => {
-                let blks = ''; const isF = s.name.toLowerCase().includes('фрейд'); const target = isF ? 35 : s.target;
-                for(let i=1; i<=target; i++) blks += `<div class="status-block ${i<=s.value?'rose':''}" onclick="toggleCounter(${s.id}, ${i})">${i}</div>`;
-                
-                const cols = target <= 10 ? target : 7;
-                
-                return `
-                    <div style="margin-bottom:20px;">
-                        <div class="sub-header" style="margin-bottom:8px;"><span>${s.name}</span><span class="small-icon" onclick="deleteCounter(${s.id})">✕</span></div>
-                        <div class="status-grid" style="grid-template-columns: repeat(${cols}, 1fr);">${blks}</div>
-                    </div>`;
-            }).join('');
-            
-            document.getElementById('study-list').innerHTML = studyItems ? `<div class="widget"><h2>УЧЕБА</h2>${studyItems}</div>` : '';
         }
 
-        let fullCalMonth = new Date().getMonth();
-        let fullCalYear = new Date().getFullYear();
-
-        function prevFullMonth() { fullCalMonth--; if(fullCalMonth < 0) { fullCalMonth = 11; fullCalYear--; } renderFullCalendar(); }
-        function nextFullMonth() { fullCalMonth++; if(fullCalMonth > 11) { fullCalMonth = 0; fullCalYear++; } renderFullCalendar(); }
+        function updateCharts(d) {
+            const opt = { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, grid:{color:'rgba(255,255,255,0.03)'}, ticks:{color:'#444', font:{size:9}}}, x:{grid:{display:false}, ticks:{color:'#444', font:{size:9}}}} };
+            if(weightChart) weightChart.destroy();
+            const wCtx = document.getElementById('weightChart'); if(wCtx) weightChart = new Chart(wCtx.getContext('2d'), { type:'line', data:{labels:d.body.dates, datasets:[{data:d.body.weight, borderColor:'#d4a5a5', tension:0.5, fill:false}]}, options:{...opt, scales:{...opt.scales, y:{beginAtZero:false}}} });
+            if(tasksChart) tasksChart.destroy();
+            const tCtx = document.getElementById('tasksChart'); if(tCtx) tasksChart = new Chart(tCtx.getContext('2d'), { type:'line', data:{labels:d.tasks.dates, datasets:[{label:'Работа',data:d.tasks.work,borderColor:'#3498db',tension:0.5},{label:'Личное',data:d.tasks.personal,borderColor:'#d4a5a5',tension:0.5}]}, options:opt });
+            if(focusTasksChart) focusTasksChart.destroy();
+            const ftCtx = document.getElementById('focusTasksChart'); if(ftCtx) focusTasksChart = new Chart(ftCtx.getContext('2d'), { type:'line', data:{labels:d.tasks.dates, datasets:[{data:d.tasks.work, borderColor: '#27ae60', tension:0.5, borderWeight:3}]}, options:opt });
+            renderContentGrid(d.content_history);
+        }
 
         function renderFullCalendar() {
-            const grid = document.getElementById('full-calendar-grid');
-            const monthNames = ["ЯНВАРЬ", "ФЕВРАЛЬ", "МАРТ", "АПРЕЛЬ", "МАЙ", "ИЮНЬ", "ИЮЛЬ", "АВГУСТ", "СЕНТЯБРЬ", "ОКТЯБРЬ", "НОЯБРЬ", "ДЕКАБРЬ"];
-            document.getElementById('full-cal-title').innerText = `${monthNames[fullCalMonth]} ${fullCalYear}`;
-            grid.innerHTML = '';
-            
-            const firstDay = new Date(fullCalYear, fullCalMonth, 1).getDay();
-            const daysInMonth = new Date(fullCalYear, fullCalMonth + 1, 0).getDate();
-            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-
-            for(let i=0; i<startOffset; i++) grid.innerHTML += '<div class="full-cal-day" style="opacity:0.3"></div>';
-            
-            const todayStr = new Date().toISOString().split('T')[0];
-
-            for(let d=1; d<=daysInMonth; d++) {
-                const dateStr = `${fullCalYear}-${String(fullCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const tasksForDay = allTasks.filter(t => t.due_date === dateStr);
-                const taskHtml = tasksForDay.map(t => `<div class="full-cal-task" title="${t.name}">${t.name}</div>`).join('');
-                
+            const grid = document.getElementById('full-calendar-grid'); const monthNames = ["ЯНВАРЬ", "ФЕВРАЛЬ", "МАРТ", "АПРЕЛЬ", "МАЙ", "ИЮНЬ", "ИЮЛЬ", "АВГУСТ", "СЕНТЯБРЬ", "ОКТЯБРЬ", "НОЯБРЬ", "ДЕКАБРЬ"];
+            document.getElementById('full-cal-title').innerText = `${monthNames[curFullMonth]} ${curFullYear}`; grid.innerHTML = '';
+            const days = new Date(curFullYear, curFullMonth + 1, 0).getDate(); const offset = (new Date(curFullYear, curFullMonth, 1).getDay() || 7) - 1;
+            for(let i=0; i<offset; i++) grid.innerHTML += '<div></div>';
+            const flat = []; const flatten = (list) => list.forEach(t => { if(t.due_date) flat.push(t); if(t.subtasks) flatten(t.subtasks); }); flatten(allTasks);
+            for(let d=1; d<=days; d++) {
+                const ds = `${curFullYear}-${String(curFullMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const count = flat.filter(t => t.due_date === ds).length;
+                const isToday = (d === new Date().getDate() && curFullMonth === new Date().getMonth());
                 grid.innerHTML += `
-                    <div class="full-cal-day ${dateStr === todayStr ? 'today' : ''}">
-                        <div style="font-size: 10px; font-weight: 600; margin-bottom: 8px; opacity: 0.5;">${d}</div>
-                        ${taskHtml}
+                    <div class="full-cal-day ${isToday?'today':''}" onclick="showDayTasks('${ds}', ${d})">
+                        <span>${d}</span>
+                        <div class="cal-indicators">
+                            ${count > 0 ? `<div class="cal-task-count">${count}</div>` : ''}
+                        </div>
                     </div>`;
             }
         }
 
-        async function addTaskQuick() {
-            const n = document.getElementById('task-name-quick').value;
-            if (n) {
-                await fetch('/api/tasks', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: n })
-                });
-                document.getElementById('task-name-quick').value = '';
-                loadAll();
-            }
+        function showDayTasks(ds, d) {
+            document.querySelectorAll('.full-cal-day').forEach(el => el.classList.remove('active')); event.currentTarget.classList.add('active');
+            const dayStr = String(d).padStart(2, '0');
+            const monthStr = String(curFullMonth + 1).padStart(2, '0');
+            document.getElementById('selected-date-label').innerText = `ЗАДАЧИ НА ${dayStr}.${monthStr}`;
+            const flat = []; const flatten = (list) => list.forEach(t => { if(t.due_date === ds) flat.push(t); if(t.subtasks) flatten(t.subtasks); }); flatten(allTasks);
+            document.getElementById('calendar-day-tasks').innerHTML = flat.length ? flat.map(t => `<div class="task-card"><span>${t.name}</span></div>`).join('') : '<div style="opacity:0.3; padding:10px;">План пуст</div>';
         }
-        async function completeTask(id, el) { el.closest('.task-card').style.opacity = '0.3'; await fetch(`/api/tasks/${id}/toggle`, {method:'POST'}); setTimeout(async () => { await fetch(`/api/tasks/${id}/archive`, {method:'POST'}); loadAll(); }, 500); }
+
+        async function addTaskQuick() { const n = document.getElementById('task-name-quick').value; const c = document.getElementById('quick-category').value; if(n) { await fetch('/api/tasks', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, is_personal: c==='personal'})}); document.getElementById('task-name-quick').value=''; loadAll(); } }
+        async function completeTask(id) { await fetch(`/api/tasks/${id}/toggle`, {method:'POST'}); loadAll(); }
         async function archiveTask(id) { await fetch(`/api/tasks/${id}/archive`, {method:'POST'}); loadAll(); }
-        async function restoreTask(id) { await fetch(`/api/tasks/${id}/restore`, {method:'POST'}); loadAll(); }
-        
-        function startEdit(id) { 
-            editingTaskId = id; const t = allTasks.find(x => x.id === id); 
-            if(t) { 
-                document.getElementById('modal-title').innerText = "Редактировать задачу";
-                document.getElementById('pro-name').value = t.name; document.getElementById('pro-desc').value = t.description || ''; 
-                document.getElementById('pro-category').value = t.is_dream ? 'dream' : (t.is_personal ? 'personal' : 'work');
-                document.getElementById('pro-start').value = t.start_date || ''; document.getElementById('pro-due').value = t.due_date || '';
-                document.getElementById('pro-modal').style.display = 'flex'; 
-            } 
-        }
-
-        async function saveTask() {
-            const n = document.getElementById('pro-name').value;
-            const d = document.getElementById('pro-desc').value;
-            const cat = document.getElementById('pro-category').value;
-            const start = document.getElementById('pro-start').value;
-            const due = document.getElementById('pro-due').value;
-            if (!n) { alert("Название обязательно"); return; }
-            
-            const payload = {
-                name: n,
-                description: d,
-                is_dream: cat === 'dream',
-                is_personal: cat === 'personal',
-                start_date: start || null,
-                due_date: due || null
-            };
-            
-            const url = editingTaskId ? `/api/tasks/${editingTaskId}` : `/api/tasks`;
-            const method = editingTaskId ? 'PUT' : 'POST';
-            
-            await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            closeProModal();
-            loadAll();
-        }
-
-        function closeProModal() { document.getElementById('pro-modal').style.display = 'none'; editingTaskId = null; }
-        function openProModal() { editingTaskId = null; document.getElementById('modal-title').innerText = "Новая задача"; document.getElementById('pro-name').value=''; document.getElementById('pro-desc').value=''; document.getElementById('pro-start').value=''; document.getElementById('pro-due').value=''; document.getElementById('pro-modal').style.display='flex'; }
-
-        async function promptMetrics() {
-            const w = prompt("Вес (кг):", currentInsights.body ? currentInsights.body.weight : 53.75); 
-            const wa = prompt("Талия (см):", currentInsights.body ? currentInsights.body.waist : 61);
-            if(w !== null && wa !== null) { await fetch(`/api/body/metrics?weight=${w}&waist=${wa}&hips=89&chest=85`, {method:'POST'}); loadAll(); }
-        }
-
-        async function promptClient() { const n = prompt("Название заказа:"); if(n) { await fetch('/api/client?name='+encodeURIComponent(n), {method:'POST'}); loadAll(); } }
-        async function promptCounter() { const n = prompt("Название предмета:"); const t = prompt("Цель (кол-во):", 10); if(n&&t) { await fetch(`/api/counter?name=${encodeURIComponent(n)}&target=${t}`, {method:'POST'}); loadAll(); } }
-        async function toggleWorkout(idx) { await fetch(`/api/body/workout?day_index=${idx}`, {method:'POST'}); loadAll(); }
-        async function toggleClient(id, idx) { await fetch(`/api/client/${id}/toggle?stage_idx=${idx}`, {method:'POST'}); loadAll(); }
-        async function toggleCounter(id, val) { await fetch(`/api/counter/${id}/set?value=${val}`, {method:'POST'}); loadAll(); }
-        async function archiveClient(id) { if(confirm("В архив?")) { await fetch(`/api/client/${id}`, {method:'DELETE'}); loadAll(); } }
-        async function deleteCounter(id) { if(confirm("Удалить?")) { await fetch(`/api/counter/${id}`, {method:'DELETE'}); loadAll(); } }
-        function exportDB() { window.location.href = '/api/export'; setTimeout(() => { alert("Экспортировано. Файл planner.db сохранен."); }, 1000); }
-
+        async function toggleWorkout(i) { await fetch(`/api/body/workout?day_index=${i}`, {method:'POST'}); loadAll(); }
+        async function toggleCounter(id, v) { await fetch(`/api/counter/${id}/set?value=${v}`, {method:'POST'}); loadAll(); }
+        function prevFullMonth() { curFullMonth--; if(curFullMonth < 0) { curFullMonth = 11; curFullYear--; } renderFullCalendar(); }
+        function nextFullMonth() { curFullMonth++; if(curFullMonth > 11) { curFullMonth = 0; curFullYear++; } renderFullCalendar(); }
         function showView(v, el) { 
-            document.querySelectorAll('.view-content').forEach(x => x.classList.remove('active-view')); document.getElementById(v+'-view').classList.add('active-view'); 
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); 
-            if (v === 'full-calendar') renderFullCalendar();
-            loadAll(); 
+            document.querySelectorAll('.view-content').forEach(x => x.classList.remove('active-view')); const target = document.getElementById(v+'-view'); if(target) target.classList.add('active-view');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if(el) el.classList.add('active'); else document.querySelectorAll('.sidebar .nav-item').forEach(item => { if(item.getAttribute('onclick')?.includes(`'${v}'`)) item.classList.add('active'); });
+            localStorage.setItem('active_view', v); if(v === 'full-calendar') renderFullCalendar();
+            if(v === 'archive') searchArchive();
         }
-
-        async function updateCharts(d) {
-            console.log("Analytics data received:", d);
-            if(!d) { const res = await fetch('/api/history'); d = await res.json(); heatmapData = d.heatmap; }
-            
-            if(weightChart) weightChart.destroy(); 
-            if(tasksChart) tasksChart.destroy();
-            if(window.monthlyChartObj) window.monthlyChartObj.destroy();
-            
-            const commonOpt = { 
-                responsive: true, maintainAspectRatio: false, 
-                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 }, color: '#888' } } }, 
-                scales: { 
-                    y: { 
-                        beginAtZero: true, 
-                        grid: { color: 'rgba(255,255,255,0.03)' }, 
-                        ticks: { color: '#888', font: { size: 10 }, stepSize: 1, precision: 0 } 
-                    }, 
-                    x: { grid: { display: false }, ticks: { color: '#888', font: { size: 10 }, autoSkip: true, maxTicksLimit: 8 } } 
-                } 
+        function openProModal(parentId = null) { editingTaskId = null; activeParentId = parentId; document.getElementById('pro-modal').style.display='flex'; }
+        function closeProModal() { document.getElementById('pro-modal').style.display='none'; }
+        async function saveTask() {
+            const n = document.getElementById('pro-name').value; if(!n) return;
+            const category = document.getElementById('pro-category').value;
+            const p = {
+                name: n, 
+                description: document.getElementById('pro-desc').value, 
+                is_personal: category === 'personal',
+                is_dream: category === 'dream',
+                priority: category === 'someday' ? 'p3' : 'p1',
+                start_date: document.getElementById('pro-start').value || null, 
+                due_date: document.getElementById('pro-due').value || null, 
+                parent_id: activeParentId
             };
-            
-            // 1. Вес
-            weightChart = new Chart(document.getElementById('weightChart').getContext('2d'), { 
-                type: 'line', 
-                data: { labels: d.body.dates, datasets: [ { label: 'Вес', data: d.body.weight, borderColor: '#d4a5a5', backgroundColor: 'rgba(212, 165, 165, 0.1)', fill: true, tension: 0.4, pointRadius: 2, borderWeight: 2 }, { label: 'Цель', data: d.body.target, borderColor: 'rgba(52, 152, 219, 0.3)', borderDash: [5, 5], fill: false, pointRadius: 0 } ] }, 
-                options: { 
-                    ...commonOpt, 
-                    scales: { 
-                        ...commonOpt.scales, 
-                        y: { ...commonOpt.scales.y, beginAtZero: false, ticks: { ...commonOpt.scales.y.ticks, stepSize: null } } 
-                    } 
-                } 
-            });
-
-            // 2. Месячный прогресс
-            const activeMonth = (d.current_month || "").toUpperCase();
-            window.monthlyChartObj = new Chart(document.getElementById('monthlyWorkoutChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: d.monthly_workouts.map(m => m.month),
-                    datasets: [{
-                        data: d.monthly_workouts.map(m => m.percent),
-                        backgroundColor: d.monthly_workouts.map(m => m.month.toUpperCase() === activeMonth ? '#d4a5a5' : 'rgba(52, 152, 219, 0.3)'),
-                        borderRadius: 4
-                    }]
-                },
-                options: { ...commonOpt, plugins: { legend: { display: false } }, scales: { ...commonOpt.scales, y: { ...commonOpt.scales.y, max: 100 } } }
-            });
-
-            // 3. Архив сетка
-            const wData = d.prev_workout || {done: 0, total: 30, month: 'АРХИВ', history: []};
-            document.getElementById('prev-workout-header-text').innerText = `${wData.month}: ${wData.done}/${wData.total}`;
-            const prevGrid = document.getElementById('prev-workout-grid');
-            if (prevGrid) {
-                prevGrid.innerHTML = (wData.history || []).map((v, i) => `<div class="status-block ${v?'rose':''}" style="width: 18px; height: 18px; font-size: 7px; cursor:default">${i+1}</div>`).join('');
-            }
-
-            // 4. Задачи
-            tasksChart = new Chart(document.getElementById('tasksChart').getContext('2d'), { 
-                type: 'line', 
-                data: { labels: d.tasks.dates, datasets: [ { label: 'Работа', data: d.tasks.work, borderColor: '#3498db', tension: 0.4, fill: false, borderWeight: 2, pointRadius: 2 }, { label: 'Личное', data: d.tasks.personal, borderColor: '#d4a5a5', tension: 0.4, fill: false, borderWeight: 2, pointRadius: 2 } ] }, 
-                options: commonOpt 
-            });
-
-            // 5. Контент
-            if (window.contentChartObj) window.contentChartObj.destroy();
-            window.contentChartObj = new Chart(document.getElementById('contentChart').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: d.content_history.dates,
-                    datasets: [
-                        { label: 'TG', data: d.content_history.tg, borderColor: '#0088cc', backgroundColor: '#0088cc', tension: 0, stepped: true, pointRadius: 0, borderWeight: 2 },
-                        { label: 'Reels', data: d.content_history.reels, borderColor: '#e1306c', backgroundColor: '#e1306c', tension: 0, stepped: true, pointRadius: 0, borderWeight: 2 },
-                        { label: 'VK', data: d.content_history.vk, borderColor: '#27ae60', backgroundColor: '#27ae60', tension: 0, stepped: true, pointRadius: 0, borderWeight: 2 }
-                    ]
-                },
-                options: { 
-                    ...commonOpt, 
-                    scales: { 
-                        ...commonOpt.scales, 
-                        y: { min: 0, max: 1.2, ticks: { stepSize: 1, callback: (val) => val === 1 ? 'ДА' : (val === 0 ? 'НЕТ' : '') } } 
-                    } 
-                }
-            });
+            await fetch(editingTaskId ? `/api/tasks/${editingTaskId}` : '/api/tasks', {method:editingTaskId?'PUT':'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p)});
+            closeProModal(); loadAll();
         }
-
-        function renderHeatmap() {
-            const container = document.getElementById('heatmap'); container.innerHTML = '';
-            const today = new Date(); today.setHours(0,0,0,0);
-            for(let i=0; i<12; i++) {
-                let column = document.createElement('div'); column.style.display = 'flex'; column.style.flexDirection = 'column'; column.style.gap = '5px';
-                for(let j=0; j<7; j++) {
-                    const dayOffset = (11 - i) * 7 + (6 - j);
-                    const date = new Date(today); date.setDate(today.getDate() - dayOffset);
-                    const dateStr = date.toISOString().split('T')[0];
-                    const count = heatmapData[dateStr] || 0;
-                    let cell = document.createElement('div'); cell.className = 'heatmap-cell';
-                    if(count > 0) cell.classList.add(count > 3 ? 'level-3' : (count > 1 ? 'level-2' : 'level-1'));
-                    cell.title = `${dateStr}: ${count} задач`;
-                    column.appendChild(cell);
-                }
-                container.appendChild(column);
-            }
+        function startEdit(id) { 
+            editingTaskId = id; const findTask = (list, tid) => { for(let t of list) { if(t.id === tid) return t; if(t.subtasks) { let st = findTask(t.subtasks, tid); if(st) return st; } } return null; };
+            const t = findTask(allTasks, id); if(t) { activeParentId = t.parent_id || null; document.getElementById('pro-name').value = t.name; document.getElementById('pro-desc').value = t.description || ''; document.getElementById('pro-modal').style.display = 'flex'; }
         }
-
-        let currentCalMonth = new Date().getMonth(); let currentCalYear = new Date().getFullYear();
-        
-        // Drag logic for calendar
-        let isDraggingCal = false, offsetCalX, offsetCalY;
-        const calEl = document.getElementById('custom-calendar');
-        document.querySelector('.cal-header').onmousedown = (e) => {
-            isDraggingCal = true;
-            offsetCalX = e.clientX - calEl.offsetLeft;
-            offsetCalY = e.clientY - calEl.offsetTop;
-        };
-        document.onmousemove = (e) => {
-            if (isDraggingCal) {
-                calEl.style.left = (e.clientX - offsetCalX) + 'px';
-                calEl.style.top = (e.clientY - offsetCalY) + 'px';
-            }
-        };
-        document.onmouseup = () => isDraggingCal = false;
-
-        // Close calendar on outside click
-        document.addEventListener('click', (e) => {
-            const cal = document.getElementById('custom-calendar');
-            if (cal.style.display === 'block' && !cal.contains(e.target) && !e.target.classList.contains('action-icon')) {
-                closeCalendar();
-            }
-        });
-
-        function toggleCalendar(e, id) { 
-            e.stopPropagation();
-            activeTaskId = id; 
-            const cal = document.getElementById('custom-calendar'); 
-            const rect = e.target.getBoundingClientRect(); 
-            
-            cal.style.display = 'block';
-            renderCal();
-
-            // Smart positioning
-            let left = rect.left - 120;
-            let top = rect.bottom + window.scrollY + 10;
-
-            // Check boundaries
-            if (left + 300 > window.innerWidth) left = window.innerWidth - 310;
-            if (left < 10) left = 10;
-            if (top + 350 > window.innerHeight) top = rect.top + window.scrollY - 360;
-
-            cal.style.left = left + 'px'; 
-            cal.style.top = top + 'px'; 
-        }
+        function toggleCalendar(e, id) { activeTaskId = id; const cal = document.getElementById('custom-calendar'); const rect = e.target.getBoundingClientRect(); cal.style.display = 'block'; renderCal(); cal.style.left = (rect.left - 120) + 'px'; cal.style.top = (rect.bottom + 10) + 'px'; }
         function closeCalendar() { document.getElementById('custom-calendar').style.display = 'none'; }
-        function prevMonth() { currentCalMonth--; if(currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; } renderCal(); }
-        function nextMonth() { currentCalMonth++; if(currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; } renderCal(); }
-        function renderCal() {
-            const grid = document.getElementById('cal-days-grid'); const monthNames = ["ЯНВАРЬ", "ФЕВРАЛЬ", "МАРТ", "АПРЕЛЬ", "МАЙ", "ИЮНЬ", "ИЮЛЬ", "АВГУСТ", "СЕНТЯБРЬ", "ОКТЯБРЬ", "НОЯБРЬ", "ДЕКАБРЬ"];
-            document.getElementById('cal-month-year').innerText = `${monthNames[currentCalMonth]} ${currentCalYear}`; grid.innerHTML = '';
-            const firstDay = new Date(currentCalYear, currentCalMonth, 1).getDay(); const daysInMonth = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
-            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-            for(let i=0; i<startOffset; i++) grid.innerHTML += '<div></div>';
-            for(let d=1; d<=daysInMonth; d++) { const dateStr = `${currentCalYear}-${String(currentCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; grid.innerHTML += `<div class="cal-day" onclick="setTaskDate('${dateStr}')">${d}</div>`; }
+        function renderCal() { const grid = document.getElementById('cal-days-grid'); document.getElementById('cal-month-year').innerText = `${curCalMonth+1}.${curCalYear}`; grid.innerHTML = ''; const days = new Date(curCalYear, curCalMonth + 1, 0).getDate(); for(let d=1; d<=days; d++) grid.innerHTML += `<div class="cal-day" onclick="setTaskDate('${curCalYear}-${String(curCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}')">${d}</div>`; }
+        function setTaskDate(ds) { if(typeof activeTaskId === 'string') document.getElementById(activeTaskId).value = ds; closeCalendar(); }
+        function exportDB() { window.location.href = '/api/export'; }
+        function renderContentGrid(d) {
+            const platforms = [{id:'tg', color:'#0088cc', data:d.tg}, {id:'reels', color:'#e1306c', data:d.reels}, {id:'vk', color:'#27ae60', data:d.vk}];
+            platforms.forEach(p => {
+                const html = p.data.map((val, i) => `<div onclick="toggleContentFromGrid('${p.id}', ${i})" class="streak-square" style="background:${p.color}; opacity:${val?1:0.05}; border:${i===13?'1px solid #fff':'none'}; cursor:pointer;"></div>`).join('');
+                const el = document.getElementById(`focus-grid-${p.id}`); if(el) el.innerHTML = `<span style="font-size:9px; width:40px; opacity:0.5; font-weight:800;">${p.id.toUpperCase()}</span>` + html;
+            });
+            const datesEl = document.getElementById('focus-streak-dates'); if(datesEl) datesEl.innerHTML = d.dates.map((date, i) => `<span style="font-size:8px; width:14px; text-align:center; opacity:${i===13?1:0.3}; font-weight:${i===13?700:400}">${date.split('.')[0]}</span>`).join('');
         }
-        async function setTaskDate(dateStr) { await fetch(`/api/tasks/${activeTaskId}/dates?due_date=${dateStr}`, { method: 'POST' }); closeCalendar(); loadAll(); }
-
-        function initAnalyticsSortable() {
-            const el = document.getElementById('analytics-grid');
-            if (el && !el._sortable) {
-                el._sortable = new Sortable(el, {
-                    animation: 250,
-                    ghostClass: 'sortable-ghost-widget',
-                    onEnd: saveAnalyticsOrder
-                });
+        async function toggleContentFromGrid(p, i) { const d = new Date(); d.setDate(d.getDate() - (13 - i)); await fetch(`/api/content/toggle?platform=${p}&date=${d.toISOString().split('T')[0]}`, {method:'POST'}); loadAll(); }
+        function prevMonth() { curCalMonth--; if(curCalMonth < 0) { curCalMonth = 11; curCalYear--; } renderCal(); }
+        function nextMonth() { curCalMonth++; if(curCalMonth > 11) { curCalMonth = 0; curCalYear++; } renderCal(); }
+        function searchArchive() {
+            const q = document.getElementById('archive-search').value;
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(async () => { 
+                const res = await fetch(`/api/tasks/archived?q=${encodeURIComponent(q)}`); 
+                const tasks = await res.json(); 
+                document.getElementById('list-archived').innerHTML = tasks.length ? tasks.map(t => `
+                    <div class="task-card" style="opacity:0.7;">
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <span style="font-size:12px; opacity:0.3; font-weight:800;">#${t.id}</span>
+                            <span style="text-decoration:line-through;">${t.name}</span>
+                        </div>
+                        <div style="font-size:11px; opacity:0.5; font-weight:600;">${t.completed_at || t.created_at}</div>
+                    </div>
+                `).join('') : '<div style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.3;">В архиве пусто</div>';
+            }, 300);
+        }
+        function openPostModal(id = null) {
+            editingPostId = id;
+            if(id) {
+                const p = allPosts.find(x => x.id === id);
+                document.getElementById('post-modal-title').innerText = 'РЕДАКТИРОВАТЬ ПОСТ';
+                document.getElementById('post-title').value = p.title;
+                document.getElementById('post-content').value = p.content;
+                document.getElementById('post-platform').value = p.platform;
+                document.getElementById('post-status').value = p.status;
+            } else {
+                document.getElementById('post-modal-title').innerText = 'НОВЫЙ ПОСТ';
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-content').value = '';
+                document.getElementById('post-platform').value = 'tg';
+                document.getElementById('post-status').value = 'draft';
             }
+            document.getElementById('post-modal').style.display = 'flex';
         }
 
-        function saveAnalyticsOrder() {
-            const grid = document.getElementById('analytics-grid');
-            const order = Array.from(grid.querySelectorAll('.widget')).map(el => el.dataset.chart);
-            localStorage.setItem('analytics_order', JSON.stringify(order));
+        function closePostModal() { document.getElementById('post-modal').style.display = 'none'; }
+
+        async function savePost() {
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').value;
+            if(!title || !content) return;
+            const p = {
+                title, content, 
+                platform: document.getElementById('post-platform').value,
+                status: document.getElementById('post-status').value
+            };
+            const method = editingPostId ? 'PUT' : 'POST';
+            const url = editingPostId ? `/api/posts/${editingPostId}` : '/api/posts';
+            await fetch(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(p)});
+            closePostModal(); loadAll();
         }
 
-        function applyAnalyticsOrder() {
-            const order = JSON.parse(localStorage.getItem('analytics_order'));
-            if (order) {
-                const grid = document.getElementById('analytics-grid');
-                const widgets = Array.from(grid.querySelectorAll('.widget'));
-                order.forEach(id => {
-                    const widget = widgets.find(w => w.dataset.chart === id);
-                    if (widget) grid.appendChild(widget);
-                });
-            }
+        async function deletePost(id) { if(confirm('Удалить пост?')) { await fetch(`/api/posts/${id}`, {method:'DELETE'}); loadAll(); } }
+
+        function renderPosts() {
+            const list = document.getElementById('posts-list'); if(!list) return;
+            const platColor = {tg:'#0088cc', reels:'#e1306c', vk:'#27ae60'};
+            list.innerHTML = allPosts.map(p => `
+                <div class="widget" style="padding:25px; cursor:default;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
+                        <span style="font-size:10px; font-weight:800; color:${platColor[p.platform]}; border:1px solid ${platColor[p.platform]}; padding:4px 10px; border-radius:10px; text-transform:uppercase;">${p.platform}</span>
+                        <div style="display:flex; gap:10px;">
+                            <span class="action-icon" onclick="openPostModal(${p.id})">✏️</span>
+                            <span class="action-icon" onclick="deletePost(${p.id})">🗑️</span>
+                        </div>
+                    </div>
+                    <h3 style="font-size:16px; margin-bottom:12px; color:#fff;">${p.title}</h3>
+                    <p style="font-size:13px; color:#999; line-height:1.5; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:15px;">${p.content}</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto;">
+                        <span style="font-size:11px; opacity:0.3;">${p.created_at}</span>
+                        <span style="font-size:11px; font-weight:700; color:${p.status==='published'?'var(--accent-green)':'#555'}">${p.status.toUpperCase()}</span>
+                    </div>
+                </div>
+            `).join('') || '<div style="grid-column:1/-1; text-align:center; padding:100px; opacity:0.3;">Контент-хаб пуст. Создайте свой первый пост.</div>';
         }
 
         window.onload = async () => {
-            await loadAll();
-            applyAnalyticsOrder();
-            initAnalyticsSortable();
-        };
+ await loadAll(); showView(localStorage.getItem('active_view')||'tasks', null); document.addEventListener('click', (e) => { const cal = document.getElementById('custom-calendar'); if(cal && cal.style.display === 'block' && !cal.contains(e.target) && !e.target.onclick) closeCalendar(); }); };
     </script>
 </body>
 </html>

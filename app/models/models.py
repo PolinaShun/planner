@@ -58,3 +58,13 @@ class ContentMetric(Base):
     tg = Column(Boolean, default=False)
     reels = Column(Boolean, default=False)
     vk = Column(Boolean, default=False)
+
+class Post(Base):
+    __tablename__ = "posts"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    platform = Column(String) # tg, reels, vk
+    status = Column(String, default="draft") # draft, planned, published
+    publish_date = Column(Date, nullable=True)
+    created_at = Column(Date, default=datetime.date.today)

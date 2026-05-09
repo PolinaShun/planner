@@ -9,7 +9,7 @@ import os
 import datetime
 import shutil
 
-from app.api import tasks, stats
+from app.api import tasks, stats, posts
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -33,6 +33,7 @@ templates = Jinja2Templates(directory="templates")
 # Include routers with explicit prefixes for consistency
 app.include_router(tasks.router, prefix="/api")
 app.include_router(stats.router, prefix="/api")
+app.include_router(posts.router, prefix="/api")
 
 @app.on_event("startup")
 async def startup():

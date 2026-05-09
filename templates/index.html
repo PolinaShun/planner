@@ -373,36 +373,32 @@
             if(listBacklog) listBacklog.innerHTML = '';
             
             let done = 0, total = 0;
-            const now = new Date(); now.setHours(0,0,0,0);
-            const todayStr = now.toISOString().split('T')[0];
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
 
             allTasks.forEach(t => {
-                const isCompletedToday = t.completed_at && new Date(t.completed_at).getTime() === now.getTime();
-                if(!t.completed_at || isCompletedToday) total++;
-                if(t.completed) done++;
+                if (!t.completed) total++;
+                if (t.completed) done++;
                 
                 const html = renderTaskHTML(t);
                 
-                // ЛОГИКА ФОКУСА:
-                // 1. Задача на сегодня
-                // 2. Задача без даты (считаем текущей)
-                // 3. Просроченная задача (due_date < сегодня) и не выполненная
-                const isToday = t.due_date === todayStr;
+                // Исправленная логика: строковое сравнение YYYY-MM-DD
                 const noDate = !t.due_date;
+                const isToday = t.due_date === todayStr;
                 const isOverdue = t.due_date && t.due_date < todayStr && !t.completed;
                 
-                if (isToday || noDate || isOverdue) {
-                    if(listFocus) listFocus.innerHTML += html;
+                if (noDate || isToday || isOverdue) {
+                    if (listFocus) listFocus.innerHTML += html;
                 } else {
-                    if(listBacklog) listBacklog.innerHTML += html;
+                    if (listBacklog) listBacklog.innerHTML += html;
                 }
             });
             
-            if(listFocus && !listFocus.innerHTML) listFocus.innerHTML = '<div style="opacity:0.3; padding:20px; text-align:center;">На сегодня задач нет</div>';
+            if(listFocus && !listFocus.innerHTML) listFocus.innerHTML = '<div style="opacity:0.3; padding:20px; text-align:center;">Фокус пуст. Время отдыхать!</div>';
             if(listBacklog && !listBacklog.innerHTML) listBacklog.innerHTML = '<div style="opacity:0.3; padding:20px; text-align:center;">Бэклог пуст</div>';
 
-            const ratioEl = document.getElementById('today-stats-ratio'); if(ratioEl) ratioEl.innerText = `${done}/${total}`;
-            const barEl = document.getElementById('today-stats-bar'); if(barEl) barEl.style.width = (total>0 ? (done/total)*100 : 0) + '%';
+            const ratioEl = document.getElementById('today-stats-ratio'); if(ratioEl) ratioEl.innerText = `${done}/${allTasks.length}`;
+            const barEl = document.getElementById('today-stats-bar'); if(barEl) barEl.style.width = (allTasks.length > 0 ? (done/allTasks.length)*100 : 0) + '%';
             if(document.getElementById('full-calendar-view').classList.contains('active-view')) renderFullCalendar();
         }
 

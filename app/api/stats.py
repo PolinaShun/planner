@@ -73,12 +73,19 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
     }
 
 @router.post("/content/toggle")
-async def toggle_content(platform: str, db: AsyncSession = Depends(get_db)):
-    today = datetime.date.today()
-    res = await db.execute(select(ContentMetric).filter(ContentMetric.date == today))
+async def toggle_content(platform: str, date: str = None, db: AsyncSession = Depends(get_db)):
+    if date:
+        try:
+            target_date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+        except:
+            target_date = datetime.date.today()
+    else:
+        target_date = datetime.date.today()
+        
+    res = await db.execute(select(ContentMetric).filter(ContentMetric.date == target_date))
     content = res.scalar_one_or_none()
     if not content:
-        content = ContentMetric(date=today)
+        content = ContentMetric(date=target_date)
         db.add(content)
     
     if platform == 'tg': content.tg = not content.tg
@@ -135,6 +142,15 @@ async def delete_counter(counter_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Counter).filter(Counter.id == counter_id))
     counter = result.scalar_one_or_none()
     if counter:
+        # Создаем запись в архиве задач
+        archived_task = Task(
+            name=f"Завершено: {counter.name} ({counter.value}/{counter.target})", 
+            completed=True, 
+            archived=True, 
+            created_at=datetime.date.today(),
+            completed_at=datetime.date.today()
+        )
+        db.add(archived_task)
         await db.delete(counter)
         await db.commit()
     return {"status": "ok"}

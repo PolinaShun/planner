@@ -135,7 +135,14 @@ async def delete_task(task_id: int, db: AsyncSession = Depends(get_db)):
         await db.commit()
     return {"status": "ok"}
 
-@router.post("/tasks/{task_id}/restore")
+@router.delete("/tasks/{task_id}")
+async def delete_task(task_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    task = result.scalar_one_or_none()
+    if task:
+        await db.delete(task)
+        await db.commit()
+    return {"status": "ok"}
 async def restore_task(task_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Task).filter(Task.id == task_id))
     task = result.scalar_one_or_none()

@@ -7,47 +7,50 @@ async def force_delete_tasks():
     async with httpx.AsyncClient() as client:
         print("1. Fetching all tasks to find garbage...")
         try:
-            # Сначала получим все задачи, включая архивные, чтобы ничего не пропустить
-            res_active = await client.get(f"{base_url}/tasks")
-            res_archived = await client.get(f"{base_url}/tasks/archived")
-            
-            if res_active.status_code != 200 or res_archived.status_code != 200:
-                print("Error fetching tasks.")
+            res = await client.get(f"{base_url}/tasks")
+            if res.status_code != 200:
+                print(f"Error fetching tasks: {res.status_code}")
                 return
+            all_tasks = res.json()
 
-            all_tasks = res_active.json()
-            # Добавляем подзадачи в общий список для проверки
-            for task in all_tasks:
-                if task.get('subtasks'):
-                    all_tasks.extend(task['subtasks'])
-            all_tasks.extend(res_archived.json())
+            def flatten_tasks(tasks):
+                flat_list = []
+                for task in tasks:
+                    flat_list.append(task)
+                    if task.get('subtasks'):
+                        flat_list.extend(flatten_tasks(task['subtasks']))
+                return flat_list
+
+            flat_task_list = flatten_tasks(all_tasks)
 
         except Exception as e:
             print(f"Could not connect to server: {e}")
             return
 
         tasks_to_delete = []
-        for task in all_tasks:
-            if "Родительская задача" in task["name"] or "????" in task["name"] or "Тест без родителя" in task["name"] or "Подзадача к" in task["name"]:
-                if task not in tasks_to_delete:
-                    tasks_to_delete.append(task)
+        garbage_names = ["Родительская задача", "????", "Тест без родителя", "Подзадача к", "Задача на удаление", "Финальная проверка"]
         
-        if not tasks_to_delete:
+        for task in flat_task_list:
+            if any(garbage in task["name"] for garbage in garbage_names):
+                tasks_to_delete.append(task)
+        
+        unique_tasks_to_delete = list({t['id']: t for t in tasks_to_delete}.values())
+
+        if not unique_tasks_to_delete:
             print("No garbage tasks found to delete.")
             return
 
-        print(f"Found {len(tasks_to_delete)} tasks to delete. Deleting now...")
+        print(f"Found {len(unique_tasks_to_delete)} unique tasks to delete. Deleting now...")
         
-        # Сортируем, чтобы сначала удалять подзадачи (хотя cascade должен справляться)
-        tasks_to_delete.sort(key=lambda x: x.get('parent_id') is not None, reverse=True)
+        sorted_tasks = sorted(unique_tasks_to_delete, key=lambda x: x.get('parent_id') is not None, reverse=True)
 
-        for task in tasks_to_delete:
+        for task in sorted_tasks:
             task_id = task["id"]
             print(f"  > Deleting task ID: {task_id} ('{task['name']}')")
             try:
                 delete_res = await client.delete(f"{base_url}/tasks/{task_id}")
                 if delete_res.status_code == 200:
-                    print(f"    - Success.")
+                    print("    - Success.")
                 else:
                     print(f"    - Failed with status: {delete_res.status_code}")
             except Exception as e:
@@ -57,4 +60,10 @@ async def force_delete_tasks():
 Cleanup complete.")
 
 if __name__ == "__main__":
-    asyncio.run(force_delete_tasks())
+    try:
+        asyncio.run(force_delete_tasks())
+    except httpx.ConnectError as e:
+        print(f"Connection error. Is the server running on http://127.0.0.1:8000?
+Details: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")

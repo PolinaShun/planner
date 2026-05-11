@@ -280,9 +280,10 @@
     </div>
 
     <!-- POST MODAL -->
-    <div id="post-modal" class="modal-overlay" onclick="if(event.target===this) closePostModal()">
-        <div class="modal" style="width:650px;">
-            <h2 id="post-modal-title" style="color:var(--accent-green);">НОВЫЙ ПОСТ</h2>
+    <div id="post-modal" class="modal-overlay">
+        <div class="modal" style="width:650px; position:relative;">
+            <span onclick="closePostModal()" style="position:absolute; top:20px; right:25px; cursor:pointer; font-size:20px; opacity:0.5;">✕</span>
+            <h2 id="post-modal-title" style="color:var(--accent-rose);">НОВЫЙ ПОСТ</h2>
             <input type="text" id="post-title" placeholder="Заголовок">
             <textarea id="post-content" placeholder="Текст поста..." rows="12" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:15px; padding:20px; color:#fff; font-family:inherit; outline:none; resize:none; font-size:15px; line-height:1.6;"></textarea>
             <div style="display:flex; gap:15px">

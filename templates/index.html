@@ -157,7 +157,7 @@
                         <div class="section-header">🎯 Фокус дня</div>
                         <div class="widget" style="margin-bottom:30px;">
                             <div class="input-box">
-                                <input type="text" id="task-name-quick" placeholder="Что нужно сделать сегодня?" onkeypress="if(event.key==='Enter')addTaskQuick()">
+                                <input type="text" id="task-name-quick" placeholder="Что нужно сделать сегодня?">
                                 <select id="quick-category" class="category-select">
                                     <option value="work">💼 Работа</option>
                                     <option value="personal">👤 Личное</option>
@@ -338,7 +338,7 @@
             if(t.due_date) {
                 const isOverdue = t.due_date < todayStr && !t.completed;
                 const dateColor = isOverdue ? 'var(--accent-rose)' : 'rgba(255,255,255,0.2)';
-                const dateLabel = t.due_date === todayStr ? 'Сегодня' : t.due_date.split('-').reverse().slice(0,2).join('.');
+                const dateLabel = t.due_date.split('-').reverse().slice(0,2).join('.'); // Всегда ДД.ММ
                 dateHtml = `<div style="font-size:10px; font-weight:700; color:${dateColor}; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px;">📅 ${dateLabel}</div>`;
             }
 
@@ -479,7 +479,27 @@
             document.getElementById('calendar-day-tasks').innerHTML = flat.length ? flat.map(t => `<div class="task-card"><span>${t.name}</span></div>`).join('') : '<div style="opacity:0.3; padding:10px;">План пуст</div>';
         }
 
-        async function addTaskQuick() { const n = document.getElementById('task-name-quick').value; const c = document.getElementById('quick-category').value; if(n) { await fetch('/api/tasks', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, is_personal: c==='personal'})}); document.getElementById('task-name-quick').value=''; loadAll(); } }
+        async function addTaskQuick() {
+            const input = document.getElementById('task-name-quick');
+            const c = document.getElementById('quick-category').value;
+            const names = input.value.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+
+            if(names.length === 0) return;
+
+            for(const name of names) {
+                await fetch('/api/tasks', {
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json'}, 
+                    body:JSON.stringify({name:name, is_personal: c==='personal', is_dream: c==='dream', priority: c==='someday'?'p3':'p1'})
+                });
+            }
+            input.value=''; 
+            loadAll(); 
+        }
+
+        // Удаляем функцию handleQuickTaskInput, так как input однострочный
+        // и Enter будет обрабатываться напрямую addTaskQuick через onkeypress
+
         async function completeTask(id) { await fetch(`/api/tasks/${id}/toggle`, {method:'POST'}); loadAll(); }
         async function archiveTask(id) { await fetch(`/api/tasks/${id}/archive`, {method:'POST'}); loadAll(); }
         async function toggleWorkout(i) { await fetch(`/api/body/workout?day_index=${i}`, {method:'POST'}); loadAll(); }

@@ -428,8 +428,10 @@
             if(tasksChart) tasksChart.destroy();
             const tCtx = document.getElementById('tasksChart'); if(tCtx) tasksChart = new Chart(tCtx.getContext('2d'), { type:'line', data:{labels:d.tasks.dates, datasets:[{label:'Работа',data:d.tasks.work,borderColor:'#3498db',tension:0.5},{label:'Личное',data:d.tasks.personal,borderColor:'var(--accent-rose)',tension:0.5}]}, options:opt });
             if(focusTasksChart) focusTasksChart.destroy();
-            const ftCtx = document.getElementById('focusTasksChart'); if(ftCtx) focusTasksChart = new Chart(ftCtx.getContext('2d'), { type:'line', data:{labels:d.tasks.dates, datasets:[{data:d.tasks.work, borderColor: 'var(--accent-rose)', tension:0.5, borderWeight:3}]}, options:opt });
-            renderContentGrid(d.content_history);
+            const ftCtx = document.getElementById('focusTasksChart'); if(ftCtx) focusTasksChart = new Chart(ftCtx.getContext('2d'), { type:'line', data:{labels:d.tasks.dates, datasets:[{data:d.tasks.work, borderColor: 'var(--accent-rose)', tension:0.5, borderWidth:3}]}, options:opt });
+            
+            // Обеспечиваем вызов рендеринга для Контент-трекера
+            if(d.content_history) renderContentGrid(d.content_history);
         }
 
         function renderFullCalendar() {

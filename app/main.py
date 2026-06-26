@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import engine, Base, get_db
 from app.models import models
@@ -9,7 +9,7 @@ import os
 import datetime
 import shutil
 
-from app.api import tasks, stats, posts
+from app.api import tasks, stats, posts, habits
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -34,6 +34,7 @@ templates = Jinja2Templates(directory="templates")
 app.include_router(tasks.router, prefix="/api")
 app.include_router(stats.router, prefix="/api")
 app.include_router(posts.router, prefix="/api")
+app.include_router(habits.router)
 
 @app.on_event("startup")
 async def startup():
@@ -47,9 +48,13 @@ async def startup():
         ts = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         shutil.copy("planner.db", f"backups/planner_{ts}.db")
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    response = templates.TemplateResponse("index.html", {"request": request})
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 @app.get("/api/export")
 async def export_db():

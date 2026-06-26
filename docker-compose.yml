@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  planner:
+    build: .
+    container_name: polina_planner
+    volumes:
+      - .:/app
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:////app/planner.db
+    networks:
+      - npm_default
+    restart: unless-stopped
+
+networks:
+  npm_default:
+    external: true

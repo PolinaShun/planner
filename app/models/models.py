@@ -22,7 +22,7 @@ class Task(Base):
     completed_at = Column(Date, nullable=True)
     
     parent_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
-    subtasks = relationship("Task", backref="parent", remote_side=[id])
+    subtasks = relationship("Task", backref="parent", remote_side=[id], lazy="selectin")
 
 class Client(Base):
     __tablename__ = "clients"

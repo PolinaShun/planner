@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel
 from datetime import date
 from typing import Optional, List
 
@@ -37,18 +37,6 @@ class TaskResponse(TaskBase):
     is_recurring: bool
     created_at: date
     subtasks: List['TaskResponse'] = []
-
-    @field_validator('subtasks', mode='before')
-    @classmethod
-    def validate_subtasks(cls, v):
-        if v is None:
-            return []
-        # Если это ленивая загрузка SQLAlchemy, которая еще не была загружена,
-        # возвращаем пустой список, чтобы избежать ошибок ленивой загрузки.
-        try:
-            return list(v)
-        except Exception:
-            return []
 
     class Config:
         from_attributes = True

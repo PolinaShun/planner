@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from app.db.database import get_db
 from app.models.models import Task
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
@@ -10,16 +9,46 @@ from typing import Optional, List
 
 router = APIRouter()
 
-@router.get("/tasks", response_model=List[TaskResponse])
+def _task_to_dict(t):
+    """Convert Task ORM object to dict for JSON response."""
+    def _d(v):
+        return v.isoformat() if v is not None else None
+    return {
+        "id": t.id, "name": t.name, "description": t.description,
+        "priority": t.priority, "time_slot": t.time_slot,
+        "completed": t.completed, "archived": t.archived,
+        "is_personal": t.is_personal, "is_selfcare": t.is_selfcare,
+        "is_recurring": t.is_recurring, "is_dream": t.is_dream,
+        "start_date": _d(t.start_date), "due_date": _d(t.due_date),
+        "created_at": _d(t.created_at), "completed_at": _d(t.completed_at),
+        "parent_id": t.parent_id, "subtasks": []
+    }
+
+@router.get("/tasks")
 async def get_tasks(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Task)
         .filter(Task.archived == False, Task.parent_id == None)
-        .options(selectinload(Task.subtasks))
     )
-    return result.scalars().all()
+    tasks = result.scalars().all()
+    ids = [t.id for t in tasks]
+    if ids:
+        sub_res = await db.execute(
+            select(Task).filter(Task.parent_id.in_(ids), Task.archived == False)
+        )
+        subs = sub_res.scalars().all()
+        subs_by_parent = {}
+        for s in subs:
+            subs_by_parent.setdefault(s.parent_id, []).append(s)
+        out = []
+        for t in tasks:
+            d = _task_to_dict(t)
+            d["subtasks"] = [_task_to_dict(s) for s in subs_by_parent.get(t.id, [])]
+            out.append(d)
+        return out
+    return [_task_to_dict(t) for t in tasks]
 
-@router.post("/tasks", response_model=TaskResponse)
+@router.post("/tasks")
 async def add_task(task_data: TaskCreate, db: AsyncSession = Depends(get_db)):
     name_lower = task_data.name.lower()
     is_p = task_data.is_personal
@@ -51,30 +80,49 @@ async def add_task(task_data: TaskCreate, db: AsyncSession = Depends(get_db)):
     )
     db.add(new_task)
     await db.commit()
-    
-    # ПЕРЕЗАГРУЗКА с подзадачами ОБЯЗАТЕЛЬНА
-    final_stmt = select(Task).filter(Task.id == new_task.id).options(selectinload(Task.subtasks))
-    final_res = await db.execute(final_stmt)
-    return final_res.scalar_one()
+    await db.refresh(new_task)
+    if task_data.parent_id:
+        await _sync_parent(db, task_data.parent_id)
+    return _task_to_dict(new_task)
 
-@router.put("/tasks/{task_id}", response_model=TaskResponse)
+@router.put("/tasks/{task_id}")
 async def update_task(task_id: int, task_data: TaskUpdate, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
-        select(Task)
-        .filter(Task.id == task_id)
-        .options(selectinload(Task.subtasks))
-    )
+    result = await db.execute(select(Task).filter(Task.id == task_id))
     task = result.scalar_one_or_none()
     if task:
         update_data = task_data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(task, key, value)
         await db.commit()
-        
-        refresh_stmt = select(Task).filter(Task.id == task.id).options(selectinload(Task.subtasks))
-        refresh_res = await db.execute(refresh_stmt)
-        return refresh_res.scalar_one()
+        await db.refresh(task)
+        if task.parent_id:
+            await _sync_parent(db, task.parent_id)
+        return _task_to_dict(task)
     raise HTTPException(status_code=404, detail="Task not found")
+
+async def _sync_parent(db: AsyncSession, parent_id: int):
+    """Sync parent due_date from subtasks. Archive if all done."""
+    subs_res = await db.execute(
+        select(Task).filter(Task.parent_id == parent_id, Task.archived == False)
+    )
+    subs = subs_res.scalars().all()
+    if not subs:
+        return
+    parent_res = await db.execute(select(Task).filter(Task.id == parent_id))
+    parent = parent_res.scalar_one_or_none()
+    if not parent:
+        return
+    
+    active = [s for s in subs if not s.completed]
+    if not active:
+        parent.completed = True
+        parent.completed_at = datetime.date.today()
+        parent.archived = True
+    else:
+        dates = [s.due_date for s in active if s.due_date]
+        if dates:
+            parent.due_date = min(dates)
+    await db.commit()
 
 @router.post("/tasks/auto-archive")
 async def auto_archive_tasks(db: AsyncSession = Depends(get_db)):
@@ -94,11 +142,7 @@ async def auto_archive_tasks(db: AsyncSession = Depends(get_db)):
 
 @router.post("/tasks/{task_id}/toggle")
 async def toggle_task(task_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
-        select(Task)
-        .filter(Task.id == task_id)
-        .options(selectinload(Task.subtasks))
-    )
+    result = await db.execute(select(Task).filter(Task.id == task_id))
     task = result.scalar_one_or_none()
     if task:
         task.completed = not task.completed
@@ -107,6 +151,8 @@ async def toggle_task(task_id: int, db: AsyncSession = Depends(get_db)):
         else:
             task.completed_at = None
         await db.commit()
+        if task.parent_id:
+            await _sync_parent(db, task.parent_id)
     return {"status": "ok"}
 
 @router.post("/tasks/{task_id}/archive")

@@ -21,7 +21,7 @@ def _task_to_dict(t):
         "is_recurring": t.is_recurring, "is_dream": t.is_dream,
         "start_date": _d(t.start_date), "due_date": _d(t.due_date),
         "created_at": _d(t.created_at), "completed_at": _d(t.completed_at),
-        "parent_id": t.parent_id, "subtasks": []
+        "parent_id": t.parent_id, "subtasks": [], "size": t.size or "normal"
     }
 
 @router.get("/tasks")
@@ -75,6 +75,7 @@ async def add_task(task_data: TaskCreate, db: AsyncSession = Depends(get_db)):
         is_personal=is_p,
         is_dream=is_dr,
         is_selfcare=is_sc,
+        size=task_data.size,
         start_date=task_data.start_date,
         due_date=task_data.due_date
     )

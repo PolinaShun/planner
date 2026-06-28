@@ -15,6 +15,8 @@ services:
     networks:
       - npm_default
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:8008:8000"
 
 networks:
   npm_default:

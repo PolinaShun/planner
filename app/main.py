@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import engine, Base, get_db
 from app.models import models
@@ -10,10 +10,41 @@ import datetime
 import shutil
 
 from app.api import tasks, stats, posts, habits
-
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Senior Planner Polina")
+
+API_TOKEN = os.getenv("API_TOKEN", "")
+
+LOGIN_PAGE = """<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Вход</title>
+<style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#faf6f1;}
+form{display:flex;flex-direction:column;gap:12px;padding:32px;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.1);}
+input{padding:12px 16px;border:1px solid #e0d8cc;border-radius:12px;font-size:16px;outline:none;}
+button{background:#c4826b;color:#fff;border:none;padding:14px;border-radius:12px;font-size:16px;cursor:pointer;}</style></head>
+<body><form method="GET"><h2>Планировщик Полины</h2><input type="password" name="token" placeholder="Токен" autofocus><button>Войти</button></form></body></html>"""
+
+@app.middleware("http")
+async def check_auth(request: Request, call_next):
+    if request.url.path.startswith("/static") or request.url.path == "/favicon.ico":
+        return await call_next(request)
+    # Only protect the main page, not API
+    if not API_TOKEN:
+        return await call_next(request)
+    token = request.cookies.get("planner_token", "")
+    if not token:
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token:
+        token = request.query_params.get("token", "")
+    if token == API_TOKEN:
+        response = await call_next(request)
+        if not request.cookies.get("planner_token"):
+            response.set_cookie("planner_token", token, max_age=86400*30)
+        return response
+    # No valid token
+    if request.url.path.startswith("/api"):
+        return JSONResponse({"error": "unauthorized"}, status_code=401)
+    return HTMLResponse(content=LOGIN_PAGE, status_code=200)
 
 app.add_middleware(
     CORSMiddleware,
@@ -48,13 +79,11 @@ async def startup():
         ts = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         shutil.copy("planner.db", f"backups/planner_{ts}.db")
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def read_root(request: Request):
-    response = templates.TemplateResponse("index.html", {"request": request})
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
+    template = templates.get_template("index.html")
+    content = template.render({"request": request})
+    return HTMLResponse(content=content, headers={"Cache-Control": "no-cache", "Pragma": "no-cache", "Expires": "0"})
 
 @app.get("/api/export")
 async def export_db():

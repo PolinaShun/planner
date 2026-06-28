@@ -137,6 +137,21 @@
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; min-width: 100%; flex-direction: row; padding: 10px; gap: 8px; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
+            .sidebar .brand { display: none; }
+            .sidebar .nav-item { padding: 8px 12px; font-size: 12px; margin-bottom: 0; white-space: nowrap; }
+            .export-btn { margin-top: 0 !important; }
+            .workspace { padding: 16px; height: auto; overflow-y: visible; }
+            .dashboard-grid { grid-template-columns: 1fr; gap: 16px; }
+            .tasks-col { order: 1; }
+            .trackers-col { order: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+            .widget { padding: 16px !important; }
+            .modal { width: 90vw; padding: 24px; }
+        }
     </style>
 </head>
 <body>
@@ -244,6 +259,13 @@
             <div style="display:flex; gap:12px;">
                 <input type="text" id="pro-start" placeholder="Дата начала" onclick="toggleCalendar(event,'pro-start')" autocomplete="off" style="flex:1;">
                 <input type="text" id="pro-due" placeholder="Дедлайн" onclick="toggleCalendar(event,'pro-due')" autocomplete="off" style="flex:1;">
+            </div>
+            <div style="display:flex; gap:12px;">
+                <select id="pro-size" style="flex:1;">
+                    <option value="normal">Нормальная</option>
+                    <option value="big">Большая</option>
+                    <option value="huge">Очень большая</option>
+                </select>
             </div>
             <button class="btn-add" onclick="saveTask()">Сохранить</button>
         </div>
@@ -425,6 +447,7 @@
                             <div style="display:flex; gap:10px; align-items:center;">
                                 ${t.due_date ? `<span style="font-size:10px; font-weight:600; color:var(--accent-overdue); opacity:0.7;">${t.due_date.split('-').reverse().slice(0,2).join('.')}</span>` : ''}
                                 <span class="task-cat" style="color:${catColor}; background:${catColor}15;">${catLabel}</span>
+                                ${t.size==='big'?'<span style="font-size:14px;">●</span>':''}${t.size==='huge'?'<span style="font-size:16px;">⬟</span>':''}
                                 ${!isSub && !isInFocus ?`<span class="action-icon" title="В фокус дня" onclick="event.stopPropagation(); moveToFocus(${t.id})">⊙</span>`:''}
                                 ${!isSub?`<span class="action-icon" title="Подзадача" onclick="event.stopPropagation(); openProModal(${t.id})">+</span>`:''}
                                 <span class="action-icon" title="Удалить" style="color:var(--accent-overdue);" onclick="event.stopPropagation(); deleteTaskPermanently(${t.id})">✕</span>
@@ -729,6 +752,7 @@
                 priority: category === 'someday' ? 'p3' : 'p1',
                 start_date: startDate,
                 due_date: dueDate,
+                size: document.getElementById('pro-size').value,
                 parent_id: activeParentId
             };
             await fetch(editingTaskId ? `/api/tasks/${editingTaskId}` : '/api/tasks', {method:editingTaskId?'PUT':'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p)});
@@ -759,6 +783,7 @@
                 if(t.is_dream) document.getElementById('pro-category').value = 'dream';
                 else if(t.is_personal) document.getElementById('pro-category').value = 'personal';
                 else document.getElementById('pro-category').value = 'work';
+                document.getElementById('pro-size').value = t.size || 'normal';
                 document.getElementById('pro-modal').style.display = 'flex'; 
             }
         }

@@ -14,7 +14,7 @@ class TaskBase(BaseModel):
     parent_id: Optional[int] = None
 
 class TaskCreate(TaskBase):
-    pass
+    size: str = "normal"
 
 class TaskUpdate(BaseModel):
     name: Optional[str] = None

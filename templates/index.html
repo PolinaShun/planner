@@ -614,7 +614,6 @@
 
         async function completeTask(id) { 
             await fetch(`/api/tasks/${id}/toggle`, {method:'POST'}); 
-            await fetch(`/api/tasks/${id}/archive`, {method:'POST'}); 
             loadAll(); 
         }
         async function archiveTask(id) { await fetch(`/api/tasks/${id}/archive`, {method:'POST'}); loadAll(); }

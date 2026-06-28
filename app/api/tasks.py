@@ -118,7 +118,6 @@ async def _sync_parent(db: AsyncSession, parent_id: int):
     if not active:
         parent.completed = True
         parent.completed_at = datetime.date.today()
-        parent.archived = True
     else:
         dates = [s.due_date for s in active if s.due_date]
         if dates:

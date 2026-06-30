@@ -131,7 +131,7 @@ async def auto_archive_tasks(db: AsyncSession = Depends(get_db)):
         select(Task).filter(
             Task.completed == True,
             Task.archived == False,
-            Task.created_at < today
+            Task.completed_at < today
         )
     )
     tasks = result.scalars().all()

@@ -827,6 +827,7 @@
         }
 
         window.onload = async () => {
+            await fetch('/api/tasks/auto-archive', {method:'POST'});
             await loadAll(); 
             showView(localStorage.getItem('active_view')||'tasks', null); 
             document.addEventListener('click', (e) => { 

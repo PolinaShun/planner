@@ -343,7 +343,7 @@
             for(let d=0; d<daysInMonth; d++) {
                 const checked = history[d];
                 const isToday = (d+1) === today.getDate();
-                gridHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday?'border:1px solid var(--accent-rose);':''}" onclick="event.stopPropagation(); toggleWorkout(${d})">${d+1}</div>`;
+                gridHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday?'outline:2px solid #2c2416;outline-offset:-2px;':''}" onclick="event.stopPropagation(); toggleWorkout(${d})">${d+1}</div>`;
             }
             
             const html = `<div class="widget" style="padding:20px; cursor:pointer;" onclick="openBodyModal(${body.weight}, ${body.waist}, ${body.hips||body.chest||0}, ${body.chest||0})">
@@ -368,7 +368,7 @@
                 for(let i=0; i<dates.length; i++) {
                     const checked = h.marked_dates.includes(dates[i]);
                     const isToday = dates[i] === new Date().toISOString().split('T')[0];
-                    daysHtml += `<div class="streak-day ${checked?'done':''} ${isToday?'today':''}" style="${isToday?'border:1px solid var(--accent-rose);':''}" onclick="toggleHabit(${h.id}, '${dates[i]}')">${i+1}</div>`;
+                    daysHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday ? 'outline:2px solid #2c2416;outline-offset:-2px;position:relative;' : ''}${checked && isToday ? 'border:2px solid #fff;box-shadow:0 0 0 2px var(--accent-rose),0 2px 10px rgba(196,130,107,0.4);' : ''}" onclick="toggleHabit(${h.id}, '${dates[i]}')">${i+1}</div>`;
                 }
                 const pct = dates.length > 0 ? (h.progress/dates.length)*100 : 0;
                 return `<div class="widget" style="padding:20px; position:relative;">

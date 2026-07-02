@@ -83,8 +83,8 @@ async def startup():
                 conn.execute(sa.text("ALTER TABLE body_metrics ADD COLUMN start_date DATE"))
             if "target_days" not in columns:
                 conn.execute(sa.text("ALTER TABLE body_metrics ADD COLUMN target_days INTEGER DEFAULT 30"))
-            # Миграция старых записей: если start_date NULL, ставим date
-            conn.execute(sa.text("UPDATE body_metrics SET start_date = date WHERE start_date IS NULL"))
+            # Миграция старых записей: если start_date NULL, ставим 27 июня 2026
+            conn.execute(sa.text("UPDATE body_metrics SET start_date = '2026-06-27' WHERE start_date IS NULL"))
             conn.execute(sa.text("UPDATE body_metrics SET target_days = 30 WHERE target_days IS NULL"))
         await conn.run_sync(check_and_migrate)
     

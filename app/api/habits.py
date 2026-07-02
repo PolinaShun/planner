@@ -7,6 +7,7 @@ from app.models.habit import Habit
 from app.models.habit_log import HabitLog
 from datetime import date, timedelta
 from pydantic import BaseModel
+from typing import Optional
 from fastapi.responses import HTMLResponse
 from typing import List
 
@@ -19,6 +20,7 @@ class HabitToggle(BaseModel):
 class HabitCreate(BaseModel):
     title: str
     target_days: int = 30
+    start_date: Optional[date] = None
 
 def compute_next_cycle_start(habit: Habit, today: date) -> date:
     target_days = habit.target_days or 30
@@ -69,7 +71,7 @@ async def get_habits_dashboard(db: AsyncSession = Depends(get_db)):
 async def create_habit(data: HabitCreate, db: AsyncSession = Depends(get_db)):
     new_habit = Habit(
         title=data.title,
-        start_date=date.today(),
+        start_date=data.start_date or date.today(),
         target_days=data.target_days or 30
     )
     db.add(new_habit)

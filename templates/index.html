@@ -690,9 +690,11 @@
             const name = prompt('Название трекера:');
             if(!name) return;
             const target = parseInt(prompt('Количество дней (по умолчанию 30):', '30')) || 30;
+            const dateStr = prompt('Дата начала (ГГГГ-ММ-ДД, по умолчанию сегодня):', new Date().toISOString().split('T')[0]);
+            const startDate = dateStr && dateStr.trim() ? dateStr : undefined;
             await fetch('/api/habits/create', {
                 method:'POST', headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({title: name, target_days: target})
+                body:JSON.stringify({title: name, target_days: target, start_date: startDate})
             });
             loadAll();
         }

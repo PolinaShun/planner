@@ -25,35 +25,56 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
         db.add(content)
         await db.commit()
     
-    # Автоматическое переключение месяца для BodyMetric
+    # Автоматическое переключение периода для BodyMetric (start_date + target_days)
     body_res = await db.execute(select(BodyMetric).order_by(BodyMetric.date.desc()))
     body = body_res.scalars().first()
     
-    import calendar
     current_month_name = MONTH_NAMES[today.month]
-    _, days_in_month = calendar.monthrange(today.year, today.month)
     
-    if not body or body.date.month != today.month or body.date.year != today.year:
-        # Новый месяц - создаем новый трекер (БЕЗ копирования истории тренировок)
+    if not body:
+        # Первый раз — создаём с сегодняшнего дня на 30 дней
         new_body = BodyMetric(
-            date=today, 
-            weight=body.weight if body else 53.75, 
-            waist=body.waist if body else 61, 
-            hips=89, 
-            workout_history=[False] * days_in_month
+            date=today,
+            start_date=today,
+            target_days=30,
+            weight=53.75,
+            waist=61,
+            hips=89,
+            workout_history=[False] * 30
         )
         db.add(new_body)
         await db.commit()
         body = new_body
-    elif len(body.workout_history) != days_in_month:
-        # Исправляем длину трекера, если она не совпадает с количеством дней в месяце
-        history = list(body.workout_history)
-        if len(history) < days_in_month:
-            history.extend([False] * (days_in_month - len(history)))
-        else:
-            history = history[:days_in_month]
-        body.workout_history = history
-        await db.commit()
+    else:
+        # Миграция старых записей (без start_date — календарный месяц)
+        if body.start_date is None:
+            body.start_date = body.date
+            body.target_days = 30
+            history = list(body.workout_history) if body.workout_history else []
+            if len(history) < 30:
+                history.extend([False] * (30 - len(history)))
+            else:
+                history = history[:30]
+            body.workout_history = history
+            await db.commit()
+        
+        # Проверяем, не закончился ли текущий период
+        period_end = body.start_date + datetime.timedelta(days=body.target_days - 1)
+        if period_end < today:
+            # Создаём новый период
+            new_body = BodyMetric(
+                date=today,
+                start_date=today,
+                target_days=body.target_days or 30,
+                weight=body.weight,
+                waist=body.waist,
+                hips=body.hips or 89,
+                chest=body.chest,
+                workout_history=[False] * (body.target_days or 30)
+            )
+            db.add(new_body)
+            await db.commit()
+            body = new_body
     
     total_res = await db.execute(select(Task).filter(Task.archived == False))
     tasks = total_res.scalars().all()
@@ -166,24 +187,48 @@ async def set_counter(counter_id: int, value: int, db: AsyncSession = Depends(ge
     return {"status": "ok"}
 
 @router.post("/body/workout")
-async def toggle_workout(day_index: int, db: AsyncSession = Depends(get_db)):
+async def toggle_workout(date_str: str, db: AsyncSession = Depends(get_db)):
+    toggle_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
     today = datetime.date.today()
+    
+    if toggle_date > today:
+        return {"status": "error", "detail": "Cannot mark future dates"}
+    
     body_res = await db.execute(select(BodyMetric).order_by(BodyMetric.date.desc()))
     body = body_res.scalars().first()
     
-    if not body or body.date.month != today.month:
-        # Этого не должно случиться при правильном вызове get_insights, но для страховки:
-        import calendar
-        _, days_in_month = calendar.monthrange(today.year, today.month)
-        body = BodyMetric(date=today, weight=53.75, waist=61, hips=89, workout_history=[False]*days_in_month)
-        db.add(body)
+    if not body:
+        return {"status": "error", "detail": "No body tracker found"}
     
-    history = list(body.workout_history)
-    if day_index < len(history):
-        history[day_index] = not history[day_index]
+    # Миграция старых записей
+    if body.start_date is None:
+        body.start_date = body.date
+        body.target_days = 30
+        history = list(body.workout_history) if body.workout_history else []
+        if len(history) < 30:
+            history.extend([False] * (30 - len(history)))
+        else:
+            history = history[:30]
         body.workout_history = history
         await db.commit()
-    return {"status": "ok"}
+    
+    # Проверяем, попадает ли дата в текущий период
+    start = body.start_date
+    target = body.target_days or 30
+    day_index = (toggle_date - start).days
+    
+    if day_index < 0 or day_index >= target:
+        return {"status": "error", "detail": f"Date {date_str} is outside current period ({start} - {start + datetime.timedelta(days=target-1)})"}
+    
+    history = list(body.workout_history) if body.workout_history else [False] * target
+    if len(history) <= day_index:
+        # Дополняем если история короче
+        history.extend([False] * (day_index - len(history) + 1))
+    
+    history[day_index] = not history[day_index]
+    body.workout_history = history
+    await db.commit()
+    return {"status": "success", "date": date_str, "day_index": day_index}
 
 @router.post("/body/metrics")
 async def update_metrics(weight: float, waist: float, hips: float, chest: float, db: AsyncSession = Depends(get_db)):

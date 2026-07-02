@@ -43,14 +43,16 @@ class Counter(Base):
 class BodyMetric(Base):
     __tablename__ = "body_metrics"
     id = Column(Integer, primary_key=True, index=True)
-    date = Column(Date, default=datetime.date.today, unique=True)
+    date = Column(Date, default=datetime.date.today)
     weight = Column(Float)
     waist = Column(Float)
     hips = Column(Float)
     chest = Column(Float, nullable=True)
     calories = Column(Integer, nullable=True)
     protein = Column(Integer, nullable=True)
-    workout_history = Column(JSON, default=list) # List of 30 booleans
+    start_date = Column(Date, nullable=True)
+    target_days = Column(Integer, default=30)
+    workout_history = Column(JSON, default=list) # List of booleans, length = target_days
 
 class ContentMetric(Base):
     __tablename__ = "content_metrics"

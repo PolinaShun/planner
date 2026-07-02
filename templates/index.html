@@ -60,6 +60,7 @@
         .streak-grid-30 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 10px 0; }
         .streak-day { aspect-ratio: 1/1; background: var(--sidebar-color); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
         .streak-day.done { background: var(--accent-rose); color: #fff; box-shadow: 0 2px 8px rgba(196, 130, 107, 0.3); }
+        .streak-day.future { cursor: default; }
 
         /* QUICK INPUT */
         .input-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 18px; padding: 10px; display: flex; gap: 12px; align-items: center; margin-bottom: 22px; box-shadow: var(--shadow-sm); }
@@ -330,29 +331,69 @@
         }
 
         function renderBody(body) {
-            const history = body.workout_history || [];
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth();
-            const daysInMonth = new Date(year, month+1, 0).getDate();
-            const firstDay = new Date(year, month, 0).getDay(); // 0=ВС
-            const startOffset = firstDay === 0 ? 6 : firstDay - 1; // ПН=0
-            
-            let gridHtml = '';
-            for(let i=0; i<startOffset; i++) gridHtml += '<div></div>';
-            for(let d=0; d<daysInMonth; d++) {
-                const checked = history[d];
-                const isToday = (d+1) === today.getDate();
-                gridHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday?'outline:2px solid #2c2416;outline-offset:-2px;':''}" onclick="event.stopPropagation(); toggleWorkout(${d})">${d+1}</div>`;
+            // Форматирование даты без timezone-сдвигов
+            function fmtDate(d) {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
             }
             
-            const html = `<div class="widget" style="padding:20px; cursor:pointer;" onclick="openBodyModal(${body.weight}, ${body.waist}, ${body.hips||body.chest||0}, ${body.chest||0})">
+            const startDate = body.start_date || fmtDate(new Date());
+            const targetDays = body.target_days || 30;
+            const history = body.workout_history || [];
+            const today = new Date();
+            const todayStr = fmtDate(today);
+            
+            // Парсим start_date без timezone
+            const parts = startDate.split('-').map(Number);
+            const start = new Date(parts[0], parts[1] - 1, parts[2]);
+            const startWeekday = start.getDay() === 0 ? 6 : start.getDay() - 1;
+            
+            let gridHtml = '';
+            for(let i=0; i<startWeekday; i++) gridHtml += '<div></div>';
+            for(let i=0; i<targetDays; i++) {
+                const d = new Date(start);
+                d.setDate(d.getDate() + i);
+                const dateStr = fmtDate(d);
+                const checked = history[i] === true;
+                const isToday = dateStr === todayStr;
+                const isFuture = dateStr > todayStr;
+                const dayNum = d.getDate();
+                const cls = isFuture ? 'streak-day future' : (checked ? 'streak-day done' : 'streak-day');
+                const clickHandler = isFuture ? '' : `onclick="event.stopPropagation(); toggleWorkout('${dateStr}')"`;
+                const todayStyle = isToday ? 'outline:2px solid #2c2416;outline-offset:-2px;' : '';
+                gridHtml += `<div class="${cls}" style="${todayStyle}" ${clickHandler}>${dayNum}</div>`;
+            }
+            
+            const done = history.filter(Boolean).length;
+            const pct = targetDays > 0 ? (done / targetDays) * 100 : 0;
+            
+            const html = `<div class="widget" style="padding:20px;">
                 <h2 style="margin-bottom:10px;">Тело</h2>
-                <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--accent-rose); margin-bottom:12px;">${body.weight||'--'} кг</div>
+                <div style="color:var(--text-secondary); font-size:13px; margin-bottom:12px; font-weight:500; cursor:pointer;" onclick="openBodyModal(${body.weight||0}, ${body.waist||0}, ${body.hips||0}, ${body.chest||0})">Вес: ${body.weight||'--'} кг</div>
                 <div class="streak-grid-30">${gridHtml}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                    <div style="flex:1; height:3px; background:var(--sidebar-color); border-radius:10px; overflow:hidden; margin-right:8px;">
+                        <div style="height:100%; background:var(--accent-rose); width:${pct}%; border-radius:10px;"></div>
+                    </div>
+                    <span style="font-size:10px; color:var(--accent-rose); font-weight:600;">${done}/${targetDays}</span>
+                </div>
             </div>`;
             const col1 = document.getElementById('trackers-col-1');
-            if(col1) col1.innerHTML += html;
+            const col2 = document.getElementById('trackers-col-2');
+            // Добавляем в колонку, где меньше элементов
+            if(col1 && col2) {
+                const count1 = col1.children.length;
+                const count2 = col2.children.length;
+                if(count1 <= count2) {
+                    col1.innerHTML += html;
+                } else {
+                    col2.innerHTML += html;
+                }
+            } else if(col1) {
+                col1.innerHTML += html;
+            }
         }
 
         function renderHabits(habits) {
@@ -368,7 +409,8 @@
                 for(let i=0; i<dates.length; i++) {
                     const checked = h.marked_dates.includes(dates[i]);
                     const isToday = dates[i] === new Date().toISOString().split('T')[0];
-                    daysHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday ? 'outline:2px solid #2c2416;outline-offset:-2px;position:relative;' : ''}${checked && isToday ? 'border:2px solid #fff;box-shadow:0 0 0 2px var(--accent-rose),0 2px 10px rgba(196,130,107,0.4);' : ''}" onclick="toggleHabit(${h.id}, '${dates[i]}')">${i+1}</div>`;
+                    const dayNum = new Date(dates[i] + 'T00:00:00').getDate();
+                    daysHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday ? 'outline:2px solid #2c2416;outline-offset:-2px;position:relative;' : ''}${checked && isToday ? 'border:2px solid #fff;box-shadow:0 0 0 2px var(--accent-rose),0 2px 10px rgba(196,130,107,0.4);' : ''}" onclick="toggleHabit(${h.id}, '${dates[i]}')">${dayNum}</div>`;
                 }
                 const pct = dates.length > 0 ? (h.progress/dates.length)*100 : 0;
                 return `<div class="widget" style="padding:20px; position:relative;">
@@ -533,9 +575,34 @@
                 // Body metrics after left trackers
                 if(insights.body) {
                     const b = insights.body;
+                    const startDate = b.start_date || new Date().toISOString().split('T')[0];
+                    const targetDays = b.target_days || 30;
                     const history = b.workout_history || [];
-                    const gridHtml = history.map((d, i) => `<div class="status-block ${d?'rose':''}" onclick="toggleWorkout(${i})">${i+1}</div>`).join('');
-                    col1.innerHTML += `<div class="widget" style="padding:20px;"><h2 style="margin-bottom:12px;">Тело</h2><div style="color:var(--text-secondary); font-size:13px; margin-bottom:12px; font-weight:500;">Вес: ${b.weight||'--'} кг · Талия: ${b.waist||'--'} см</div><div class="status-grid" style="grid-template-columns: repeat(7, 1fr);">${gridHtml}</div></div>`;
+                    
+                    // Генерируем даты периода
+                    const start = new Date(startDate + 'T00:00:00');
+                    const dates = [];
+                    for(let i = 0; i < targetDays; i++) {
+                        const d = new Date(start);
+                        d.setDate(d.getDate() + i);
+                        dates.push(d);
+                    }
+                    
+                    const startWeekday = start.getDay() === 0 ? 6 : start.getDay() - 1;
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    
+                    let gridHtml = '';
+                    for(let i = 0; i < startWeekday; i++) gridHtml += '<div></div>';
+                    for(let i = 0; i < dates.length; i++) {
+                        const d = dates[i];
+                        const dateStr = d.toISOString().split('T')[0];
+                        const checked = history[i] === true;
+                        const isToday = dateStr === todayStr;
+                        const dayNum = d.getDate();
+                        gridHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday?'outline:2px solid #2c2416;outline-offset:-2px;':''}" onclick="toggleWorkout('${dateStr}')">${dayNum}</div>`;
+                    }
+                    
+                    col1.innerHTML += `<div class="widget" style="padding:20px; cursor:pointer;" onclick="openBodyModal(${b.weight||0}, ${b.waist||0}, ${b.hips||0}, ${b.chest||0})"><h2 style="margin-bottom:10px;">Тело</h2><div style="color:var(--text-secondary); font-size:13px; margin-bottom:12px; font-weight:500;">Вес: ${b.weight||'--'} кг · Талия: ${b.waist||'--'} см</div><div class="streak-grid-30">${gridHtml}</div></div>`;
                 }
             }
             if(col2) col2.innerHTML = rightCounters.map(renderTrackerCard).join('');
@@ -617,7 +684,7 @@
             loadAll(); 
         }
         async function archiveTask(id) { await fetch(`/api/tasks/${id}/archive`, {method:'POST'}); loadAll(); }
-        async function toggleWorkout(i) { await fetch(`/api/body/workout?day_index=${i}`, {method:'POST'}); loadAll(); }
+        async function toggleWorkout(dateStr) { await fetch(`/api/body/workout?date_str=${dateStr}`, {method:'POST'}); loadAll(); }
         async function toggleCounter(id, v) { await fetch(`/api/counter/${id}/set?value=${v}`, {method:'POST'}); loadAll(); }
         async function addTracker() {
             const name = prompt('Название трекера:');

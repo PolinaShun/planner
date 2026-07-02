@@ -72,6 +72,22 @@ async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     
+    # Миграция: добавляем колонки start_date и target_days в body_metrics, если их нет
+    async with engine.begin() as conn:
+        def check_and_migrate(conn):
+            import sqlalchemy as sa
+            # Проверяем, есть ли колонка start_date в body_metrics
+            inspector = sa.inspect(conn)
+            columns = [col["name"] for col in inspector.get_columns("body_metrics")]
+            if "start_date" not in columns:
+                conn.execute(sa.text("ALTER TABLE body_metrics ADD COLUMN start_date DATE"))
+            if "target_days" not in columns:
+                conn.execute(sa.text("ALTER TABLE body_metrics ADD COLUMN target_days INTEGER DEFAULT 30"))
+            # Миграция старых записей: если start_date NULL, ставим date
+            conn.execute(sa.text("UPDATE body_metrics SET start_date = date WHERE start_date IS NULL"))
+            conn.execute(sa.text("UPDATE body_metrics SET target_days = 30 WHERE target_days IS NULL"))
+        await conn.run_sync(check_and_migrate)
+    
     # Automated daily backup
     if os.path.exists("planner.db"):
         if not os.path.exists("backups"):

@@ -5,7 +5,7 @@ import re
 
 async def archive_completed_tasks(db: AsyncSession):
     # Find all completed but not archived tasks
-    result = await db.execute(select(Task).where(Task.completed == True, Task.archived == False))
+    result = await db.execute(select(Task).where(Task.completed == True, Task.archived == False, Task.parent_id == None))
     tasks = result.scalars().all()
     
     if not tasks:

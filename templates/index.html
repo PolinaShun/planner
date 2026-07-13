@@ -9,12 +9,12 @@
     <style>
         :root {
             --bg-color: #faf6f1;
-            --sidebar-color: #f0ebe3;
-            --accent-rose: #c4826b;
-            --accent-rose-soft: rgba(196, 130, 107, 0.12);
-            --accent-overdue: #c4928a;
-            --accent-overdue-soft: rgba(196, 146, 138, 0.08);
-            --accent-green: #5a8f7b;
+            --sidebar-color: #324d1e;
+            --accent-rose: #752521;
+            --accent-rose-soft: rgba(117, 37, 33, 0.12);
+            --accent-overdue: #8a3a38;
+            --accent-overdue-soft: rgba(138, 58, 56, 0.08);
+            --accent-green: #324d1e;
             --text-main: #2c2416;
             --text-secondary: #8c8070;
             --card-bg: #ffffff;
@@ -27,13 +27,13 @@
         body { font-family: 'DM Sans', sans-serif; background: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
         
         /* SIDEBAR */
-        .sidebar { width: 170px; min-width: 170px; background-color: var(--sidebar-color); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 28px 8px; z-index: 1000; }
-        .sidebar .brand { padding: 0 10px; margin-bottom: 36px; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 18px; color: var(--text-main); letter-spacing: -0.3px; }
-        .sidebar .nav-item { width: 100%; padding: 12px 14px; margin-bottom: 4px; cursor: pointer; color: var(--text-secondary); transition: 0.25s; font-size: 13px; font-weight: 500; border-radius: 12px; border: 1px solid transparent; letter-spacing: -0.2px; }
-        .sidebar .nav-item:hover { color: var(--text-main); background: rgba(196, 130, 107, 0.06); }
-        .sidebar .nav-item.active { color: #fff; background: var(--accent-rose); font-weight: 600; border: 1px solid rgba(196, 130, 107, 0.3); box-shadow: 0 6px 20px rgba(196, 130, 107, 0.25); }
-        .export-btn { margin-top: auto !important; border: 1.5px solid var(--accent-rose) !important; color: var(--accent-rose) !important; font-weight: 600 !important; text-align: center; }
-        .export-btn:hover { background: var(--accent-rose) !important; color: #fff !important; }
+        .sidebar { width: 170px; min-width: 170px; background-color: var(--sidebar-color); border-right: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; padding: 28px 8px; z-index: 1000; }
+        .sidebar .brand { padding: 0 10px; margin-bottom: 36px; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 18px; color: rgba(255,255,255,0.9); letter-spacing: -0.3px; }
+        .sidebar .nav-item { width: 100%; padding: 12px 14px; margin-bottom: 4px; cursor: pointer; color: rgba(255,255,255,0.65); transition: 0.25s; font-size: 13px; font-weight: 500; border-radius: 12px; border: 1px solid transparent; letter-spacing: -0.2px; }
+        .sidebar .nav-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
+        .sidebar .nav-item.active { color: #fff; background: var(--accent-rose); font-weight: 600; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 6px 20px rgba(117, 37, 33, 0.25); }
+        .export-btn { margin-top: auto !important; border: 1.5px solid rgba(255,255,255,0.3) !important; color: rgba(255,255,255,0.8) !important; font-weight: 600 !important; text-align: center; }
+        .export-btn:hover { background: rgba(255,255,255,0.1) !important; color: #fff !important; }
 
         /* WORKSPACE */
         .main-content-wrapper { flex: 1; height: 100vh; overflow: hidden; position: relative; }
@@ -58,8 +58,8 @@
         .course-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 22px; border-radius: 24px; box-shadow: var(--shadow-sm); }
         .course-card h2 { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 14px; }
         .streak-grid-30 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 10px 0; }
-        .streak-day { aspect-ratio: 1/1; background: var(--sidebar-color); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
-        .streak-day.done { background: var(--accent-rose); color: #fff; box-shadow: 0 2px 8px rgba(196, 130, 107, 0.3); }
+        .streak-day { aspect-ratio: 1/1; background: #e0e8d8; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
+        .streak-day.done { background: var(--accent-rose); color: #fff; box-shadow: 0 2px 8px rgba(117, 37, 33, 0.3); }
         .streak-day.future { cursor: default; }
 
         /* QUICK INPUT */
@@ -101,8 +101,8 @@
 
         /* BODY TRACKER GRID */
         .status-grid { display: grid; gap: 6px; }
-        .status-block { aspect-ratio: 1/1; background: var(--sidebar-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
-        .status-block.rose { background: var(--accent-rose); color: #fff; box-shadow: 0 2px 10px rgba(196, 130, 107, 0.3); }
+        .status-block { aspect-ratio: 1/1; background: #e0e8d8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
+        .status-block.rose { background: var(--accent-rose); color: #fff; box-shadow: 0 2px 10px rgba(117, 37, 33, 0.3); }
         #focus-ferris-grid { grid-template-columns: repeat(7, 1fr) !important; }
 
         /* MODALS */
@@ -133,7 +133,7 @@
         .modal select option { background: #fff; color: var(--text-main); }
         
         .btn-add { background: var(--accent-rose); color: #fff; border: none; padding: 16px; border-radius: 16px; font-family: 'DM Sans', sans-serif; font-weight: 600; cursor: pointer; font-size: 13px; letter-spacing: 0.5px; transition: 0.25s; }
-        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(196, 130, 107, 0.35); }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(117, 37, 33, 0.35); }
 
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 5px; }
@@ -410,7 +410,7 @@
                     const checked = h.marked_dates.includes(dates[i]);
                     const isToday = dates[i] === new Date().toISOString().split('T')[0];
                     const dayNum = new Date(dates[i] + 'T00:00:00').getDate();
-                    daysHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday ? 'outline:2px solid #2c2416;outline-offset:-2px;position:relative;' : ''}${checked && isToday ? 'border:2px solid #fff;box-shadow:0 0 0 2px var(--accent-rose),0 2px 10px rgba(196,130,107,0.4);' : ''}" onclick="toggleHabit(${h.id}, '${dates[i]}')">${dayNum}</div>`;
+                    daysHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday ? 'outline:2px solid #2c2416;outline-offset:-2px;position:relative;' : ''}${checked && isToday ? 'border:2px solid #fff;box-shadow:0 0 0 2px var(--accent-rose),0 2px 10px rgba(117,37,33,0.4);' : ''}" onclick="toggleHabit(${h.id}, '${dates[i]}')">${dayNum}</div>`;
                 }
                 const pct = dates.length > 0 ? (h.progress/dates.length)*100 : 0;
                 return `<div class="widget" style="padding:20px; position:relative;">
@@ -471,7 +471,7 @@
             `).join('')}</div>` : '';
             const overdueClass = isOverdue ? ' overdue' : '';
             const catLabel = t.is_dream ? 'Мечты' : t.is_personal ? 'Личное' : t.priority === 'p3' ? 'Когда-нибудь' : 'Работа';
-            const catColor = t.is_dream ? '#c4928a' : t.is_personal ? '#8a9ec4' : t.priority === 'p3' ? '#c4b28a' : '#8ac4a0';
+            const catColor = t.is_dream ? '#8a3a38' : t.is_personal ? '#8a9ec4' : t.priority === 'p3' ? '#c4b28a' : '#b05a55';
             
             return `
                 <div class="task-container">

@@ -24,6 +24,29 @@ def _task_to_dict(t):
         "parent_id": t.parent_id, "subtasks": [], "size": t.size or "normal"
     }
 
+@router.get("/tasks/completed-yesterday")
+async def get_completed_yesterday(db: AsyncSession = Depends(get_db)):
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    result = await db.execute(
+        select(Task)
+        .filter(Task.completed == True, Task.completed_at == yesterday)
+        .order_by(Task.completed_at.desc())
+    )
+    tasks = result.scalars().all()
+    out = []
+    # Соберём имена родителей для подзадач
+    parent_ids = [t.parent_id for t in tasks if t.parent_id is not None]
+    parent_names = {}
+    if parent_ids:
+        p_res = await db.execute(select(Task).filter(Task.id.in_(parent_ids)))
+        parent_names = {t.id: t.name for t in p_res.scalars().all()}
+    for t in tasks:
+        d = _task_to_dict(t)
+        if t.parent_id is not None:
+            d["parent_name"] = parent_names.get(t.parent_id)
+        out.append(d)
+    return out
+
 @router.get("/tasks")
 async def get_tasks(db: AsyncSession = Depends(get_db)):
     result = await db.execute(

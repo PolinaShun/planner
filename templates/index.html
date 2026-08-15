@@ -47,8 +47,10 @@
         .widget h2 { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 22px; text-transform: none; letter-spacing: -0.2px; }
 
         /* DASHBOARD LAYOUT */
-        .dashboard-grid { display: grid; grid-template-columns: 3fr 1fr 1fr; gap: 24px; align-items: start; }
+        .dashboard-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; align-items: start; }
         .tasks-col { min-width: 0; }
+        .trackers-area { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+        .trackers-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
         .trackers-col { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
         /* SECTION HEADERS */
@@ -150,7 +152,8 @@
             .workspace { padding: 16px; height: auto; overflow-y: visible; }
             .dashboard-grid { grid-template-columns: 1fr; gap: 16px; }
             .tasks-col { order: 1; }
-            .trackers-col { order: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+            .trackers-area { order: 2; }
+            .trackers-row { grid-template-columns: 1fr 1fr; gap: 12px; }
             .widget { padding: 16px !important; }
             .modal { width: 90vw; padding: 24px; }
         }
@@ -214,11 +217,19 @@
                         </div>
                     </div>
 
-                    <!-- COLUMN 2: TRACKERS LEFT -->
-                    <div class="trackers-col" id="trackers-col-1"></div>
-                    
-                    <!-- COLUMN 3: TRACKERS RIGHT -->
-                    <div class="trackers-col" id="trackers-col-2"></div>
+                    <!-- RIGHT: TRACKERS + YESTERDAY -->
+                    <div class="trackers-area">
+                        <div class="trackers-row">
+                            <div class="trackers-col" id="trackers-col-1"></div>
+                            <div class="trackers-col" id="trackers-col-2"></div>
+                        </div>
+
+                        <!-- YESTERDAY DONE (под трекерами) -->
+                        <div class="widget" id="yesterday-done" style="padding:20px;">
+                            <h2>Закрыто вчера</h2>
+                            <div id="yesterday-done-list" class="task-list"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -322,13 +333,57 @@
         let curCalMonth = new Date().getMonth(), curCalYear = new Date().getFullYear();
 
         async function loadAll() {
-            const [tRes, hRes, insRes] = await Promise.all([fetch('/api/tasks'), fetch('/api/habits/dashboard'), fetch('/api/insights')]);
+            const [tRes, hRes, insRes, yRes] = await Promise.all([fetch('/api/tasks'), fetch('/api/habits/dashboard'), fetch('/api/insights'), fetch('/api/tasks/completed-yesterday')]);
             if(tRes.ok) { allTasks = await tRes.json(); renderTasks(); }
             if(hRes.ok) { renderHabits(await hRes.json()); }
+            if(yRes.ok) { renderYesterdayDone(await yRes.json()); }
             if(insRes.ok) { 
                 const ins = await insRes.json();
                 if(ins.body) renderBody(ins.body);
             }
+        }
+
+        function renderYesterdayDone(tasks) {
+            const box = document.getElementById('yesterday-done');
+            const list = document.getElementById('yesterday-done-list');
+            if(!box || !list) return;
+            box.style.display = '';
+            if(!tasks || tasks.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-secondary);opacity:0.6;padding:6px 0;font-size:13px;">Вчера не закрыто ни одной задачи</div>';
+                return;
+            }
+            // Отдельные задачи и подзадачи
+            const standalone = tasks.filter(t => !t.parent_id);
+            const subs = tasks.filter(t => t.parent_id);
+            // Группируем подзадачи по родителю
+            const byParent = {};
+            subs.forEach(t => {
+                const key = t.parent_name || 'Без родителя';
+                if(!byParent[key]) byParent[key] = [];
+                byParent[key].push(t);
+            });
+            const catOf = t => t.is_dream ? '#f65077' : t.is_personal ? '#8a9ec4' : t.priority === 'p3' ? '#c4b28a' : '#096b72';
+            const row = (t, dot) => `<div class="task-card" style="padding:11px 16px; display:flex; align-items:center; gap:10px;">
+                <span style="width:8px; height:8px; border-radius:50%; background:${catOf(t)}; flex-shrink:0;"></span>
+                <span style="font-size:13px; color:var(--text-main);">${t.name}</span>
+            </div>`;
+            let html = '';
+            // Одиночные задачи
+            html += standalone.map(t => row(t, true)).join('');
+            // Группы подзадач под родителем
+            Object.keys(byParent).forEach(parent => {
+                const subsHtml = byParent[parent].map(t => `<div style="display:flex; align-items:center; gap:10px; padding:7px 16px 7px 26px;">
+                    <span style="width:6px; height:6px; border-radius:50%; background:${catOf(t)}; flex-shrink:0;"></span>
+                    <span style="font-size:13px; color:var(--text-main);">${t.name}</span>
+                </div>`).join('');
+                html += `<div class="task-card" style="padding:13px 16px;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                        <span style="font-size:13px; font-weight:600; color:var(--text-main);">${parent}</span>
+                    </div>
+                    ${subsHtml}
+                </div>`;
+            });
+            list.innerHTML = html;
         }
 
         function renderBody(body) {
@@ -371,7 +426,7 @@
             const pct = targetDays > 0 ? (done / targetDays) * 100 : 0;
             
             const html = `<div class="widget" style="padding:20px;">
-                <h2 style="margin-bottom:10px;">Тело</h2>
+                <h2 style="margin-bottom:10px; cursor:pointer;" onclick="showBodyHistory()">Тело</h2>
                 <div style="color:var(--text-secondary); font-size:13px; margin-bottom:12px; font-weight:500; cursor:pointer;" onclick="openBodyModal(${body.weight||0}, ${body.waist||0}, ${body.hips||0}, ${body.chest||0})">Вес: ${body.weight||'--'} кг</div>
                 <div class="streak-grid-30">${gridHtml}</div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
@@ -754,8 +809,26 @@
             const res = await fetch('/api/history');
             const data = await res.json();
             if(data.body && data.body.dates.length > 0) {
-                const rows = data.body.dates.map((d, i) => `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color); font-size:13px;"><span style="color:var(--text-secondary);">${d}</span><span style="font-weight:600;">${data.body.weight[i]} кг</span></div>`).reverse().join('');
-                document.getElementById('body-history').innerHTML = `<h3 style="font-size:13px; margin-bottom:8px; color:var(--text-secondary);">История</h3>${rows}`;
+                const rows = data.body.dates.map((d, i) => {
+                    const w = data.body.weight[i] != null ? `${data.body.weight[i]} кг` : '—';
+                    const wa = data.body.waist[i] != null ? `${data.body.waist[i]}` : '—';
+                    const hi = data.body.hips[i] != null ? `${data.body.hips[i]}` : '—';
+                    const c = data.body.chest[i] != null ? `${data.body.chest[i]}` : '—';
+                    return `<div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-color); font-size:12px; gap:8px;">
+                        <span style="color:var(--text-secondary); min-width:44px;">${d}</span>
+                        <span style="font-weight:600;">${w}</span>
+                        <span style="color:var(--text-secondary);">Т ${wa}</span>
+                        <span style="color:var(--text-secondary);">Б ${hi}</span>
+                        <span style="color:var(--text-secondary);">Г ${c}</span>
+                    </div>`;
+                }).reverse().join('');
+                let historyHtml = `<h3 style="font-size:13px; margin-bottom:8px; color:var(--text-secondary);">История замеров</h3>${rows}`;
+                // История галочек — отмеченные дни
+                const marked = data.body.marked_dates || [];
+                if(marked.length > 0) {
+                    historyHtml += `<h3 style="font-size:13px; margin:14px 0 8px; color:var(--text-secondary);">История галочек (${marked.length})</h3><div style="display:flex; flex-wrap:wrap; gap:6px;">${marked.map(d => `<span style="background:var(--bg-secondary,#f2ede6); border:1px solid var(--border-color); border-radius:20px; padding:4px 10px; font-size:12px;">✓ ${d}</span>`).join('')}</div>`;
+                }
+                document.getElementById('body-history').innerHTML = historyHtml;
             }
         }
         function closeBodyModal() { document.getElementById('body-modal').style.display = 'none'; }
@@ -771,6 +844,37 @@
         function nextBodyMonth() {
             // Просто сохраняем текущие параметры — API создаст новую запись для месяца
             saveBodyMetrics();
+        }
+        async function showBodyHistory() {
+            const res = await fetch('/api/body/history');
+            const data = await res.json();
+            document.getElementById('habit-history-title').innerText = data.title || 'Тело';
+            let html = `<p style="font-size:11px; color:var(--text-secondary); margin-bottom:16px;">${data.total_marks} отметок · ${data.cycles.length} цикл(ов)</p>`;
+            for(const c of data.cycles) {
+                const pct = c.target_days > 0 ? (c.progress/c.target_days)*100 : 0;
+                html += `<details ${c.is_current?'open':''} style="margin-bottom:8px; border:1px solid var(--border-color); border-radius:12px; overflow:hidden;">
+                    <summary style="padding:10px 14px; cursor:pointer; font-size:12px; font-weight:600; background:var(--sidebar-color); display:flex; justify-content:space-between; align-items:center;">
+                        <span>Цикл ${c.cycle_number} ${c.is_current?'· Текущий':''}</span>
+                        <span style="font-size:10px; color:var(--accent-rose);">${c.progress}/${c.target_days}</span>
+                    </summary>
+                    <div style="padding:12px;">
+                        ${c.empty ? '<p style="font-size:11px; color:var(--text-secondary);">Нет отметок</p>' : `
+                        <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:3px; font-size:9px; text-align:center;">
+                            <div style="color:var(--text-secondary);">ПН</div><div style="color:var(--text-secondary);">ВТ</div><div style="color:var(--text-secondary);">СР</div><div style="color:var(--text-secondary);">ЧТ</div><div style="color:var(--text-secondary);">ПТ</div><div style="color:var(--accent-rose);">СБ</div><div style="color:var(--accent-rose);">ВС</div>
+                            ${Array(c.start_weekday).fill('<div></div>').join('')}
+                            ${c.dates.map((d,i) => {
+                                const checked = c.logs.includes(d);
+                                const isToday = d === new Date().toISOString().split('T')[0];
+                                return `<div style="width:100%; aspect-ratio:1; border-radius:3px; display:flex; align-items:center; justify-content:center; font-weight:600;
+                                    ${checked?'background:var(--accent-rose); color:#fff;':'background:var(--sidebar-color); color:var(--text-secondary); opacity:0.6;'}
+                                    ${isToday?'border:1px solid var(--accent-rose);':''}">${new Date(d+'T00:00:00').getDate()}</div>`;
+                            }).join('')}
+                        </div>`}
+                    </div>
+                </details>`;
+            }
+            document.getElementById('habit-history-body').innerHTML = html;
+            document.getElementById('habit-history-modal').style.display = 'flex';
         }
         function prevFullMonth() { curFullMonth--; if(curFullMonth < 0) { curFullMonth = 11; curFullYear--; } renderFullCalendar(); }
         function nextFullMonth() { curFullMonth++; if(curFullMonth > 11) { curFullMonth = 0; curFullYear++; } renderFullCalendar(); }

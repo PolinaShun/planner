@@ -61,20 +61,26 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
         # Проверяем, не закончился ли текущий период
         period_end = body.start_date + datetime.timedelta(days=body.target_days - 1)
         if period_end < today:
-            # Создаём новый период
-            new_body = BodyMetric(
-                date=today,
-                start_date=today,
-                target_days=body.target_days or 30,
-                weight=body.weight,
-                waist=body.waist,
-                hips=body.hips or 89,
-                chest=body.chest,
-                workout_history=[False] * (body.target_days or 30)
-            )
-            db.add(new_body)
-            await db.commit()
-            body = new_body
+            # Проверяем, нет ли уже записи за сегодня (чтобы не дублировать при каждой загрузке)
+            existing_today = await db.execute(select(BodyMetric).filter(BodyMetric.date == today))
+            existing = existing_today.scalars().first()
+            if existing:
+                body = existing
+            else:
+                # Создаём новый период
+                new_body = BodyMetric(
+                    date=today,
+                    start_date=today,
+                    target_days=body.target_days or 30,
+                    weight=body.weight,
+                    waist=body.waist,
+                    hips=body.hips or 89,
+                    chest=body.chest,
+                    workout_history=[False] * (body.target_days or 30)
+                )
+                db.add(new_body)
+                await db.commit()
+                body = new_body
     
     total_res = await db.execute(select(Task).filter(Task.archived == False))
     tasks = total_res.scalars().all()
@@ -233,17 +239,59 @@ async def toggle_workout(date_str: str, db: AsyncSession = Depends(get_db)):
 @router.post("/body/metrics")
 async def update_metrics(weight: float, waist: float, hips: float, chest: float, db: AsyncSession = Depends(get_db)):
     today = datetime.date.today()
+    # Обновляем запись за сегодня, если она есть; иначе создаём новую
     body_res = await db.execute(select(BodyMetric).filter(BodyMetric.date == today))
     body = body_res.scalars().first()
     if not body:
         last_res = await db.execute(select(BodyMetric).order_by(BodyMetric.date.desc()))
         last = last_res.scalars().first()
-        history = last.workout_history if last else [False]*30
-        body = BodyMetric(date=today, workout_history=history)
+        history = list(last.workout_history) if last and last.workout_history else [False] * 30
+        body = BodyMetric(
+            date=today, start_date=last.start_date if last else None,
+            target_days=(last.target_days if last else 30), workout_history=history
+        )
         db.add(body)
     body.weight, body.waist, body.hips, body.chest = weight, waist, hips, chest
     await db.commit()
     return {"status": "ok"}
+
+@router.get("/body/history")
+async def body_history(db: AsyncSession = Depends(get_db)):
+    today = datetime.date.today()
+    result = await db.execute(select(BodyMetric).order_by(BodyMetric.date.asc(), BodyMetric.id.asc()))
+    records = result.scalars().all()
+    # Периоды тела = уникальные start_date. Объединяем галочки из всех записей периода.
+    periods = {}  # start_date -> {start_weekday, dates, logs(set), target_days}
+    for r in records:
+        key = r.start_date or r.date
+        if key not in periods:
+            periods[key] = {
+                "start": key, "target_days": r.target_days or 30,
+                "logs": set(), "dates": [],
+            }
+        h = r.workout_history or []
+        for i, checked in enumerate(h):
+            if checked:
+                periods[key]["logs"].add(key + datetime.timedelta(days=i))
+    cycles = []
+    sorted_keys = sorted(periods.keys(), reverse=True)
+    for idx, key in enumerate(sorted_keys):
+        p = periods[key]
+        target = p["target_days"]
+        dates = [p["start"] + datetime.timedelta(days=i) for i in range(target)]
+        logs = sorted(p["logs"])
+        cycles.append({
+            "cycle_number": len(sorted_keys) - idx,
+            "is_current": idx == 0,
+            "empty": not logs,
+            "dates": [d.isoformat() for d in dates],
+            "logs": [d.isoformat() for d in logs],
+            "progress": len(logs),
+            "start_weekday": p["start"].weekday(),
+            "target_days": target,
+        })
+    total_marks = sum(len(p["logs"]) for p in periods.values())
+    return {"title": "Тело", "cycles": cycles, "total_marks": total_marks}
 
 @router.get("/morning_greeting")
 async def get_morning_greeting(db: AsyncSession = Depends(get_db)):
@@ -294,6 +342,15 @@ async def get_history(db: AsyncSession = Depends(get_db)):
     metrics_res = await db.execute(select(BodyMetric).filter(BodyMetric.date >= start_2026).order_by(BodyMetric.date.asc()))
     metrics = metrics_res.scalars().all()
     today = datetime.date.today()
+    # Собираем все отмеченные галочкой дни из всех периодов тела
+    marked_dates = set()
+    for m in metrics:
+        h = m.workout_history or []
+        if m.start_date and h:
+            for i, checked in enumerate(h):
+                if checked:
+                    marked_dates.add(m.start_date + datetime.timedelta(days=i))
+    marked_dates_sorted = sorted(marked_dates)
     work_history, personal_history, dates = [], [], []
     content_tg, content_reels, content_vk = [], [], []
     heatmap_data = {}
@@ -356,7 +413,15 @@ async def get_history(db: AsyncSession = Depends(get_db)):
             monthly_workout_stats.append({"month": MONTH_NAMES[m_idx], "percent": 0})
 
     return {
-        "body": {"dates": [m.date.strftime("%d.%m.%y") for m in metrics], "weight": [m.weight for m in metrics], "target": [56.0] * len(metrics)},
+        "body": {
+            "dates": [m.date.strftime("%d.%m.%y") for m in metrics],
+            "weight": [m.weight for m in metrics],
+            "waist": [m.waist for m in metrics],
+            "hips": [m.hips for m in metrics],
+            "chest": [m.chest for m in metrics],
+            "target": [56.0] * len(metrics),
+            "marked_dates": [d.strftime("%d.%m.%y") for d in marked_dates_sorted]
+        },
         "tasks": {"dates": dates, "work": work_history, "personal": personal_history},
         "content_history": {"dates": dates, "tg": content_tg, "reels": content_reels, "vk": content_vk},
         "heatmap": heatmap_data,

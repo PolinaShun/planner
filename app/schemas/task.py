@@ -28,6 +28,7 @@ class TaskUpdate(BaseModel):
     start_date: Optional[date] = None
     due_date: Optional[date] = None
     parent_id: Optional[int] = None
+    logs: Optional[List[dict]] = None
 
 class TaskResponse(TaskBase):
     id: int
@@ -37,6 +38,7 @@ class TaskResponse(TaskBase):
     is_recurring: bool
     created_at: date
     subtasks: List['TaskResponse'] = []
+    logs: List[dict] = []
 
     class Config:
         from_attributes = True

@@ -43,26 +43,32 @@ async def get_habits(db: AsyncSession = Depends(get_db)):
 
 @router.get("/dashboard")
 async def get_habits_dashboard(db: AsyncSession = Depends(get_db)):
-    """Возвращает JSON для дашборда: привычки + сетки + сегодня."""
+    """Возвращает JSON для дашборда: привычки + сетки по ТЕКУЩЕМУ КАЛЕНДАРНОМУ МЕСЯЦУ + отметки за месяц."""
     today = date.today()
+    import calendar
+    month_start = date(today.year, today.month, 1)
+    last_day = calendar.monthrange(today.year, today.month)[1]
+    month_days = [month_start + timedelta(days=i) for i in range(last_day)]
+
     result = await db.execute(
         select(Habit).where(Habit.is_active == True, Habit.is_archived == False)
     )
     habits = result.scalars().all()
     out = []
     for h in habits:
-        grid = build_habit_cycle_grid(h, today)
+        # Все отметки этой привычки, попадающие в текущий календарный месяц (из любого цикла)
         logs_res = await db.execute(
             select(HabitLog).where(
                 HabitLog.habit_id == h.id,
-                HabitLog.cycle_number == h.current_cycle
+                HabitLog.date >= month_start
             )
         )
-        marked = {log.date.isoformat() for log in logs_res.scalars().all()}
+        logs = logs_res.scalars().all()
+        marked = {log.date.isoformat() for log in logs}
         out.append({
-            "id": h.id, "title": h.title, "target_days": h.target_days,
+            "id": h.id, "title": h.title, "target_days": last_day,
             "current_cycle": h.current_cycle, "start_date": str(h.start_date) if h.start_date else None,
-            "grid": {"dates": [d.isoformat() for d in grid["dates"]], "start_weekday": grid["start_weekday"]},
+            "grid": {"dates": [d.isoformat() for d in month_days], "start_weekday": month_start.weekday()},
             "marked_dates": list(marked), "progress": len(marked)
         })
     return out

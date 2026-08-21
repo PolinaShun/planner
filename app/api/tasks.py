@@ -21,7 +21,8 @@ def _task_to_dict(t):
         "is_recurring": t.is_recurring, "is_dream": t.is_dream,
         "start_date": _d(t.start_date), "due_date": _d(t.due_date),
         "created_at": _d(t.created_at), "completed_at": _d(t.completed_at),
-        "parent_id": t.parent_id, "subtasks": [], "size": t.size or "normal"
+        "parent_id": t.parent_id, "subtasks": [], "size": t.size or "normal",
+        "logs": t.logs or []
     }
 
 @router.get("/tasks/completed-yesterday")
@@ -146,6 +147,43 @@ async def _sync_parent(db: AsyncSession, parent_id: int):
         if dates:
             parent.due_date = min(dates)
     await db.commit()
+
+@router.post("/tasks/{task_id}/logs")
+async def add_task_log(task_id: int, payload: dict, db: AsyncSession = Depends(get_db)):
+    """Добавить запись в хронику наблюдений задачи."""
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    text = (payload.get("text") or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Empty text")
+    now = datetime.datetime.now()
+    logs = list(task.logs) if task.logs else []
+    next_id = max((l.get("id", 0) for l in logs), default=0) + 1
+    logs.append({
+        "id": next_id,
+        "date": now.strftime("%Y-%m-%d"),
+        "time": now.strftime("%H:%M"),
+        "text": text
+    })
+    task.logs = logs
+    await db.commit()
+    await db.refresh(task)
+    return _task_to_dict(task)
+
+@router.delete("/tasks/{task_id}/logs/{log_id}")
+async def delete_task_log(task_id: int, log_id: int, db: AsyncSession = Depends(get_db)):
+    """Удалить запись из хроники наблюдений задачи."""
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    logs = [l for l in (task.logs or []) if l.get("id") != log_id]
+    task.logs = logs
+    await db.commit()
+    await db.refresh(task)
+    return _task_to_dict(task)
 
 @router.post("/tasks/auto-archive")
 async def auto_archive_tasks(db: AsyncSession = Depends(get_db)):

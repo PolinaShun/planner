@@ -85,11 +85,23 @@ async def get_insights(db: AsyncSession = Depends(get_db)):
     total_res = await db.execute(select(Task).filter(Task.archived == False))
     tasks = total_res.scalars().all()
     done = [t for t in tasks if t.completed]
-    
+
+    # Собираем все отмеченные дни из ВСЕХ записей тела (не только текущего периода)
+    all_metrics_res = await db.execute(select(BodyMetric))
+    all_marks = set()
+    for m in all_metrics_res.scalars().all():
+        h = m.workout_history or []
+        if m.start_date and h:
+            for i, chk in enumerate(h):
+                if chk:
+                    all_marks.add(m.start_date + datetime.timedelta(days=i))
+    body_marked_dates = sorted(d.isoformat() for d in all_marks)
+
     return {
         "clients": clients,
         "counters": counters,
         "body": body,
+        "body_marked_dates": body_marked_dates,
         "content": content,
         "month_name": current_month_name,
         "stats": {
@@ -196,41 +208,43 @@ async def set_counter(counter_id: int, value: int, db: AsyncSession = Depends(ge
 async def toggle_workout(date_str: str, db: AsyncSession = Depends(get_db)):
     toggle_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
     today = datetime.date.today()
-    
+
     if toggle_date > today:
         return {"status": "error", "detail": "Cannot mark future dates"}
-    
-    body_res = await db.execute(select(BodyMetric).order_by(BodyMetric.date.desc()))
+
+    # Берём самую раннюю запись как "основную", чтобы покрывать любые даты
+    body_res = await db.execute(select(BodyMetric).order_by(BodyMetric.start_date.asc(), BodyMetric.date.asc()))
     body = body_res.scalars().first()
-    
+
     if not body:
         return {"status": "error", "detail": "No body tracker found"}
-    
-    # Миграция старых записей
+
     if body.start_date is None:
-        body.start_date = body.date
-        body.target_days = 30
-        history = list(body.workout_history) if body.workout_history else []
-        if len(history) < 30:
-            history.extend([False] * (30 - len(history)))
-        else:
-            history = history[:30]
-        body.workout_history = history
+        body.start_date = body.date or today
+        body.target_days = body.target_days or 30
         await db.commit()
-    
-    # Проверяем, попадает ли дата в текущий период
+
     start = body.start_date
     target = body.target_days or 30
+
+    # Если дата раньше стартовой — откатываем start, чтобы индекс стал >= 0
+    if toggle_date < start:
+        shift = (start - toggle_date).days
+        body.start_date = toggle_date
+        body.workout_history = [False] * shift + list(body.workout_history or [])
+        start = body.start_date
+        await db.commit()
+
     day_index = (toggle_date - start).days
-    
-    if day_index < 0 or day_index >= target:
-        return {"status": "error", "detail": f"Date {date_str} is outside current period ({start} - {start + datetime.timedelta(days=target-1)})"}
-    
-    history = list(body.workout_history) if body.workout_history else [False] * target
+
+    history = list(body.workout_history) if body.workout_history else []
+    # Расширяем историю, если дата выходит за текущий период
     if len(history) <= day_index:
-        # Дополняем если история короче
         history.extend([False] * (day_index - len(history) + 1))
-    
+    # Подрезаем только если это выходит далеко за целевой период (не трогаем короткие)
+    if len(history) > (target + 1) * 2:
+        history = history[:day_index + 1]
+
     history[day_index] = not history[day_index]
     body.workout_history = history
     await db.commit()
@@ -252,6 +266,16 @@ async def update_metrics(weight: float, waist: float, hips: float, chest: float,
         )
         db.add(body)
     body.weight, body.waist, body.hips, body.chest = weight, waist, hips, chest
+    await db.commit()
+    return {"status": "ok"}
+
+@router.delete("/body/metrics/{metric_id}")
+async def delete_metric(metric_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(BodyMetric).filter(BodyMetric.id == metric_id))
+    metric = result.scalar_one_or_none()
+    if not metric:
+        raise HTTPException(status_code=404, detail="Замер не найден")
+    await db.delete(metric)
     await db.commit()
     return {"status": "ok"}
 
@@ -414,6 +438,7 @@ async def get_history(db: AsyncSession = Depends(get_db)):
 
     return {
         "body": {
+            "ids": [m.id for m in metrics],
             "dates": [m.date.strftime("%d.%m.%y") for m in metrics],
             "weight": [m.weight for m in metrics],
             "waist": [m.waist for m in metrics],

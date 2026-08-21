@@ -5,142 +5,196 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Планировщик Полины | Senior Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f5f5f5;
-            --sidebar-color: #096b72;
-            --accent-rose: #f65077;
-            --accent-rose-soft: rgba(246, 80, 119, 0.12);
-            --accent-overdue: #f65077;
-            --accent-overdue-soft: rgba(255, 207, 213, 0.5);
-            --accent-green: #096b72;
-            --text-main: #2c2416;
-            --text-secondary: #8c8070;
-            --card-bg: #ffffff;
-            --border-color: #e8e0d5;
-            --shadow-sm: 0 2px 8px rgba(44, 36, 22, 0.04);
-            --shadow-md: 0 8px 24px rgba(44, 36, 22, 0.06);
-            --input-bg: #ffffff;
+            --bg-color: #060913;
+            --sidebar-color: #0B0F19;
+            --accent-rose: #FF2A85;
+            --accent-rose-soft: rgba(255, 42, 133, 0.14);
+            --accent-cyan: #00F0FF;
+            --accent-cyan-soft: rgba(0, 240, 255, 0.14);
+            --accent-overdue: #FF4B63;
+            --accent-overdue-soft: rgba(255, 75, 99, 0.14);
+            --accent-green: #38EF7D;
+            --accent-purple: #7A78FF;
+            --text-main: #FFFFFF;
+            --text-secondary: #8E9CB2;
+            --card-bg: #151d30;
+            --border-color: rgba(0, 240, 255, 0.22);
+            --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.35);
+            --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.5);
+            --input-bg: #0b101d;
+            --surface-nested: #0b101d;
+            --nested-border: rgba(255, 255, 255, 0.06);
+            --select-bg: #0a0f1c;
+            --input-border: rgba(0, 240, 255, 0.18);
+            --input-focus-bg: rgba(6, 9, 19, 0.95);
+            --overlay-bg: rgba(6, 9, 19, 0.88);
+            --btn-bg: linear-gradient(90deg, #00F0FF, #0DF2F2);
+            --btn-text: #06121a;
+            --btn-glow: 0 0 16px rgba(0, 240, 255, 0.3);
+            --btn-glow-hover: 0 0 28px rgba(0, 240, 255, 0.5);
+            --checkbox-border: rgba(0, 240, 255, 0.35);
+            --checkbox-glow: 0 0 12px rgba(0, 240, 255, 0.25);
+            --checkbox-checked: rgba(255, 42, 133, 0.3);
+            --streak-done: rgba(0, 180, 216, 0.15);
+            --progress-track: var(--sidebar-color);
+            --progress-fill: var(--accent-rose);
+            --date-color: var(--text-secondary);
+            --cal-header-bg: var(--sidebar-color);
+            --cal-header-text: #fff;
+            --cal-header-border: transparent;
+            --cal-cell-empty-bg: var(--surface-nested);
+            --cal-cell-empty-text: var(--text-secondary);
+            --cal-cell-empty-border: transparent;
+            --cal-cell-done-bg: rgba(0, 180, 216, 0.15);
+            --cal-cell-done-text: #0096C7;
+            --cal-cell-done-border: rgba(0, 180, 216, 0.35);
+            --confirm-bg: #151d30;
+            --confirm-border: rgba(0, 180, 216, 0.2);
+            --confirm-cancel-bg: #0b101d;
+            --confirm-cancel-text: #8E9CB2;
+            --confirm-cancel-border: rgba(255, 255, 255, 0.12);
+            --cat-dd-bg: #1E293B;
+            --cat-dd-hover: rgba(255, 255, 255, 0.08);
+            --cat-dd-text: #E2E8F0;
+            --workspace-bg: radial-gradient(ellipse 80% 60% at 70% -10%, rgba(0, 240, 255, 0.08), transparent 60%), radial-gradient(ellipse 60% 50% at 10% 110%, rgba(255, 42, 133, 0.07), transparent 60%), var(--bg-color);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; background: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
         
         /* SIDEBAR */
-        .sidebar { width: 170px; min-width: 170px; background-color: var(--sidebar-color); border-right: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; padding: 28px 8px; z-index: 1000; }
-        .sidebar .brand { padding: 0 10px; margin-bottom: 36px; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 18px; color: rgba(255,255,255,0.9); letter-spacing: -0.3px; }
-        .sidebar .nav-item { width: 100%; padding: 12px 14px; margin-bottom: 4px; cursor: pointer; color: rgba(255,255,255,0.65); transition: 0.25s; font-size: 13px; font-weight: 500; border-radius: 12px; border: 1px solid transparent; letter-spacing: -0.2px; }
-        .sidebar .nav-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
-        .sidebar .nav-item.active { color: #fff; background: var(--accent-rose); font-weight: 600; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 6px 20px rgba(246, 80, 119, 0.25); }
-        .export-btn { margin-top: auto !important; border: 1.5px solid rgba(255,255,255,0.3) !important; color: rgba(255,255,255,0.8) !important; font-weight: 600 !important; text-align: center; }
-        .export-btn:hover { background: rgba(255,255,255,0.1) !important; color: #fff !important; }
+        .sidebar { width: 170px; min-width: 170px; background-color: var(--sidebar-color); border-right: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(16px); display: flex; flex-direction: column; padding: 28px 8px; z-index: 1000; }
+        .sidebar .brand { padding: 0 10px; margin-bottom: 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.3px; background: linear-gradient(90deg, #00F0FF 0%, #FF2A85 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sidebar .nav-item { width: 100%; padding: 12px 14px; margin-bottom: 4px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.25s; font-size: 13px; font-weight: 500; border-radius: 12px; border: 1px solid transparent; letter-spacing: -0.2px; }
+        .sidebar .nav-item:hover { color: #fff; background: rgba(255,255,255,0.06); }
+        .sidebar .nav-item.active { color: #fff; background: rgba(255, 42, 133, 0.16); font-weight: 600; border: 1px solid rgba(255, 42, 133, 0.5); box-shadow: 0 0 16px rgba(255, 42, 133, 0.35); }
+        .export-btn { margin-top: auto !important; border: 1.5px solid rgba(0, 240, 255, 0.35) !important; color: rgba(255,255,255,0.8) !important; font-weight: 600 !important; text-align: center; }
+        .export-btn:hover { background: rgba(0, 240, 255, 0.1) !important; color: #fff !important; box-shadow: 0 0 14px rgba(0, 240, 255, 0.25); }
 
         /* WORKSPACE */
         .main-content-wrapper { flex: 1; height: 100vh; overflow: hidden; position: relative; }
-        .workspace { height: 100vh; padding: 24px 55px; overflow-y: auto; background: var(--bg-color); padding-bottom: 120px; }
+        .workspace { height: 100vh; padding: 24px 55px; overflow-y: auto; padding-bottom: 120px; background: var(--workspace-bg); }
         .view-content { display: none; }
         .active-view { display: flex !important; flex-direction: column; }
         
         /* WIDGETS */
-        .widget { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 28px; position: relative; box-shadow: var(--shadow-sm); transition: 0.25s; }
-        .widget:hover { box-shadow: var(--shadow-md); }
-        .widget h2 { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 22px; text-transform: none; letter-spacing: -0.2px; }
+        .widget { background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(20px); border-radius: 24px; padding: 28px; position: relative; box-shadow: var(--shadow-sm), 0 0 20px rgba(0, 240, 255, 0.07); transition: 0.25s; }
+        .widget:hover { box-shadow: var(--shadow-md), 0 0 26px rgba(0, 240, 255, 0.14); border-color: rgba(0, 240, 255, 0.28); }
+        .widget h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 22px; text-transform: none; letter-spacing: -0.2px; }
 
         /* DASHBOARD LAYOUT */
-        .dashboard-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; align-items: start; }
-        .tasks-col { min-width: 0; }
-        .trackers-area { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
-        .trackers-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-        .trackers-col { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+        .dashboard-grid { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+        .tasks-col { flex: 1 1 500px; min-width: 320px; }
+        .trackers-area { flex: 0 0 660px; width: 660px; min-width: 660px; display: flex; flex-direction: column; gap: 16px; }
+        .trackers-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; align-items: stretch; }
+        .trackers-col { min-width: 0; display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
+        .trackers-col .widget,
+        .trackers-col .course-card { min-height: 270px; padding: 12px 14px; border-radius: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
+        .trackers-col .widget .streak-grid-30,
+        .trackers-col .course-card .streak-grid-30 { flex: 1 1 auto; align-content: start; }
+        .trackers-col .widget h2 { margin-bottom: 0; }
+        .trackers-col .widget .streak-grid-30 + div { margin-top: 0; }
+        .trackers-area #yesterday-done { width: 100%; }
 
         /* SECTION HEADERS */
-        .section-header { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; color: var(--text-main); margin-bottom: 20px; letter-spacing: -0.3px; }
+        .section-header { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 20px; letter-spacing: -0.3px; }
 
         /* COURSE TRACKERS — same as widget */
-        .course-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 22px; border-radius: 24px; box-shadow: var(--shadow-sm); }
-        .course-card h2 { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 14px; }
-        .streak-grid-30 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 10px 0; }
-        .streak-day { aspect-ratio: 1/1; background: #d0e8e8; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
-        .streak-day.done { background: var(--accent-rose); color: #fff; box-shadow: 0 2px 8px rgba(246, 80, 119, 0.3); }
+        .course-card { background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(20px); padding: 22px; border-radius: 24px; box-shadow: var(--shadow-sm), 0 0 20px rgba(0, 240, 255, 0.07); }
+        .course-card h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 14px; }
+        .streak-grid-30 { display: grid; grid-template-columns: repeat(7, 30px); gap: 5px; justify-content: center; margin: 0 auto; }
+        .streak-day { width: 30px; height: 30px; background: var(--surface-nested); border: 1px solid var(--nested-border); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
+        .streak-day.done { background: rgba(0, 180, 216, 0.15); border: 1px solid rgba(0, 180, 216, 0.35); color: #0096C7; font-weight: 700; box-shadow: 0 0 12px rgba(0, 180, 216, 0.25); }
         .streak-day.future { cursor: default; }
 
         /* QUICK INPUT */
-        .input-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 18px; padding: 10px; display: flex; gap: 12px; align-items: center; margin-bottom: 22px; box-shadow: var(--shadow-sm); }
-        .input-box input { flex: 1; background: transparent; border: none; color: var(--text-main); font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none; padding: 8px 12px; }
+        .input-box { background: var(--input-bg); border: 1px solid var(--border-color); backdrop-filter: blur(16px); border-radius: 18px; padding: 10px; display: flex; gap: 12px; align-items: center; margin-bottom: 22px; box-shadow: inset 0 1px 0 rgba(0, 240, 255, 0.05); }
+        .input-box input { flex: 1; background: transparent; border: none; color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; outline: none; padding: 8px 12px; }
         .input-box input::placeholder { color: var(--text-secondary); opacity: 0.6; }
-        .category-select { background: var(--sidebar-color); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 8px 16px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; cursor: pointer; font-weight: 500; }
-        .category-select option { background: var(--sidebar-color); color: #fff; }
-        
+        .category-select { background: var(--select-bg); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 12px; padding: 8px 16px; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; outline: none; cursor: pointer; font-weight: 500; }
+        .category-select option { background: var(--select-bg); color: #fff; }
+
         /* CARDS */
         .task-list { display: flex; flex-direction: column; gap: 8px; }
-        .task-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px 22px; border-radius: 18px; transition: 0.2s; box-shadow: var(--shadow-sm); }
-        .task-card:hover { box-shadow: var(--shadow-md); }
-        .task-card.overdue { border-left: 3px solid var(--accent-overdue); background: var(--accent-overdue-soft); }
-        .task-card.overdue .overdue-badge { font-size: 10px; font-weight: 600; color: var(--accent-overdue); opacity: 0.7; }
-        .checkbox { width: 22px; height: 22px; border: 2px solid var(--border-color); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: var(--accent-rose); transition: 0.2s; }
-        .checkbox.checked { background: var(--accent-rose); border-color: var(--accent-rose); color: #fff; }
+        .task-card { background: var(--surface-nested); border: 1px solid var(--border-color); backdrop-filter: blur(20px); padding: 16px 22px; border-radius: 18px; transition: 0.2s; box-shadow: var(--shadow-sm), 0 0 14px rgba(0, 240, 255, 0.05); }
+        .task-card:hover { box-shadow: var(--shadow-md), 0 0 22px rgba(0, 240, 255, 0.12); border-color: rgba(0, 240, 255, 0.26); }
+        .task-card.overdue { border-left: 3px solid var(--accent-overdue); background: linear-gradient(90deg, rgba(255, 75, 99, 0.1), var(--card-bg)); }
+        .task-card.overdue .overdue-badge { font-size: 10px; font-weight: 600; color: var(--accent-overdue); opacity: 0.85; }
+        .checkbox { width: 22px; height: 22px; border: 2px solid var(--checkbox-border); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: var(--accent-cyan); transition: 0.2s; box-shadow: var(--checkbox-glow); }
+        .checkbox.checked { background: var(--checkbox-checked); border-color: var(--accent-rose); color: #fff; box-shadow: 0 0 16px rgba(255, 42, 133, 0.45); }
         .subtask-list { padding-left: 0; margin-top: 6px; border-top: 1px solid var(--border-color); padding-top: 6px; }
         .subtask-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; font-size: 13px; color: var(--text-secondary); }
         .subtask-row:hover { color: var(--text-main); }
         .subtask-row .spacer { flex: 1; }
         .action-icon { cursor: pointer; opacity: 0.35; transition: 0.2s; font-size: 13px; }
         .action-icon:hover { opacity: 1; transform: scale(1.15); }
-        .task-cat { font-size: 9px; font-weight: 600; padding: 2px 8px; border-radius: 8px; opacity: 0.6; white-space: nowrap; }
+        .task-cat { font-size: 9px; font-weight: 600; padding: 2px 8px; border-radius: 8px; opacity: 0.85; white-space: nowrap; }
 
         /* CALENDAR */
         .full-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; max-width: 1300px; }
-        .full-cal-day { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; height: 130px; padding: 18px; cursor: pointer; transition: 0.2s; position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; box-shadow: var(--shadow-sm); }
-        .full-cal-day:hover { border-color: var(--accent-rose); box-shadow: var(--shadow-md); }
-        .full-cal-day span { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; color: var(--text-secondary); opacity: 0.25; position: absolute; top: 16px; left: 20px; transition: 0.25s; pointer-events: none; }
-        .full-cal-day:hover span { opacity: 0.5; }
-        .full-cal-day.active { background: var(--accent-rose-soft); border-color: var(--accent-rose); }
+        .full-cal-day { background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(20px); border-radius: 20px; height: 130px; padding: 18px; cursor: pointer; transition: 0.2s; position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; box-shadow: var(--shadow-sm), 0 0 14px rgba(0, 240, 255, 0.05); }
+        .full-cal-day:hover { border-color: var(--accent-rose); box-shadow: 0 0 22px rgba(255, 42, 133, 0.35); }
+        .full-cal-day span { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 26px; font-weight: 700; color: var(--text-secondary); opacity: 0.35; position: absolute; top: 16px; left: 20px; transition: 0.25s; pointer-events: none; }
+        .full-cal-day:hover span { opacity: 0.6; }
+        .full-cal-day.active { background: var(--accent-rose-soft); border-color: var(--accent-rose); box-shadow: 0 0 20px rgba(255, 42, 133, 0.25); }
         .full-cal-day.active span { opacity: 1; color: var(--accent-rose); }
-        .full-cal-day.today { border-color: var(--accent-rose); border-width: 2px; }
-        .full-cal-day.today span { opacity: 1; color: var(--accent-rose); }
+        .full-cal-day.today { border-color: var(--accent-cyan); border-width: 2px; box-shadow: 0 0 18px rgba(0, 240, 255, 0.3); }
+        .full-cal-day.today span { opacity: 1; color: var(--accent-cyan); }
         
-        .cal-task-count { position: absolute; bottom: 10px; right: 16px; font-size: 13px; font-weight: 700; color: var(--accent-rose); opacity: 0.85; }
-        .calendar-details { margin-top: 30px; padding: 14px 30px 22px 30px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; max-width: 900px; min-height: 90px; box-shadow: var(--shadow-sm); }
-        .calendar-details h2 { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--text-main); margin-bottom: 16px; }
+        .cal-task-count { position: absolute; bottom: 10px; right: 16px; font-size: 13px; font-weight: 700; color: var(--accent-cyan); opacity: 0.9; }
+        .calendar-details { margin-top: 30px; padding: 14px 30px 22px 30px; background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(20px); border-radius: 24px; max-width: 900px; min-height: 90px; box-shadow: var(--shadow-sm), 0 0 20px rgba(0, 240, 255, 0.07); }
+        .calendar-details h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 16px; }
 
         /* BODY TRACKER GRID */
         .status-grid { display: grid; gap: 6px; }
-        .status-block { aspect-ratio: 1/1; background: #d0e8e8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
-        .status-block.rose { background: var(--accent-rose); color: #fff; box-shadow: 0 2px 10px rgba(246, 80, 119, 0.3); }
+        .status-block { aspect-ratio: 1/1; background: var(--surface-nested); border: 1px solid var(--nested-border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
+        .status-block.rose { background: rgba(0, 180, 216, 0.15); border: 1px solid rgba(0, 180, 216, 0.35); color: #0096C7; font-weight: 700; box-shadow: 0 0 12px rgba(0, 180, 216, 0.25); }
         #focus-ferris-grid { grid-template-columns: repeat(7, 1fr) !important; }
 
         /* MODALS */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(44, 36, 22, 0.85); backdrop-filter: blur(16px); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .modal { background: var(--card-bg); border: 1px solid var(--border-color); padding: 32px; border-radius: 28px; width: 480px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 30px 60px rgba(44, 36, 22, 0.2); }
-        .modal h2 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 6px; color: var(--text-main); }
+        .modal-overlay { position: fixed; inset: 0; background: var(--overlay-bg); backdrop-filter: blur(16px); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal { background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(24px); padding: 32px; border-radius: 24px; width: 480px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 240, 255, 0.1); }
+        .modal h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 6px; color: var(--text-main); }
         
         .modal input[type="text"], 
         .modal textarea, 
-        .modal select { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border-color); 
+        .modal select,
+        .modal input[type="number"] { 
+            background: var(--input-bg); 
+            border: 1px solid var(--input-border); 
             border-radius: 14px; 
             padding: 14px 18px; 
             color: var(--text-main); 
-            font-family: 'DM Sans', sans-serif; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
             font-size: 14px; 
             outline: none; 
             transition: 0.25s; 
         }
         .modal input:focus, .modal textarea:focus, .modal select:focus { 
-            border-color: var(--accent-rose); 
-            background: #fff;
-            box-shadow: 0 0 0 3px var(--accent-rose-soft);
+            border-color: var(--accent-cyan); 
+            background: var(--input-focus-bg);
+            box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12), 0 0 18px rgba(0, 240, 255, 0.25);
         }
         .modal textarea { resize: none; line-height: 1.6; }
-        .modal select { appearance: none; cursor: pointer; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238c8070' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
-        .modal select option { background: #fff; color: var(--text-main); }
+        .modal select { appearance: none; cursor: pointer; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238E9CB2' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+        .modal select option { background: var(--select-bg); color: var(--text-main); }
         
-        .btn-add { background: var(--accent-rose); color: #fff; border: none; padding: 16px; border-radius: 16px; font-family: 'DM Sans', sans-serif; font-weight: 600; cursor: pointer; font-size: 13px; letter-spacing: 0.5px; transition: 0.25s; }
-        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(246, 80, 119, 0.35); }
+        .btn-add { background: var(--btn-bg); color: var(--btn-text); border: none; padding: 16px; border-radius: 14px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; cursor: pointer; font-size: 13px; letter-spacing: 0.5px; transition: 0.25s; box-shadow: var(--btn-glow); }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: var(--btn-glow-hover); }
 
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+        /* TABLET / NARROW DESKTOP — трекеры переносятся под задачи на всю ширину */
+        @media (max-width: 1200px) {
+            .dashboard-grid { flex-direction: column; }
+            .tasks-col { flex: 1 1 auto; width: 100%; min-width: 0; }
+            .trackers-area { flex: 1 1 auto; width: 100%; min-width: 0; }
+            .trackers-row { grid-template-columns: 1fr 1fr; }
+        }
 
         /* MOBILE */
         @media (max-width: 768px) {
@@ -157,6 +211,116 @@
             .widget { padding: 16px !important; }
             .modal { width: 90vw; padding: 24px; }
         }
+
+        /* ===== LIGHT THEME (Light Glassmorphism / Cyber Clean) ===== */
+        body.light {
+            --bg-color: #F1F5F9;
+            --sidebar-color: #0B0F19;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --border-color: rgba(0, 180, 216, 0.2);
+            --input-bg: #FFFFFF;
+            --surface-nested: #FFFFFF;
+            --nested-border: #E2E8F0;
+            --select-bg: #FFFFFF;
+            --input-border: #E2E8F0;
+            --input-focus-bg: #FFFFFF;
+            --overlay-bg: rgba(15, 23, 42, 0.4);
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --accent-rose: #E11D48;
+            --accent-rose-soft: rgba(225, 29, 72, 0.1);
+            --accent-cyan: #00B4D8;
+            --accent-cyan-soft: rgba(0, 180, 216, 0.1);
+            --accent-overdue: #BE123C;
+            --accent-overdue-soft: rgba(190, 18, 60, 0.1);
+            --accent-green: #10B981;
+            --accent-purple: #7C3AED;
+            --checkbox-border: rgba(0, 180, 216, 0.5);
+            --checkbox-glow: 0 4px 14px rgba(0, 180, 216, 0.2);
+            --checkbox-checked: #E11D48;
+            --streak-done: #E11D48;
+            --progress-track: #E2E8F0;
+            --progress-fill: #00B4D8;
+            --date-color: #475569;
+            --cal-header-bg: #F1F5F9;
+            --cal-header-text: #0F172A;
+            --cal-header-border: #E2E8F0;
+            --cal-cell-empty-bg: #F8FAFC;
+            --cal-cell-empty-text: #94A3B8;
+            --cal-cell-empty-border: #E2E8F0;
+            --cal-cell-done-bg: rgba(0, 180, 216, 0.15);
+            --cal-cell-done-text: #0096C7;
+            --cal-cell-done-border: rgba(0, 180, 216, 0.35);
+            --confirm-bg: rgba(255, 255, 255, 0.95);
+            --confirm-border: rgba(0, 180, 216, 0.2);
+            --confirm-cancel-bg: #F1F5F9;
+            --confirm-cancel-text: #475569;
+            --confirm-cancel-border: #E2E8F0;
+            --cat-dd-bg: #FFFFFF;
+            --cat-dd-hover: #F1F5F9;
+            --cat-dd-text: #0F172A;
+            --btn-bg: #00B4D8;
+            --btn-text: #ffffff;
+            --btn-glow: 0 4px 14px rgba(0, 180, 216, 0.35);
+            --btn-glow-hover: 0 6px 20px rgba(0, 180, 216, 0.45);
+            --shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 12px 32px rgba(15, 23, 42, 0.1);
+            --workspace-bg: radial-gradient(ellipse 80% 60% at 70% -10%, rgba(0, 180, 216, 0.06), transparent 60%), radial-gradient(ellipse 60% 50% at 10% 110%, rgba(225, 29, 72, 0.05), transparent 60%), var(--bg-color);
+        }
+        body.light .widget, body.light .course-card, body.light .full-cal-day, body.light .calendar-details {
+            box-shadow: var(--shadow-sm);
+        }
+        body.light .widget:hover, body.light .task-card:hover, body.light .full-cal-day:hover {
+            box-shadow: var(--shadow-md);
+            border-color: rgba(0, 180, 216, 0.35);
+        }
+        body.light .task-card { box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04); }
+        body.light .streak-day.done, body.light .status-block.rose {
+            box-shadow: 0 2px 8px rgba(225, 29, 72, 0.2);
+        }
+        body.light .checkbox.checked { box-shadow: 0 2px 8px rgba(225, 29, 72, 0.2); }
+        body.light .full-cal-day.today { box-shadow: 0 4px 14px rgba(0, 180, 216, 0.3); }
+        body.light .modal { box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15); }
+        body.light .category-select { color: #0F172A; }
+        body.light .category-select option { color: #0F172A; }
+        body.light .streak-day { color: #64748B; }
+        body.light .status-block { color: #64748B; }
+        /* Light calendar cells — teal positive instead of crimson */
+        body.light .streak-day.done,
+        body.light .status-block.rose {
+            background: rgba(0, 180, 216, 0.15);
+            color: #0096C7;
+            font-weight: 700;
+            border: 1px solid rgba(0, 180, 216, 0.35);
+            box-shadow: 0 0 12px rgba(0, 180, 216, 0.2);
+        }
+        body.light .streak-day.done { border-radius: 6px; }
+        body.light .status-block.rose { border-radius: 8px; }
+        /* Light today — teal accent ring */
+        body.light .streak-day.done { border-color: rgba(0, 180, 216, 0.35); }
+        body.light .streak-day.done[style*="outline"] { box-shadow: 0 0 12px rgba(0, 180, 216, 0.2); }
+
+        /* Light sidebar */
+        body.light .sidebar {
+            background-color: #F8FAFC;
+            border-right: 1px solid #E2E8F0;
+        }
+        body.light .sidebar .nav-item { color: #0F172A; }
+        body.light .sidebar .nav-item:hover { color: #0F172A; background: rgba(15, 23, 42, 0.06); }
+        body.light .sidebar .nav-item.active {
+            color: #E11D48;
+            background: rgba(225, 29, 72, 0.1);
+            border: 1px solid rgba(225, 29, 72, 0.35);
+            box-shadow: 0 2px 12px rgba(225, 29, 72, 0.15);
+        }
+        body.light .export-btn { border-color: rgba(0, 180, 216, 0.4) !important; color: #00A8C8 !important; }
+        body.light .export-btn:hover { background: rgba(0, 180, 216, 0.1) !important; color: #0F172A !important; box-shadow: none; }
+
+        /* Task text contrast */
+        body.light .task-card span { font-weight: 500; color: #0F172A; }
+        body.light .task-card .task-cat { font-weight: 600; }
+        body.light .subtask-row span { font-weight: 500; color: #0F172A; }
+        body.light .calendar-details, body.light .modal h2 { color: #0F172A; }
     </style>
 </head>
 <body>
@@ -172,8 +336,11 @@
         <div class="workspace">
             <div id="tasks-view" class="view-content active-view">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
-                    <div><h1 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:34px;letter-spacing:-0.5px;margin:0;">Дашборд</h1></div>
-                    <p id="current-date-display" style="color:var(--text-secondary);font-size:13px;font-weight:500; margin:0; padding-top:8px;">Сегодня — 09.05.2026</p>
+                    <div><h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:32px;letter-spacing:-0.5px;margin:0;color:var(--text-main);">Дашборд</h1></div>
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <p id="current-date-display" style="color:var(--text-secondary);font-size:13px;font-weight:500; margin:0; padding-top:8px;">Сегодня — 09.05.2026</p>
+                        <button id="theme-toggle" onclick="toggleTheme()" style="background:var(--card-bg); border:1px solid var(--border-color); backdrop-filter:blur(16px); border-radius:9999px; width:38px; height:38px; cursor:pointer; font-size:17px; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); color:var(--text-main);">🌙</button>
+                    </div>
                 </div>
 
                 <div class="dashboard-grid">
@@ -192,10 +359,10 @@
                                 <button class="btn-add" style="width:auto; padding:8px 18px;" onclick="openProModal()">+</button>
                             </div>
                             <div style="margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:14px;">
-                                <span style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--accent-rose);" id="today-stats-ratio">0/0</span>
+                                <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:700;color:var(--accent-cyan);" id="today-stats-ratio">0/0</span>
                                 <span style="font-size:11px;color:var(--text-secondary);font-weight:500;">выполнено</span>
-                                <div style="flex:1; height:4px; background:var(--sidebar-color); border-radius:10px; overflow:hidden;">
-                                    <div id="today-stats-bar" style="height:100%; background:var(--accent-rose); width:0%; border-radius:10px;"></div>
+                                <div style="flex:1; height:4px; background:var(--progress-track); border-radius:10px; overflow:hidden;">
+                                    <div id="today-stats-bar" style="height:100%; background:var(--progress-fill); width:0%; border-radius:10px;"></div>
                                 </div>
                             </div>
                             <div id="list-focus-day" class="task-list"></div>
@@ -235,7 +402,7 @@
 
             <div id="full-calendar-view" class="view-content">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                    <h1 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:34px;letter-spacing:-0.5px;">Календарь</h1>
+                    <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:32px;letter-spacing:-0.5px;color:var(--text-main);">Календарь</h1>
                     <div style="display:flex; gap:8px; align-items:center;">
                         <button class="btn-add" style="width:auto; padding:6px 14px;" onclick="prevFullMonth()">‹</button>
                         <span id="full-cal-title" style="font-weight:600; min-width:140px; text-align:center; font-size:14px;"></span>
@@ -249,7 +416,7 @@
                 </div>
             </div>
 
-            <div id="archive-view" class="view-content"><h1 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:34px;letter-spacing:-0.5px;">Архив</h1><input type="text" id="archive-search" placeholder="Поиск..." oninput="searchArchive()" style="margin-bottom:22px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;padding:14px 18px;color:var(--text-main);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;max-width:500px;"><div id="list-archived" class="task-list"></div></div>
+            <div id="archive-view" class="view-content"><h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:32px;letter-spacing:-0.5px;color:var(--text-main);">Архив</h1><input type="text" id="archive-search" placeholder="Поиск..." oninput="searchArchive()" style="margin-bottom:22px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;padding:14px 18px;color:var(--text-main);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none;width:100%;max-width:500px;"><div id="list-archived" class="task-list"></div></div>
         </div>
     </div>
 
@@ -280,11 +447,30 @@
                     <option value="huge">Очень большая</option>
                 </select>
             </div>
+
+            <!-- ХРОНИКА СОСТОЯНИЙ / НАБЛЮДЕНИЯ -->
+            <div id="logs-block" style="border-top:1px solid var(--border-color); padding-top:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div style="font-size:13px; font-weight:600; color:var(--text-main);">Хроника состояний / Наблюдения</div>
+                </div>
+                <div id="logs-empty" style="text-align:left;">
+                    <button id="logs-add-btn" onclick="openLogInput()" style="background:transparent; border:none; color:var(--text-secondary); font-size:13px; font-weight:500; cursor:pointer; padding:4px 0; font-family:'Plus Jakarta Sans',sans-serif;">+ Добавить наблюдение / мысль</button>
+                </div>
+                <div id="logs-list" style="max-height:180px; overflow-y:auto; display:none; flex-direction:column; gap:4px; margin-bottom:10px;"></div>
+                <div id="logs-input-wrap" style="display:none; flex-direction:column; gap:8px;">
+                    <textarea id="logs-input" rows="2" placeholder="Какая мысль / стопор сейчас?" style="padding:10px 14px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main); font-size:13px; font-family:'Plus Jakarta Sans',sans-serif; resize:none;" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); addTaskLog();}"></textarea>
+                    <div style="display:flex; gap:8px; justify-content:flex-end;">
+                        <button onclick="cancelLogInput()" style="background:var(--confirm-cancel-bg); color:var(--confirm-cancel-text); border:1px solid var(--confirm-cancel-border); border-radius:8px; padding:6px 14px; font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Отмена</button>
+                        <button onclick="addTaskLog()" style="background:#00B4D8; color:#fff; border:none; border-radius:8px; padding:6px 16px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Зафиксировать</button>
+                    </div>
+                </div>
+            </div>
+
             <button class="btn-add" onclick="saveTask()">Сохранить</button>
         </div>
     </div>
 
-    <div id="custom-calendar" style="position:fixed; display:none; width:270px; background:var(--card-bg); border:1px solid var(--border-color); border-radius:20px; padding:18px; z-index:3000; box-shadow:0 20px 40px rgba(44,36,22,0.15);">
+    <div id="custom-calendar" style="position:fixed; display:none; width:270px; background:var(--card-bg); border:1px solid var(--border-color); backdrop-filter:blur(16px); border-radius:20px; padding:18px; z-index:3000; box-shadow:0 20px 40px rgba(0,0,0,0.5), 0 0 24px rgba(0,240,255,0.08);">
         <div class="cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-weight:600; color:var(--text-main);">
             <span onclick="prevMonth()" style="cursor:pointer;">‹</span>
             <span id="cal-month-year"></span>
@@ -322,8 +508,46 @@
                 <div><label style="font-size:11px; color:var(--text-secondary);">Грудь (см)</label><input type="number" id="body-chest" step="0.1" style="width:100%;"></div>
             </div>
             <button class="btn-add" onclick="saveBodyMetrics()">Сохранить</button>
-            <button class="btn-add" style="background:var(--sidebar-color); color:var(--text-main); margin-top:4px;" onclick="nextBodyMonth()">+ Новый месяц</button>
+            <button class="btn-add" style="background:linear-gradient(90deg,#7A78FF,#00F0FF); color:var(--btn-text); margin-top:4px; box-shadow:0 0 15px rgba(122,120,255,0.25);" onclick="nextBodyMonth()">+ Новый месяц</button>
             <div id="body-history" style="margin-top:12px;"></div>
+        </div>
+    </div>
+
+    <!-- CONFIRM MODAL (замена window.confirm) -->
+    <div id="confirm-modal" class="modal-overlay" style="z-index:4000; background:var(--overlay-bg);" onclick="if(event.target===this) closeConfirmModal()">
+        <div style="background:var(--confirm-bg); border:1px solid var(--confirm-border); border-radius:20px; padding:24px; width:320px; display:flex; flex-direction:column; gap:18px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+            <div style="font-size:16px; font-weight:600; color:var(--text-main);">Удалить этот замер?</div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button onclick="closeConfirmModal()" style="background:var(--confirm-cancel-bg); color:var(--confirm-cancel-text); border:1px solid var(--confirm-cancel-border); border-radius:10px; padding:8px 16px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Отмена</button>
+                <button id="confirm-delete-btn" onclick="confirmDeleteBodyMetric()" style="background:#E11D48; color:#fff; border:none; border-radius:10px; padding:8px 16px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 4px 14px rgba(225,29,72,0.3);">Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW TRACKER MODAL (замена window.prompt) -->
+    <div id="tracker-modal" class="modal-overlay" style="z-index:4000; background:var(--overlay-bg);" onclick="if(event.target===this) closeTrackerModal()">
+        <div style="background:var(--confirm-bg); border:1px solid rgba(0,180,216,0.25); border-radius:20px; padding:24px; width:360px; display:flex; flex-direction:column; gap:16px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-size:18px; font-weight:600; color:var(--text-main);">Новый трекер</div>
+                <span onclick="closeTrackerModal()" style="cursor:pointer; color:var(--text-secondary); font-size:20px; line-height:1;" title="Закрыть">×</span>
+            </div>
+            <input id="tracker-name-input" type="text" placeholder="Например: Чтение, Спорт, Медитация..." style="padding:12px 16px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC; width:100%; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button onclick="closeTrackerModal()" style="background:var(--confirm-cancel-bg); color:var(--confirm-cancel-text); border:1px solid var(--confirm-cancel-border); border-radius:10px; padding:10px 20px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Отмена</button>
+                <button onclick="createTracker()" style="background:#00B4D8; color:#fff; border:none; border-radius:10px; padding:10px 20px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 4px 14px rgba(0,180,216,0.35);">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRACKER DELETE CONFIRM MODAL (замена window.confirm при удалении трекера) -->
+    <div id="tracker-del-modal" class="modal-overlay" style="z-index:4000; background:var(--overlay-bg);" onclick="if(event.target===this) closeTrackerDelModal()">
+        <div style="background:#FFFFFF; width:320px; border-radius:16px; padding:20px; text-align:center; display:flex; flex-direction:column; box-shadow:0 15px 30px rgba(0,0,0,0.15);">
+            <div id="tracker-del-title" style="font-size:15px; font-weight:600; color:#1E293B; margin-bottom:8px;">Удалить трекер?</div>
+            <div style="font-size:12px; color:#94A3B8; margin-bottom:20px;">Все отметки за месяц будут удалены</div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="closeTrackerDelModal()" style="flex:1; padding:10px; border-radius:10px; background:#F1F5F9; color:#475569; border:none; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Отмена</button>
+                <button id="tracker-del-confirm" onclick="confirmDeleteTracker()" style="flex:1; padding:10px; border-radius:10px; background:#E11D48; color:#FFFFFF; border:none; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Удалить</button>
+            </div>
         </div>
     </div>
 
@@ -332,6 +556,30 @@
         let curFullMonth = new Date().getMonth(), curFullYear = new Date().getFullYear();
         let curCalMonth = new Date().getMonth(), curCalYear = new Date().getFullYear();
 
+        // ===== Theme toggle =====
+        function applyTheme(theme) {
+            document.body.classList.toggle('light', theme === 'light');
+            document.getElementById('theme-toggle').textContent = theme === 'light' ? '☀️' : '🌙';
+            try { localStorage.setItem('planner_theme', theme); } catch(e) {}
+        }
+        function toggleTheme() {
+            const isLight = document.body.classList.contains('light');
+            applyTheme(isLight ? 'dark' : 'light');
+        }
+        function themeCatColor(t) {
+            const light = document.body.classList.contains('light');
+            if (light) {
+                return t.is_dream ? '#E11D48' : t.is_personal ? '#7C3AED' : t.priority === 'p3' ? '#64748B' : '#00B4D8';
+            }
+            return t.is_dream ? '#FF2A85' : t.is_personal ? '#7A78FF' : t.priority === 'p3' ? '#8E9CB2' : '#00F0FF';
+        }
+        // restore saved theme
+        (function initTheme() {
+            let saved = 'dark';
+            try { saved = localStorage.getItem('planner_theme') || 'dark'; } catch(e) {}
+            applyTheme(saved);
+        })();
+
         async function loadAll() {
             const [tRes, hRes, insRes, yRes] = await Promise.all([fetch('/api/tasks'), fetch('/api/habits/dashboard'), fetch('/api/insights'), fetch('/api/tasks/completed-yesterday')]);
             if(tRes.ok) { allTasks = await tRes.json(); renderTasks(); }
@@ -339,7 +587,7 @@
             if(yRes.ok) { renderYesterdayDone(await yRes.json()); }
             if(insRes.ok) { 
                 const ins = await insRes.json();
-                if(ins.body) renderBody(ins.body);
+                if(ins.body) renderBody(ins.body, ins.body_marked_dates || []);
             }
         }
 
@@ -362,7 +610,7 @@
                 if(!byParent[key]) byParent[key] = [];
                 byParent[key].push(t);
             });
-            const catOf = t => t.is_dream ? '#f65077' : t.is_personal ? '#8a9ec4' : t.priority === 'p3' ? '#c4b28a' : '#096b72';
+            const catOf = t => themeCatColor(t);
             const row = (t, dot) => `<div class="task-card" style="padding:11px 16px; display:flex; align-items:center; gap:10px;">
                 <span style="width:8px; height:8px; border-radius:50%; background:${catOf(t)}; flex-shrink:0;"></span>
                 <span style="font-size:13px; color:var(--text-main);">${t.name}</span>
@@ -386,7 +634,7 @@
             list.innerHTML = html;
         }
 
-        function renderBody(body) {
+        function renderBody(body, bodyMarkedDates = []) {
             // Форматирование даты без timezone-сдвигов
             function fmtDate(d) {
                 const y = d.getFullYear();
@@ -394,46 +642,64 @@
                 const day = String(d.getDate()).padStart(2, '0');
                 return `${y}-${m}-${day}`;
             }
-            
-            const startDate = body.start_date || fmtDate(new Date());
-            const targetDays = body.target_days || 30;
-            const history = body.workout_history || [];
+
             const today = new Date();
             const todayStr = fmtDate(today);
-            
-            // Парсим start_date без timezone
-            const parts = startDate.split('-').map(Number);
-            const start = new Date(parts[0], parts[1] - 1, parts[2]);
-            const startWeekday = start.getDay() === 0 ? 6 : start.getDay() - 1;
-            
+
+            // Текущий календарный месяц
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0).getDate();
+
+            // Отмеченные даты из всех периодов тела (ISO: YYYY-MM-DD)
+            const markedDates = new Set(bodyMarkedDates);
+
+            // Сетка календарного месяца: плейсхолдеры до 1-го (ПН=0 … ВС=6)
+            const startWeekday = (firstDay.getDay() + 6) % 7;
             let gridHtml = '';
             for(let i=0; i<startWeekday; i++) gridHtml += '<div></div>';
-            for(let i=0; i<targetDays; i++) {
-                const d = new Date(start);
-                d.setDate(d.getDate() + i);
+            let done = 0;
+            for(let day=1; day<=lastDay; day++) {
+                const d = new Date(year, month, day);
                 const dateStr = fmtDate(d);
-                const checked = history[i] === true;
+                const checked = markedDates.has(dateStr);
+                if(checked) done++;
                 const isToday = dateStr === todayStr;
                 const isFuture = dateStr > todayStr;
-                const dayNum = d.getDate();
                 const cls = isFuture ? 'streak-day future' : (checked ? 'streak-day done' : 'streak-day');
                 const clickHandler = isFuture ? '' : `onclick="event.stopPropagation(); toggleWorkout('${dateStr}')"`;
-                const todayStyle = isToday ? 'outline:2px solid #2c2416;outline-offset:-2px;' : '';
-                gridHtml += `<div class="${cls}" style="${todayStyle}" ${clickHandler}>${dayNum}</div>`;
+                const todayStyle = isToday ? 'outline:2px solid var(--accent-cyan);outline-offset:-2px;' : '';
+                gridHtml += `<div class="${cls}" style="${todayStyle}" ${clickHandler}>${day}</div>`;
             }
-            
-            const done = history.filter(Boolean).length;
-            const pct = targetDays > 0 ? (done / targetDays) * 100 : 0;
-            
-            const html = `<div class="widget" style="padding:20px;">
-                <h2 style="margin-bottom:10px; cursor:pointer;" onclick="showBodyHistory()">Тело</h2>
-                <div style="color:var(--text-secondary); font-size:13px; margin-bottom:12px; font-weight:500; cursor:pointer;" onclick="openBodyModal(${body.weight||0}, ${body.waist||0}, ${body.hips||0}, ${body.chest||0})">Вес: ${body.weight||'--'} кг</div>
-                <div class="streak-grid-30">${gridHtml}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                    <div style="flex:1; height:3px; background:var(--sidebar-color); border-radius:10px; overflow:hidden; margin-right:8px;">
-                        <div style="height:100%; background:var(--accent-rose); width:${pct}%; border-radius:10px;"></div>
+            // Дозаполняем до полной недельной сетки
+            const remainder = (startWeekday + lastDay) % 7;
+            if(remainder !== 0) for(let i=0; i<7-remainder; i++) gridHtml += '<div></div>';
+
+            const pct = lastDay > 0 ? (done / lastDay) * 100 : 0;
+
+            // Бережное напоминание: пропущены вчера и позавчера (2 дня подряд без отметок)
+            const dPrev = new Date(year, month, today.getDate() - 1);
+            const dPrev2 = new Date(year, month, today.getDate() - 2);
+            const prevStr = fmtDate(dPrev);
+            const prev2Str = fmtDate(dPrev2);
+            const missed2 = !markedDates.has(prevStr) && !markedDates.has(prev2Str);
+            const remindHtml = missed2
+                ? `<div style="background:#E0F2FE; color:#0369A1; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:500; margin-bottom:8px;">☀ 2 дня паузы — может, 5 минут разминки?</div>`
+                : '';
+
+            const html = `<div class="widget" style="display:flex; flex-direction:column;">
+                <div style="height:36px; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                    <h2 style="margin:0; cursor:pointer;" onclick="showBodyHistory()">Тело</h2>
+                    <span style="cursor:pointer; background:var(--cal-header-bg); border:1px solid var(--cal-header-border); border-radius:10px; padding:4px 12px; font-size:12px; font-weight:600; color:var(--text-main);" onclick="openBodyModal(${body.weight||0}, ${body.waist||0}, ${body.hips||0}, ${body.chest||0})">Вес: ${body.weight||'--'} кг</span>
+                </div>
+                ${remindHtml}
+                <div class="streak-grid-30" style="flex:1 1 auto; align-content:start;">${gridHtml}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:8px; width:100%;">
+                    <div style="flex:1; height:3px; background:var(--progress-track); border-radius:10px; overflow:hidden; margin-right:8px;">
+                        <div style="height:100%; background:var(--progress-fill); width:${pct}%; border-radius:10px;"></div>
                     </div>
-                    <span style="font-size:10px; color:var(--accent-rose); font-weight:600;">${done}/${targetDays}</span>
+                    <span style="font-size:10px; color:var(--accent-rose); font-weight:600;">${done}/${lastDay}</span>
                 </div>
             </div>`;
             const col1 = document.getElementById('trackers-col-1');
@@ -466,18 +732,18 @@
                     const checked = h.marked_dates.includes(dates[i]);
                     const isToday = dates[i] === new Date().toISOString().split('T')[0];
                     const dayNum = new Date(dates[i] + 'T00:00:00').getDate();
-                    daysHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday ? 'outline:2px solid #2c2416;outline-offset:-2px;position:relative;' : ''}${checked && isToday ? 'border:2px solid #fff;box-shadow:0 0 0 2px var(--accent-rose),0 2px 10px rgba(246,80,119,0.4);' : ''}" onclick="toggleHabit(${h.id}, '${dates[i]}')">${dayNum}</div>`;
+                    daysHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday ? 'outline:2px solid var(--accent-cyan);outline-offset:-2px;position:relative;' : ''}${checked && isToday ? 'border:2px solid #fff;box-shadow:0 0 0 2px var(--accent-rose),0 0 10px rgba(255,42,133,0.4);' : ''}" onclick="toggleHabit(${h.id}, '${dates[i]}')">${dayNum}</div>`;
                 }
                 const pct = dates.length > 0 ? (h.progress/dates.length)*100 : 0;
-                return `<div class="widget" style="padding:20px; position:relative;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h2 style="margin-bottom:12px; cursor:pointer;" onclick="showHabitHistory(${h.id})">${h.title}</h2>
-                        <span class="action-icon" title="Удалить трекер" style="color:var(--accent-overdue); opacity:0.4;" onclick="deleteTracker(${h.id})">✕</span>
+                return `<div class="widget" style="position:relative; display:flex; flex-direction:column;">
+                    <div style="height:36px; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                        <h2 style="margin:0; cursor:pointer;" onclick="showHabitHistory(${h.id})">${h.title}</h2>
+                        <span class="action-icon" title="Удалить трекер" style="color:var(--accent-overdue); opacity:0.4;" onclick="deleteTracker(${h.id}, ${JSON.stringify(h.title).replace(/"/g,'&quot;')})">✕</span>
                     </div>
-                    <div class="streak-grid-30">${daysHtml}</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                        <div style="flex:1; height:3px; background:var(--sidebar-color); border-radius:10px; overflow:hidden; margin-right:8px;">
-                            <div style="height:100%; background:var(--accent-rose); width:${pct}%; border-radius:10px;"></div>
+                    <div class="streak-grid-30" style="flex:1 1 auto; align-content:start;">${daysHtml}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:8px; width:100%;">
+                        <div style="flex:1; height:3px; background:var(--progress-track); border-radius:10px; overflow:hidden; margin-right:8px;">
+                            <div style="height:100%; background:var(--progress-fill); width:${pct}%; border-radius:10px;"></div>
                         </div>
                         <span style="font-size:10px; color:var(--accent-rose); font-weight:600;">${h.progress}/${dates.length}</span>
                     </div>
@@ -512,7 +778,7 @@
                 }
             } else if(t.start_date) {
                 const dateLabel = t.start_date.split('-').reverse().slice(0,2).join('.');
-                dateHtml = `<div style="font-size:10px; font-weight:500; color:var(--text-secondary); margin-top:3px; letter-spacing:0.3px;">${dateLabel}</div>`;
+                dateHtml = `<div style="font-size:10px; font-weight:600; color:var(--date-color); margin-top:3px; letter-spacing:0.3px;">${dateLabel}</div>`;
             }
 
             const hasChildren = t.subtasks && t.subtasks.length > 0;
@@ -527,11 +793,16 @@
             `).join('')}</div>` : '';
             const overdueClass = isOverdue ? ' overdue' : '';
             const catLabel = t.is_dream ? 'Мечты' : t.is_personal ? 'Личное' : t.priority === 'p3' ? 'Когда-нибудь' : 'Работа';
-            const catColor = t.is_dream ? '#f65077' : t.is_personal ? '#8a9ec4' : t.priority === 'p3' ? '#c4b28a' : '#096b72';
+            const catColor = themeCatColor(t);
+
+            // Система приоритетов: huge=Высокий, big=Средний, normal=Обычный (полоса слева)
+            let priColor = '#00B4D8', priLabel = 'Обычный';
+            if(t.size === 'huge') { priColor = '#E11D48'; priLabel = 'Высокий'; }
+            else if(t.size === 'big') { priColor = '#F59E0B'; priLabel = 'Средний'; }
             
             return `
                 <div class="task-container">
-                    <div class="task-card ${isSub?'subtask-card':''}${overdueClass}" data-id="${t.id}" style="${hasChildren?'border-left: 3px solid var(--accent-rose);':''} cursor:pointer;" onclick="startEdit(${t.id})">
+                    <div class="task-card ${isSub?'subtask-card':''}${overdueClass}" data-id="${t.id}" style="border-left: 3px solid ${priColor}; cursor:pointer;" title="Приоритет: ${priLabel}" onclick="startEdit(${t.id})">
                         <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
                             <div style="display:flex; align-items:center; gap:12px">
                                 <div class="checkbox ${t.completed?'checked':''}" onclick="event.stopPropagation(); completeTask(${t.id})">${t.completed?'✓':''}</div>
@@ -544,8 +815,7 @@
                             </div>
                             <div style="display:flex; gap:10px; align-items:center;">
                                 ${t.due_date ? `<span style="font-size:10px; font-weight:600; color:var(--accent-overdue); opacity:0.7;">${t.due_date.split('-').reverse().slice(0,2).join('.')}</span>` : ''}
-                                <span class="task-cat" style="color:${catColor}; background:${catColor}15;">${catLabel}</span>
-                                ${t.size==='big'?'<span style="font-size:14px;">●</span>':''}${t.size==='huge'?'<span style="font-size:16px;">⬟</span>':''}
+                                <span class="task-cat" style="color:${catColor}; background:${catColor}15; cursor:pointer;" onclick="event.stopPropagation(); openCatDropdown(${t.id}, event);">${catLabel} ▾</span>
                                 ${!isSub && !isInFocus ?`<span class="action-icon" title="В фокус дня" onclick="event.stopPropagation(); moveToFocus(${t.id})">⊙</span>`:''}
                                 ${!isSub?`<span class="action-icon" title="Подзадача" onclick="event.stopPropagation(); openProModal(${t.id})">+</span>`:''}
                                 <span class="action-icon" title="Удалить" style="color:var(--accent-overdue);" onclick="event.stopPropagation(); deleteTaskPermanently(${t.id})">✕</span>
@@ -562,6 +832,50 @@
                 loadAll();
             }
         }
+
+        // Quick dropdown смены категории
+        function openCatDropdown(taskId, ev) {
+            ev.preventDefault();
+            closeCatDropdown();
+            const badge = ev.currentTarget;
+            const rect = badge.getBoundingClientRect();
+            const cats = [
+                {key:'work', label:'Работа'},
+                {key:'personal', label:'Личное'},
+                {key:'someday', label:'Когда-нибудь'},
+                {key:'dream', label:'Мечты'}
+            ];
+            const dd = document.createElement('div');
+            dd.id = 'cat-dropdown';
+            dd.style.cssText = `position:fixed; top:${rect.bottom + 6}px; left:${rect.left}px; background:var(--cat-dd-bg); border:1px solid #E2E8F0; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.12); padding:6px; z-index:50; min-width:150px;`;
+            cats.forEach(c => {
+                const item = document.createElement('div');
+                item.textContent = c.label;
+                item.style.cssText = 'padding:8px 12px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; transition:0.15s; color:var(--cat-dd-text);';
+                item.onmouseover = () => item.style.background = 'var(--cat-dd-hover)';
+                item.onmouseout = () => item.style.background = 'transparent';
+                item.onclick = (e) => { e.stopPropagation(); closeCatDropdown(); setTaskCategory(taskId, c.key); };
+                dd.appendChild(item);
+            });
+            document.body.appendChild(dd);
+        }
+        function closeCatDropdown() {
+            const dd = document.getElementById('cat-dropdown');
+            if(dd) dd.remove();
+        }
+        async function setTaskCategory(id, catKey) {
+            const payload = {
+                is_personal: catKey === 'personal',
+                is_dream: catKey === 'dream',
+                priority: catKey === 'someday' ? 'p3' : 'p1'
+            };
+            await fetch(`/api/tasks/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+            loadAll();
+        }
+        // Клик вне меню — закрыть
+        document.addEventListener('click', (e) => {
+            if(e.target && e.target.closest && !e.target.closest('#cat-dropdown')) closeCatDropdown();
+        });
 
         function renderTasks() {
             const listFocus = document.getElementById('list-focus-day');
@@ -621,7 +935,7 @@
             const renderTrackerCard = (s) => {
                 const target = s.name.toLowerCase().includes('фрейд') ? 35 : 30;
                 let days = ''; for(let i=1; i<=target; i++) days += `<div class="streak-day ${i<=s.value?'done':''}" onclick="toggleCounter(${s.id}, ${i})">${i}</div>`;
-                return `<div class="widget" style="padding:20px; position:relative;"><div style="display:flex; justify-content:space-between; align-items:center;"><h2 style="margin-bottom:12px;">${s.name}</h2><span class="action-icon" title="Удалить трекер" style="color:var(--accent-overdue); opacity:0.4;" onclick="deleteTracker(${s.id})">✕</span></div><div class="streak-grid-30">${days}</div><div style="width:100%; height:3px; background:var(--sidebar-color); border-radius:10px; overflow:hidden; margin-top:8px;"><div style="height:100%; background:var(--accent-rose); width:${(s.value/target)*100}%; border-radius:10px;"></div></div></div>`;
+                return `<div class="widget" style="padding:20px; position:relative;"><div style="display:flex; justify-content:space-between; align-items:center;"><h2 style="margin-bottom:12px;">${s.name}</h2><span class="action-icon" title="Удалить трекер" style="color:var(--accent-overdue); opacity:0.4;" onclick="deleteTracker(${s.id})">✕</span></div><div class="streak-grid-30">${days}</div><div style="width:100%; height:3px; background:var(--progress-track); border-radius:10px; overflow:hidden; margin-top:8px;"><div style="height:100%; background:var(--progress-fill); width:${(s.value/target)*100}%; border-radius:10px;"></div></div></div>`;
             };
             
             const col1 = document.getElementById('trackers-col-1');
@@ -655,7 +969,7 @@
                         const checked = history[i] === true;
                         const isToday = dateStr === todayStr;
                         const dayNum = d.getDate();
-                        gridHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday?'outline:2px solid #2c2416;outline-offset:-2px;':''}" onclick="toggleWorkout('${dateStr}')">${dayNum}</div>`;
+                        gridHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday?'outline:2px solid var(--accent-cyan);outline-offset:-2px;':''}" onclick="toggleWorkout('${dateStr}')">${dayNum}</div>`;
                     }
                     
                     col1.innerHTML += `<div class="widget" style="padding:20px; cursor:pointer;" onclick="openBodyModal(${b.weight||0}, ${b.waist||0}, ${b.hips||0}, ${b.chest||0})"><h2 style="margin-bottom:10px;">Тело</h2><div style="color:var(--text-secondary); font-size:13px; margin-bottom:12px; font-weight:500;">Вес: ${b.weight||'--'} кг · Талия: ${b.waist||'--'} см</div><div class="streak-grid-30">${gridHtml}</div></div>`;
@@ -741,21 +1055,84 @@
         }
         async function archiveTask(id) { await fetch(`/api/tasks/${id}/archive`, {method:'POST'}); loadAll(); }
         async function toggleWorkout(dateStr) { await fetch(`/api/body/workout?date_str=${dateStr}`, {method:'POST'}); loadAll(); }
+        async function deleteBodyMetric(id) {
+            // Открываем кастомную модалку подтверждения вместо window.confirm
+            pendingDeleteId = id;
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+        let pendingDeleteId = null;
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').style.display = 'none';
+            pendingDeleteId = null;
+        }
+        async function confirmDeleteBodyMetric() {
+            const id = pendingDeleteId;
+            if(id == null) { closeConfirmModal(); return; }
+            const ok = await fetch(`/api/body/metrics/${id}`, {method:'DELETE'});
+            closeConfirmModal();
+            if(!ok.ok) { alert('Не удалось удалить замер'); return; }
+            // Удаляем строку из DOM — модалку не закрываем
+            const row = document.querySelector(`[data-row-id="${id}"]`);
+            if(row) row.remove();
+            // Асинхронно обновляем дашборд (вес карточки «Тело») без перезагрузки страницы
+            loadAll();
+        }
+        async function untoggleBodyMark(d) {
+            // d в формате dd.mm.yy → ISO
+            const [dd, mm, yy] = d.split('.');
+            const iso = `20${yy}-${mm}-${dd}`;
+            await fetch(`/api/body/workout?date_str=${iso}`, {method:'POST'});
+            loadAll();
+        }
         async function toggleCounter(id, v) { await fetch(`/api/counter/${id}/set?value=${v}`, {method:'POST'}); loadAll(); }
-        async function addTracker() {
-            const name = prompt('Название трекера:');
-            if(!name) return;
-            const target = parseInt(prompt('Количество дней (по умолчанию 30):', '30')) || 30;
-            const dateStr = prompt('Дата начала (ГГГГ-ММ-ДД, по умолчанию сегодня):', new Date().toISOString().split('T')[0]);
-            const startDate = dateStr && dateStr.trim() ? dateStr : undefined;
+        function addTracker() {
+            // Открываем кастомную модалку вместо window.prompt
+            const modal = document.getElementById('tracker-modal');
+            modal.style.display = 'flex';
+            const input = document.getElementById('tracker-name-input');
+            input.value = '';
+            setTimeout(() => input.focus(), 0);
+        }
+        function closeTrackerModal() {
+            document.getElementById('tracker-modal').style.display = 'none';
+        }
+        async function createTracker() {
+            const name = document.getElementById('tracker-name-input').value.trim();
+            if(!name) { document.getElementById('tracker-name-input').focus(); return; }
+            closeTrackerModal();
             await fetch('/api/habits/create', {
                 method:'POST', headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({title: name, target_days: target, start_date: startDate})
+                body:JSON.stringify({title: name, target_days: 30, start_date: undefined})
             });
             loadAll();
         }
-        async function deleteTracker(id) {
-            if(!confirm('Удалить трекер?')) return;
+        // Enter создаёт, Esc закрывает
+        document.addEventListener('keydown', (e) => {
+            const trackerModal = document.getElementById('tracker-modal');
+            if(trackerModal && trackerModal.style.display === 'flex') {
+                if(e.key === 'Enter') { e.preventDefault(); createTracker(); }
+                else if(e.key === 'Escape') closeTrackerModal();
+            }
+            const tDelModal = document.getElementById('tracker-del-modal');
+            if(tDelModal && tDelModal.style.display === 'flex') {
+                if(e.key === 'Escape') closeTrackerDelModal();
+            }
+        });
+        let pendingTrackerDeleteId = null;
+        function deleteTracker(id, name) {
+            // Открываем кастомную модалку подтверждения вместо window.confirm
+            pendingTrackerDeleteId = id;
+            document.getElementById('tracker-del-title').innerText = `Удалить трекер «${name || ''}»?`;
+            document.getElementById('tracker-del-modal').style.display = 'flex';
+        }
+        function closeTrackerDelModal() {
+            document.getElementById('tracker-del-modal').style.display = 'none';
+            pendingTrackerDeleteId = null;
+        }
+        async function confirmDeleteTracker() {
+            const id = pendingTrackerDeleteId;
+            if(id == null) { closeTrackerDelModal(); return; }
+            closeTrackerDelModal();
             await fetch(`/api/habits/${id}`, {method:'DELETE'});
             loadAll();
         }
@@ -766,22 +1143,20 @@
             let html = `<p style="font-size:11px; color:var(--text-secondary); margin-bottom:16px;">${data.total_marks} отметок · ${data.cycles.length} цикл(ов)</p>`;
             for(const c of data.cycles) {
                 const pct = c.target_days > 0 ? (c.progress/c.target_days)*100 : 0;
-                html += `<details ${c.is_current?'open':''} style="margin-bottom:8px; border:1px solid var(--border-color); border-radius:12px; overflow:hidden;">
-                    <summary style="padding:10px 14px; cursor:pointer; font-size:12px; font-weight:600; background:var(--sidebar-color); display:flex; justify-content:space-between; align-items:center;">
+                html += `<details ${c.is_current?'open':''} style="margin-bottom:8px; border:1px solid var(--cal-header-border); border-radius:12px; overflow:hidden; background:var(--card-bg);">
+                    <summary style="padding:10px 14px; cursor:pointer; font-size:12px; font-weight:600; background:var(--cal-header-bg); color:var(--cal-header-text); border-bottom:1px solid var(--cal-header-border); display:flex; justify-content:space-between; align-items:center;">
                         <span>Цикл ${c.cycle_number} ${c.is_current?'· Текущий':''}</span>
-                        <span style="font-size:10px; color:var(--accent-rose);">${c.progress}/${c.target_days}</span>
+                        <span style="font-size:10px; color:var(--cal-header-text); opacity:0.7;">${c.progress}/${c.target_days}</span>
                     </summary>
                     <div style="padding:12px;">
                         ${c.empty ? '<p style="font-size:11px; color:var(--text-secondary);">Нет отметок</p>' : `
                         <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:3px; font-size:9px; text-align:center;">
-                            <div style="color:var(--text-secondary);">ПН</div><div style="color:var(--text-secondary);">ВТ</div><div style="color:var(--text-secondary);">СР</div><div style="color:var(--text-secondary);">ЧТ</div><div style="color:var(--text-secondary);">ПТ</div><div style="color:var(--accent-rose);">СБ</div><div style="color:var(--accent-rose);">ВС</div>
+                            <div style="color:#64748B;">ПН</div><div style="color:#64748B;">ВТ</div><div style="color:#64748B;">СР</div><div style="color:#64748B;">ЧТ</div><div style="color:#64748B;">ПТ</div><div style="color:#64748B;">СБ</div><div style="color:#64748B;">ВС</div>
                             ${Array(c.start_weekday).fill('<div></div>').join('')}
                             ${c.dates.map((d,i) => {
                                 const checked = c.logs.includes(d);
                                 const isToday = d === new Date().toISOString().split('T')[0];
-                                return `<div style="width:100%; aspect-ratio:1; border-radius:3px; display:flex; align-items:center; justify-content:center; font-weight:600;
-                                    ${checked?'background:var(--accent-rose); color:#fff;':'background:var(--sidebar-color); color:var(--text-secondary); opacity:0.6;'}
-                                    ${isToday?'border:1px solid var(--accent-rose);':''}">${i+1}</div>`;
+                                return `<div style="width:100%; aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:600; border:1px solid ${checked?'var(--cal-cell-done-border)':'var(--cal-cell-empty-border)'}; background:${checked?'var(--cal-cell-done-bg)':'var(--cal-cell-empty-bg)'}; color:${checked?'var(--cal-cell-done-text)':'var(--cal-cell-empty-text)'}; ${isToday?'outline:2px solid var(--accent-cyan);outline-offset:-2px;':''}">${i+1}</div>`;
                             }).join('')}
                         </div>`}
                     </div>
@@ -810,23 +1185,25 @@
             const data = await res.json();
             if(data.body && data.body.dates.length > 0) {
                 const rows = data.body.dates.map((d, i) => {
+                    const id = data.body.ids ? data.body.ids[i] : null;
                     const w = data.body.weight[i] != null ? `${data.body.weight[i]} кг` : '—';
                     const wa = data.body.waist[i] != null ? `${data.body.waist[i]}` : '—';
                     const hi = data.body.hips[i] != null ? `${data.body.hips[i]}` : '—';
                     const c = data.body.chest[i] != null ? `${data.body.chest[i]}` : '—';
-                    return `<div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-color); font-size:12px; gap:8px;">
-                        <span style="color:var(--text-secondary); min-width:44px;">${d}</span>
+                    return `<div data-row-id="${id}" style="display:grid; grid-template-columns:56px 1fr 1fr 1fr 1fr 24px; align-items:center; gap:6px; padding:7px 0; border-bottom:1px solid var(--cal-header-border); font-size:12px;">
+                        <span style="color:var(--text-secondary);">${d}</span>
                         <span style="font-weight:600;">${w}</span>
-                        <span style="color:var(--text-secondary);">Т ${wa}</span>
-                        <span style="color:var(--text-secondary);">Б ${hi}</span>
-                        <span style="color:var(--text-secondary);">Г ${c}</span>
+                        <span style="color:var(--text-secondary);">${wa}</span>
+                        <span style="color:var(--text-secondary);">${hi}</span>
+                        <span style="color:var(--text-secondary);">${c}</span>
+                        ${id ? `<span style="text-align:right;"><span title="Удалить замер" onclick="deleteBodyMetric(${id})" style="cursor:pointer; color:var(--text-secondary); opacity:0.45; font-size:14px; transition:0.2s;" onmouseover="this.style.opacity='1'; this.style.color='var(--accent-overdue)'" onmouseout="this.style.opacity='0.45'; this.style.color='var(--text-secondary)'">×</span></span>` : '<span></span>'}
                     </div>`;
                 }).reverse().join('');
                 let historyHtml = `<h3 style="font-size:13px; margin-bottom:8px; color:var(--text-secondary);">История замеров</h3>${rows}`;
                 // История галочек — отмеченные дни
                 const marked = data.body.marked_dates || [];
                 if(marked.length > 0) {
-                    historyHtml += `<h3 style="font-size:13px; margin:14px 0 8px; color:var(--text-secondary);">История галочек (${marked.length})</h3><div style="display:flex; flex-wrap:wrap; gap:6px;">${marked.map(d => `<span style="background:var(--bg-secondary,#f2ede6); border:1px solid var(--border-color); border-radius:20px; padding:4px 10px; font-size:12px;">✓ ${d}</span>`).join('')}</div>`;
+                    historyHtml += `<h3 style="font-size:13px; margin:14px 0 8px; color:var(--text-secondary);">История галочек (${marked.length})</h3><div style="display:flex; flex-wrap:wrap; gap:6px;">${marked.map(d => `<span style="background:var(--cal-header-bg); border:1px solid var(--cal-header-border); border-radius:20px; padding:4px 10px; font-size:12px; color:var(--text-main); display:inline-flex; align-items:center; gap:6px;">✓ ${d}<span onclick="untoggleBodyMark('${d}')" title="Отменить отметку" style="cursor:pointer; color:var(--text-secondary); font-size:13px; opacity:0; transition:0.15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">×</span></span>`).join('')}</div>`;
                 }
                 document.getElementById('body-history').innerHTML = historyHtml;
             }
@@ -852,22 +1229,20 @@
             let html = `<p style="font-size:11px; color:var(--text-secondary); margin-bottom:16px;">${data.total_marks} отметок · ${data.cycles.length} цикл(ов)</p>`;
             for(const c of data.cycles) {
                 const pct = c.target_days > 0 ? (c.progress/c.target_days)*100 : 0;
-                html += `<details ${c.is_current?'open':''} style="margin-bottom:8px; border:1px solid var(--border-color); border-radius:12px; overflow:hidden;">
-                    <summary style="padding:10px 14px; cursor:pointer; font-size:12px; font-weight:600; background:var(--sidebar-color); display:flex; justify-content:space-between; align-items:center;">
+                html += `<details ${c.is_current?'open':''} style="margin-bottom:8px; border:1px solid var(--cal-header-border); border-radius:12px; overflow:hidden; background:var(--card-bg);">
+                    <summary style="padding:10px 14px; cursor:pointer; font-size:12px; font-weight:600; background:var(--cal-header-bg); color:var(--cal-header-text); border-bottom:1px solid var(--cal-header-border); display:flex; justify-content:space-between; align-items:center;">
                         <span>Цикл ${c.cycle_number} ${c.is_current?'· Текущий':''}</span>
-                        <span style="font-size:10px; color:var(--accent-rose);">${c.progress}/${c.target_days}</span>
+                        <span style="font-size:10px; color:var(--cal-header-text); opacity:0.7;">${c.progress}/${c.target_days}</span>
                     </summary>
                     <div style="padding:12px;">
                         ${c.empty ? '<p style="font-size:11px; color:var(--text-secondary);">Нет отметок</p>' : `
                         <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:3px; font-size:9px; text-align:center;">
-                            <div style="color:var(--text-secondary);">ПН</div><div style="color:var(--text-secondary);">ВТ</div><div style="color:var(--text-secondary);">СР</div><div style="color:var(--text-secondary);">ЧТ</div><div style="color:var(--text-secondary);">ПТ</div><div style="color:var(--accent-rose);">СБ</div><div style="color:var(--accent-rose);">ВС</div>
+                            <div style="color:#64748B;">ПН</div><div style="color:#64748B;">ВТ</div><div style="color:#64748B;">СР</div><div style="color:#64748B;">ЧТ</div><div style="color:#64748B;">ПТ</div><div style="color:#64748B;">СБ</div><div style="color:#64748B;">ВС</div>
                             ${Array(c.start_weekday).fill('<div></div>').join('')}
                             ${c.dates.map((d,i) => {
                                 const checked = c.logs.includes(d);
                                 const isToday = d === new Date().toISOString().split('T')[0];
-                                return `<div style="width:100%; aspect-ratio:1; border-radius:3px; display:flex; align-items:center; justify-content:center; font-weight:600;
-                                    ${checked?'background:var(--accent-rose); color:#fff;':'background:var(--sidebar-color); color:var(--text-secondary); opacity:0.6;'}
-                                    ${isToday?'border:1px solid var(--accent-rose);':''}">${new Date(d+'T00:00:00').getDate()}</div>`;
+                                return `<div style="width:100%; aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:600; border:1px solid ${checked?'var(--cal-cell-done-border)':'var(--cal-cell-empty-border)'}; background:${checked?'var(--cal-cell-done-bg)':'var(--cal-cell-empty-bg)'}; color:${checked?'var(--cal-cell-done-text)':'var(--cal-cell-empty-text)'}; ${isToday?'outline:2px solid var(--accent-cyan);outline-offset:-2px;':''}">${new Date(d+'T00:00:00').getDate()}</div>`;
                             }).join('')}
                         </div>`}
                     </div>
@@ -901,9 +1276,88 @@
             document.getElementById('pro-due').value = '';
             document.getElementById('pro-category').value = document.getElementById('quick-category')?.value || 'work';
             document.getElementById('modal-title').innerText = 'Новая задача';
+            // Новая задача — логов нет, блок свёрнут
+            currentLogTaskId = null;
+            document.getElementById('logs-list').style.display = 'none';
+            document.getElementById('logs-input-wrap').style.display = 'none';
+            document.getElementById('logs-empty').style.display = 'block';
             document.getElementById('pro-modal').style.display='flex'; 
         }
         function closeProModal() { document.getElementById('pro-modal').style.display='none'; }
+        // ХРОНИКА СОСТОЯНИЙ / НАБЛЮДЕНИЯ
+        let currentLogTaskId = null;
+        function renderTaskLogs(t) {
+            currentLogTaskId = t.id;
+            const logs = t.logs || [];
+            const listEl = document.getElementById('logs-list');
+            const emptyEl = document.getElementById('logs-empty');
+            if(logs.length === 0) {
+                listEl.style.display = 'none';
+                listEl.innerHTML = '';
+                emptyEl.style.display = 'block';
+                document.getElementById('logs-input-wrap').style.display = 'none';
+                return;
+            }
+            emptyEl.style.display = 'none';
+            document.getElementById('logs-input-wrap').style.display = 'none';
+            // Группировка по датам
+            const groups = {};
+            logs.forEach(l => {
+                if(!groups[l.date]) groups[l.date] = [];
+                groups[l.date].push(l);
+            });
+            const today = new Date();
+            const fmt = d => { const p = d.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); };
+            const todayStr = new Date().toISOString().split('T')[0];
+            const yest = new Date(today); yest.setDate(today.getDate()-1);
+            const yestStr = yest.toISOString().split('T')[0];
+            const dates = Object.keys(groups).sort((a,b) => b.localeCompare(a));
+            let html = '';
+            dates.forEach(date => {
+                let label = date;
+                if(date === todayStr) label = 'Сегодня';
+                else if(date === yestStr) label = 'Вчера';
+                else { const pp = date.split('-'); label = `${pp[2]}.${pp[1]}.${pp[0]}`; }
+                html += `<div style="font-size:10px; font-weight:600; color:var(--text-secondary); margin:6px 0 2px;">${label}</div>`;
+                groups[date].sort((a,b) => (b.time||'').localeCompare(a.time||'')).forEach(l => {
+                    html += `<div style="display:flex; align-items:flex-start; gap:8px; padding:4px 6px; border-radius:8px;" onmouseover="this.style.background='var(--cat-dd-hover)'" onmouseout="this.style.background='transparent'">
+                        <span style="font-size:11px; color:var(--text-secondary); flex-shrink:0; padding-top:2px;">${l.time||''}</span>
+                        <span style="flex:1; font-size:13px; color:var(--text-main); line-height:1.4;">${l.text}</span>
+                        <span title="Удалить запись" onclick="deleteTaskLog(${currentLogTaskId}, ${l.id})" style="cursor:pointer; color:var(--text-secondary); font-size:13px; opacity:0; flex-shrink:0;" onmouseover="this.style.opacity='1'; this.style.color='var(--accent-overdue)'" onmouseout="this.style.opacity='0'; this.style.color='var(--text-secondary)'">×</span>
+                    </div>`;
+                });
+            });
+            listEl.innerHTML = html;
+            listEl.style.display = 'flex';
+        }
+        function openLogInput() {
+            document.getElementById('logs-empty').style.display = 'none';
+            document.getElementById('logs-input-wrap').style.display = 'flex';
+            document.getElementById('logs-input').value = '';
+            setTimeout(() => document.getElementById('logs-input').focus(), 0);
+        }
+        function cancelLogInput() {
+            document.getElementById('logs-input-wrap').style.display = 'none';
+            // Если логов нет — показываем кнопку «+ добавить», иначе список
+            if(!document.getElementById('logs-list').innerHTML) document.getElementById('logs-empty').style.display = 'block';
+        }
+        async function addTaskLog() {
+            const text = document.getElementById('logs-input').value.trim();
+            if(!text || !currentLogTaskId) return;
+            document.getElementById('logs-input').value = '';
+            const res = await fetch(`/api/tasks/${currentLogTaskId}/logs`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+            if(res.ok) {
+                const t = await res.json();
+                renderTaskLogs(t);
+            }
+        }
+        async function deleteTaskLog(taskId, logId) {
+            const res = await fetch(`/api/tasks/${taskId}/logs/${logId}`, {method:'DELETE'});
+            if(res.ok) {
+                const t = await res.json();
+                renderTaskLogs(t);
+            }
+        }
         async function saveTask() {
             const n = document.getElementById('pro-name').value; if(!n) return;
             const category = document.getElementById('pro-category').value;
@@ -958,6 +1412,7 @@
                 else document.getElementById('pro-category').value = 'work';
                 document.getElementById('pro-size').value = t.size || 'normal';
                 document.getElementById('pro-modal').style.display = 'flex'; 
+                renderTaskLogs(t);
             }
         }
         function toggleCalendar(e, id) { activeTaskId = id; const cal = document.getElementById('custom-calendar'); const rect = e.target.getBoundingClientRect(); cal.style.display = 'block'; renderCal(); cal.style.left = (rect.left - 120) + 'px'; cal.style.top = (rect.bottom + 10) + 'px'; }

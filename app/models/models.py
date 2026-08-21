@@ -24,6 +24,7 @@ class Task(Base):
     parent_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
     subtasks = relationship("Task", backref="parent", remote_side=[id], lazy="selectin")
     size = Column(String, default="normal")  # normal, big, huge
+    logs = Column(JSON, default=list)  # список {id, date, time, text} — хроника наблюдений
 
 class Client(Base):
     __tablename__ = "clients"

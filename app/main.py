@@ -86,6 +86,10 @@ async def startup():
             # Миграция: ставим start_date = 27 июня 2026 только для записей без даты
             conn.execute(sa.text("UPDATE body_metrics SET start_date = '2026-06-27' WHERE start_date IS NULL"))
             conn.execute(sa.text("UPDATE body_metrics SET target_days = 30 WHERE target_days IS NULL"))
+            # Миграция: колонка logs в tasks (хроника наблюдений)
+            task_cols = [col["name"] for col in inspector.get_columns("tasks")]
+            if "logs" not in task_cols:
+                conn.execute(sa.text("ALTER TABLE tasks ADD COLUMN logs JSON"))
         await conn.run_sync(check_and_migrate)
     
     # Automated daily backup

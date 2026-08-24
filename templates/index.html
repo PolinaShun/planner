@@ -203,7 +203,7 @@
         @media (max-width: 768px) {
             /* Разблокировка вертикального скролла */
             html, body { overflow-y: auto !important; overflow-x: hidden !important; height: auto !important; min-height: 100% !important; -webkit-overflow-scrolling: touch !important; }
-            .workspace, .main-content-wrapper { height: auto !important; min-height: 100vh !important; overflow: visible !important; padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important; }
+            .workspace, .main-content-wrapper { height: auto !important; min-height: 100vh !important; overflow: visible !important; padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important; }
 
             /* Сайдбар → нижняя плашка навигации */
             .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; min-width: 0; height: auto; flex-direction: row; align-items: center; justify-content: space-around; padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); backdrop-filter: blur(12px); border-right: none; border-top: 1px solid var(--border-color); z-index: 999; }
@@ -220,12 +220,17 @@
             .dashboard-grid { flex-direction: column; gap: 20px; padding: 0 16px calc(24px + env(safe-area-inset-bottom)); width: 100%; box-sizing: border-box; }
             .tasks-col { order: 1; width: 100%; }
 
-            /* Быстрое создание задачи */
-            .input-box { flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box; }
-            .input-box input, .input-box select { width: 100%; box-sizing: border-box; }
+            /* Быстрое создание задачи — компактный ряд */
+            .input-box { display: flex; gap: 8px; align-items: center; width: 100%; flex-direction: row; box-sizing: border-box; }
+            .input-box input { flex: 1; min-width: 0; padding: 10px 12px; font-size: 14px; width: auto; }
+            .input-box select { width: auto; }
+            .input-box .btn-add { width: 38px !important; height: 38px !important; padding: 0 !important; flex-shrink: 0; }
 
             /* Карточки задач */
             .task-card { width: 100%; box-sizing: border-box; padding: 14px; }
+            .task-card .checkbox { width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; }
+            .task-card .task-text { font-size: 14px; line-height: 1.35; flex: 1; }
+            .task-card .task-meta { display: flex; align-items: center; gap: 6px !important; flex-wrap: wrap; margin-left: auto; }
 
             /* Трекеры */
             .trackers-area { order: 2; width: 100%; min-width: 0; gap: 14px; }
@@ -830,13 +835,13 @@
                             <div style="display:flex; align-items:center; gap:12px">
                                 <div class="checkbox ${t.completed?'checked':''}" onclick="event.stopPropagation(); completeTask(${t.id})">${t.completed?'✓':''}</div>
                                 <div style="display:flex; flex-direction:column;">
-                                    <span style="${t.completed?'text-decoration:line-through; opacity:0.4;':''} ${hasChildren?'font-weight:600;':''}font-size:14px;">
+                                    <span class="task-text" style="${t.completed?'text-decoration:line-through; opacity:0.4;':''} ${hasChildren?'font-weight:600;':''}font-size:14px;">
                                         ${t.name}
                                     </span>
                                     ${dateHtml}
                                 </div>
                             </div>
-                            <div style="display:flex; gap:10px; align-items:center;">
+                            <div class="task-meta" style="display:flex; gap:10px; align-items:center;">
                                 ${t.due_date ? `<span style="font-size:10px; font-weight:600; color:var(--accent-overdue); opacity:0.7;">${t.due_date.split('-').reverse().slice(0,2).join('.')}</span>` : ''}
                                 <span class="task-cat" style="color:${catColor}; background:${catColor}15; cursor:pointer;" onclick="event.stopPropagation(); openCatDropdown(${t.id}, event);">${catLabel} ▾</span>
                                 ${!isSub && !isInFocus ?`<span class="action-icon" title="В фокус дня" onclick="event.stopPropagation(); moveToFocus(${t.id})">⊙</span>`:''}

@@ -88,6 +88,7 @@
 
         /* DASHBOARD LAYOUT */
         .dashboard-grid { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 24px; width: 100%; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .tasks-col { flex: 1 1 0%; min-width: 0; }
         .trackers-area { flex: 0 0 660px; width: 660px; min-width: 660px; display: flex; flex-direction: column; gap: 20px; }
         .trackers-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; align-items: stretch; }
@@ -200,22 +201,28 @@
 
         /* MOBILE */
         @media (max-width: 768px) {
-            body { flex-direction: column; overflow-y: auto; }
+            /* Разблокировка вертикального скролла */
+            html, body { overflow-y: auto !important; overflow-x: hidden !important; height: auto !important; min-height: 100% !important; -webkit-overflow-scrolling: touch !important; }
+            .workspace, .main-content-wrapper { height: auto !important; min-height: 100vh !important; overflow: visible !important; padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important; }
 
             /* Сайдбар → нижняя плашка навигации */
-            .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; min-width: 0; height: auto; flex-direction: row; align-items: center; justify-content: space-around; padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); backdrop-filter: blur(12px); border-right: none; border-top: 1px solid var(--border-color); z-index: 100; }
+            .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; min-width: 0; height: auto; flex-direction: row; align-items: center; justify-content: space-around; padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); backdrop-filter: blur(12px); border-right: none; border-top: 1px solid var(--border-color); z-index: 999; }
             .sidebar .brand { display: none; }
             .sidebar .nav-item { padding: 8px 10px; font-size: 12px; margin-bottom: 0; white-space: nowrap; flex: 1; text-align: center; }
             .export-btn { margin-top: 0 !important; }
 
-            .workspace { padding: 0; padding-bottom: 60px; height: auto; overflow-y: visible; }
+            /* Шапка */
+            .page-header { padding: 16px 16px 8px 16px; margin: 0; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; }
+            .page-header h1 { margin: 0; }
+            h1 { font-size: 26px !important; }
 
             /* Дашборд */
-            .dashboard-grid { flex-direction: column; gap: 20px; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); width: 100%; box-sizing: border-box; }
+            .dashboard-grid { flex-direction: column; gap: 20px; padding: 0 16px calc(24px + env(safe-area-inset-bottom)); width: 100%; box-sizing: border-box; }
             .tasks-col { order: 1; width: 100%; }
 
             /* Быстрое создание задачи */
-            .input-box { flex-wrap: nowrap; gap: 8px; }
+            .input-box { flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box; }
+            .input-box input, .input-box select { width: 100%; box-sizing: border-box; }
 
             /* Карточки задач */
             .task-card { width: 100%; box-sizing: border-box; padding: 14px; }
@@ -358,7 +365,7 @@
     <div class="main-content-wrapper">
         <div class="workspace">
             <div id="tasks-view" class="view-content active-view">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
+                <div class="page-header">
                     <div><h1 style="font-family:'Bodoni Moda',serif;font-weight:600;font-size:32px;letter-spacing:-0.02em;margin:0;color:var(--text-main);">Дашборд</h1></div>
                     <div style="display:flex; align-items:center; gap:14px;">
                         <p id="current-date-display" style="color:var(--text-secondary);font-size:13px;font-weight:500; margin:0; padding-top:8px;">Сегодня — 09.05.2026</p>

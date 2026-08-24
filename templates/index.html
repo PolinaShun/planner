@@ -201,17 +201,38 @@
         /* MOBILE */
         @media (max-width: 768px) {
             body { flex-direction: column; overflow-y: auto; }
-            .sidebar { width: 100%; min-width: 100%; flex-direction: row; padding: 10px; gap: 8px; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
+
+            /* Сайдбар → нижняя плашка навигации */
+            .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; min-width: 0; height: auto; flex-direction: row; align-items: center; justify-content: space-around; padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); backdrop-filter: blur(12px); border-right: none; border-top: 1px solid var(--border-color); z-index: 100; }
             .sidebar .brand { display: none; }
-            .sidebar .nav-item { padding: 8px 12px; font-size: 12px; margin-bottom: 0; white-space: nowrap; }
+            .sidebar .nav-item { padding: 8px 10px; font-size: 12px; margin-bottom: 0; white-space: nowrap; flex: 1; text-align: center; }
             .export-btn { margin-top: 0 !important; }
-            .workspace { padding: 16px; height: auto; overflow-y: visible; }
-            .dashboard-grid { grid-template-columns: 1fr; gap: 16px; }
-            .tasks-col { order: 1; }
-            .trackers-area { order: 2; }
-            .trackers-row { gap: 12px; }
-            .widget { padding: 16px !important; }
-            .modal { width: 90vw; padding: 24px; }
+
+            .workspace { padding: 0; padding-bottom: 60px; height: auto; overflow-y: visible; }
+
+            /* Дашборд */
+            .dashboard-grid { flex-direction: column; gap: 20px; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); width: 100%; box-sizing: border-box; }
+            .tasks-col { order: 1; width: 100%; }
+
+            /* Быстрое создание задачи */
+            .input-box { flex-wrap: nowrap; gap: 8px; }
+
+            /* Карточки задач */
+            .task-card { width: 100%; box-sizing: border-box; padding: 14px; }
+
+            /* Трекеры */
+            .trackers-area { order: 2; width: 100%; min-width: 0; gap: 14px; }
+            .trackers-row { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+            .trackers-col { width: 100%; }
+            .trackers-col .widget,
+            .trackers-col .course-card { width: 100%; max-width: 100%; min-height: unset; padding: 16px; }
+            .streak-grid-30 { grid-template-columns: repeat(7, 1fr); width: 100%; }
+            .streak-day { width: 100%; height: auto; aspect-ratio: 1 / 1; }
+
+            /* Модалки → Bottom Sheet */
+            .modal-overlay { align-items: flex-end; }
+            .modal { width: 100%; max-width: 100%; border-radius: 24px 24px 0 0; margin-top: auto; padding: 20px 20px calc(24px + env(safe-area-inset-bottom)); }
+            #pro-modal .modal { max-width: 100%; }
         }
 
         /* ===== LIGHT THEME (Light Glassmorphism / Cyber Clean) ===== */

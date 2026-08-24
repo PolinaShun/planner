@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Планировщик Полины | Senior Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #060913;
@@ -62,11 +64,11 @@
             --workspace-bg: radial-gradient(ellipse 80% 60% at 70% -10%, rgba(0, 240, 255, 0.08), transparent 60%), radial-gradient(ellipse 60% 50% at 10% 110%, rgba(255, 42, 133, 0.07), transparent 60%), var(--bg-color);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
         
         /* SIDEBAR */
         .sidebar { width: 170px; min-width: 170px; background-color: var(--sidebar-color); border-right: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(16px); display: flex; flex-direction: column; padding: 28px 8px; z-index: 1000; }
-        .sidebar .brand { padding: 0 10px; margin-bottom: 36px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.3px; background: linear-gradient(90deg, #00F0FF 0%, #FF2A85 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sidebar .brand { padding: 0 10px; margin-bottom: 36px; font-family: 'Inter', -apple-system, sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.3px; background: linear-gradient(90deg, #00F0FF 0%, #FF2A85 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .sidebar .nav-item { width: 100%; padding: 12px 14px; margin-bottom: 4px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.25s; font-size: 13px; font-weight: 500; border-radius: 12px; border: 1px solid transparent; letter-spacing: -0.2px; }
         .sidebar .nav-item:hover { color: #fff; background: rgba(255,255,255,0.06); }
         .sidebar .nav-item.active { color: #fff; background: rgba(255, 42, 133, 0.16); font-weight: 600; border: 1px solid rgba(255, 42, 133, 0.5); box-shadow: 0 0 16px rgba(255, 42, 133, 0.35); }
@@ -75,45 +77,45 @@
 
         /* WORKSPACE */
         .main-content-wrapper { flex: 1; height: 100vh; overflow: hidden; position: relative; }
-        .workspace { height: 100vh; padding: 24px 55px; overflow-y: auto; padding-bottom: 120px; background: var(--workspace-bg); }
+        .workspace { height: 100vh; width: 100%; max-width: 100%; padding: 0 32px 32px 32px; box-sizing: border-box; overflow-y: auto; padding-top: 24px; background: var(--workspace-bg); }
         .view-content { display: none; }
         .active-view { display: flex !important; flex-direction: column; }
         
         /* WIDGETS */
         .widget { background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(20px); border-radius: 24px; padding: 28px; position: relative; box-shadow: var(--shadow-sm), 0 0 20px rgba(0, 240, 255, 0.07); transition: 0.25s; }
         .widget:hover { box-shadow: var(--shadow-md), 0 0 26px rgba(0, 240, 255, 0.14); border-color: rgba(0, 240, 255, 0.28); }
-        .widget h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 22px; text-transform: none; letter-spacing: -0.2px; }
+        .widget h2 { font-family: 'Inter', -apple-system, sans-serif; font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 22px; text-transform: none; letter-spacing: -0.02em; }
 
         /* DASHBOARD LAYOUT */
-        .dashboard-grid { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
-        .tasks-col { flex: 1 1 500px; min-width: 320px; }
-        .trackers-area { flex: 0 0 660px; width: 660px; min-width: 660px; display: flex; flex-direction: column; gap: 16px; }
+        .dashboard-grid { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 24px; width: 100%; }
+        .tasks-col { flex: 1 1 0%; min-width: 0; }
+        .trackers-area { flex: 0 0 660px; width: 660px; min-width: 660px; display: flex; flex-direction: column; gap: 20px; }
         .trackers-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; align-items: stretch; }
         .trackers-col { min-width: 0; display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
         .trackers-col .widget,
-        .trackers-col .course-card { min-height: 270px; padding: 12px 14px; border-radius: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
+        .trackers-col .course-card { min-height: 270px; max-width: 310px; padding: 12px 14px; border-radius: 20px; display: flex; flex-direction: column; justify-content: space-between; height: auto !important; box-sizing: border-box; }
         .trackers-col .widget .streak-grid-30,
         .trackers-col .course-card .streak-grid-30 { flex: 1 1 auto; align-content: start; }
         .trackers-col .widget h2 { margin-bottom: 0; }
+        .trackers-area #yesterday-done { width: 100%; box-sizing: border-box; }
         .trackers-col .widget .streak-grid-30 + div { margin-top: 0; }
-        .trackers-area #yesterday-done { width: 100%; }
 
-        /* SECTION HEADERS */
-        .section-header { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 20px; letter-spacing: -0.3px; }
+
+        .section-header { font-family: 'Bodoni Moda', serif; font-size: 20px; font-weight: 600; color: var(--text-main); margin-bottom: 20px; letter-spacing: -0.02em; }
 
         /* COURSE TRACKERS — same as widget */
         .course-card { background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(20px); padding: 22px; border-radius: 24px; box-shadow: var(--shadow-sm), 0 0 20px rgba(0, 240, 255, 0.07); }
-        .course-card h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 14px; }
-        .streak-grid-30 { display: grid; grid-template-columns: repeat(7, 30px); gap: 5px; justify-content: center; margin: 0 auto; }
+        .course-card h2 { font-family: 'Inter', -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 14px; }
+        .streak-grid-30 { display: grid; grid-template-columns: repeat(7, 30px); justify-content: center; gap: 4px; margin: 8px auto; }
         .streak-day { width: 30px; height: 30px; background: var(--surface-nested); border: 1px solid var(--nested-border); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
         .streak-day.done { background: rgba(0, 180, 216, 0.15); border: 1px solid rgba(0, 180, 216, 0.35); color: #0096C7; font-weight: 700; box-shadow: 0 0 12px rgba(0, 180, 216, 0.25); }
         .streak-day.future { cursor: default; }
 
         /* QUICK INPUT */
         .input-box { background: var(--input-bg); border: 1px solid var(--border-color); backdrop-filter: blur(16px); border-radius: 18px; padding: 10px; display: flex; gap: 12px; align-items: center; margin-bottom: 22px; box-shadow: inset 0 1px 0 rgba(0, 240, 255, 0.05); }
-        .input-box input { flex: 1; background: transparent; border: none; color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; outline: none; padding: 8px 12px; }
+        .input-box input { flex: 1; background: transparent; border: none; color: var(--text-main); font-family: 'Inter', -apple-system, sans-serif; font-size: 15px; outline: none; padding: 8px 12px; }
         .input-box input::placeholder { color: var(--text-secondary); opacity: 0.6; }
-        .category-select { background: var(--select-bg); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 12px; padding: 8px 16px; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; outline: none; cursor: pointer; font-weight: 500; }
+        .category-select { background: var(--select-bg); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 12px; padding: 8px 16px; color: #fff; font-family: 'Inter', -apple-system, sans-serif; font-size: 13px; outline: none; cursor: pointer; font-weight: 500; }
         .category-select option { background: var(--select-bg); color: #fff; }
 
         /* CARDS */
@@ -136,7 +138,7 @@
         .full-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; max-width: 1300px; }
         .full-cal-day { background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(20px); border-radius: 20px; height: 130px; padding: 18px; cursor: pointer; transition: 0.2s; position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; box-shadow: var(--shadow-sm), 0 0 14px rgba(0, 240, 255, 0.05); }
         .full-cal-day:hover { border-color: var(--accent-rose); box-shadow: 0 0 22px rgba(255, 42, 133, 0.35); }
-        .full-cal-day span { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 26px; font-weight: 700; color: var(--text-secondary); opacity: 0.35; position: absolute; top: 16px; left: 20px; transition: 0.25s; pointer-events: none; }
+        .full-cal-day span { font-family: 'Inter', -apple-system, sans-serif; font-size: 26px; font-weight: 700; color: var(--text-secondary); opacity: 0.35; position: absolute; top: 16px; left: 20px; transition: 0.25s; pointer-events: none; }
         .full-cal-day:hover span { opacity: 0.6; }
         .full-cal-day.active { background: var(--accent-rose-soft); border-color: var(--accent-rose); box-shadow: 0 0 20px rgba(255, 42, 133, 0.25); }
         .full-cal-day.active span { opacity: 1; color: var(--accent-rose); }
@@ -145,7 +147,7 @@
         
         .cal-task-count { position: absolute; bottom: 10px; right: 16px; font-size: 13px; font-weight: 700; color: var(--accent-cyan); opacity: 0.9; }
         .calendar-details { margin-top: 30px; padding: 14px 30px 22px 30px; background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(20px); border-radius: 24px; max-width: 900px; min-height: 90px; box-shadow: var(--shadow-sm), 0 0 20px rgba(0, 240, 255, 0.07); }
-        .calendar-details h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 16px; }
+        .calendar-details h2 { font-family: 'Inter', -apple-system, sans-serif; font-size: 17px; font-weight: 600; color: var(--text-main); margin-bottom: 16px; }
 
         /* BODY TRACKER GRID */
         .status-grid { display: grid; gap: 6px; }
@@ -156,7 +158,8 @@
         /* MODALS */
         .modal-overlay { position: fixed; inset: 0; background: var(--overlay-bg); backdrop-filter: blur(16px); display: none; align-items: center; justify-content: center; z-index: 2000; }
         .modal { background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(24px); padding: 32px; border-radius: 24px; width: 480px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 240, 255, 0.1); }
-        .modal h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 6px; color: var(--text-main); }
+        #pro-modal .modal { padding: 24px; box-sizing: border-box; width: 100%; max-width: 460px; overflow: hidden; }
+        .modal h2 { font-family: 'Inter', -apple-system, sans-serif; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 6px; color: var(--text-main); }
         
         .modal input[type="text"], 
         .modal textarea, 
@@ -167,7 +170,7 @@
             border-radius: 14px; 
             padding: 14px 18px; 
             color: var(--text-main); 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
+            font-family: 'Inter', -apple-system, sans-serif; 
             font-size: 14px; 
             outline: none; 
             transition: 0.25s; 
@@ -181,7 +184,7 @@
         .modal select { appearance: none; cursor: pointer; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238E9CB2' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
         .modal select option { background: var(--select-bg); color: var(--text-main); }
         
-        .btn-add { background: var(--btn-bg); color: var(--btn-text); border: none; padding: 16px; border-radius: 14px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; cursor: pointer; font-size: 13px; letter-spacing: 0.5px; transition: 0.25s; box-shadow: var(--btn-glow); }
+        .btn-add { background: var(--btn-bg); color: var(--btn-text); border: none; padding: 16px; border-radius: 14px; font-family: 'Inter', -apple-system, sans-serif; font-weight: 700; cursor: pointer; font-size: 13px; letter-spacing: 0.5px; transition: 0.25s; box-shadow: var(--btn-glow); }
         .btn-add:hover { transform: translateY(-2px); box-shadow: var(--btn-glow-hover); }
 
         /* SCROLLBAR */
@@ -190,10 +193,9 @@
 
         /* TABLET / NARROW DESKTOP — трекеры переносятся под задачи на всю ширину */
         @media (max-width: 1200px) {
-            .dashboard-grid { flex-direction: column; }
-            .tasks-col { flex: 1 1 auto; width: 100%; min-width: 0; }
-            .trackers-area { flex: 1 1 auto; width: 100%; min-width: 0; }
-            .trackers-row { grid-template-columns: 1fr 1fr; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .tasks-col { width: 100%; }
+            .trackers-area { width: 100%; min-width: 0; }
         }
 
         /* MOBILE */
@@ -207,7 +209,7 @@
             .dashboard-grid { grid-template-columns: 1fr; gap: 16px; }
             .tasks-col { order: 1; }
             .trackers-area { order: 2; }
-            .trackers-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .trackers-row { gap: 12px; }
             .widget { padding: 16px !important; }
             .modal { width: 90vw; padding: 24px; }
         }
@@ -336,7 +338,7 @@
         <div class="workspace">
             <div id="tasks-view" class="view-content active-view">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
-                    <div><h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:32px;letter-spacing:-0.5px;margin:0;color:var(--text-main);">Дашборд</h1></div>
+                    <div><h1 style="font-family:'Bodoni Moda',serif;font-weight:600;font-size:32px;letter-spacing:-0.02em;margin:0;color:var(--text-main);">Дашборд</h1></div>
                     <div style="display:flex; align-items:center; gap:14px;">
                         <p id="current-date-display" style="color:var(--text-secondary);font-size:13px;font-weight:500; margin:0; padding-top:8px;">Сегодня — 09.05.2026</p>
                         <button id="theme-toggle" onclick="toggleTheme()" style="background:var(--card-bg); border:1px solid var(--border-color); backdrop-filter:blur(16px); border-radius:9999px; width:38px; height:38px; cursor:pointer; font-size:17px; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); color:var(--text-main);">🌙</button>
@@ -359,7 +361,7 @@
                                 <button class="btn-add" style="width:auto; padding:8px 18px;" onclick="openProModal()">+</button>
                             </div>
                             <div style="margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:14px;">
-                                <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:700;color:var(--accent-cyan);" id="today-stats-ratio">0/0</span>
+                                <span style="font-family:'Bodoni Moda',serif;font-size:28px;font-weight:600;color:var(--accent-cyan);" id="today-stats-ratio">0/0</span>
                                 <span style="font-size:11px;color:var(--text-secondary);font-weight:500;">выполнено</span>
                                 <div style="flex:1; height:4px; background:var(--progress-track); border-radius:10px; overflow:hidden;">
                                     <div id="today-stats-bar" style="height:100%; background:var(--progress-fill); width:0%; border-radius:10px;"></div>
@@ -402,7 +404,7 @@
 
             <div id="full-calendar-view" class="view-content">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                    <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:32px;letter-spacing:-0.5px;color:var(--text-main);">Календарь</h1>
+                    <h1 style="font-family:'Bodoni Moda',serif;font-weight:600;font-size:32px;letter-spacing:-0.02em;color:var(--text-main);">Календарь</h1>
                     <div style="display:flex; gap:8px; align-items:center;">
                         <button class="btn-add" style="width:auto; padding:6px 14px;" onclick="prevFullMonth()">‹</button>
                         <span id="full-cal-title" style="font-weight:600; min-width:140px; text-align:center; font-size:14px;"></span>
@@ -416,7 +418,7 @@
                 </div>
             </div>
 
-            <div id="archive-view" class="view-content"><h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:32px;letter-spacing:-0.5px;color:var(--text-main);">Архив</h1><input type="text" id="archive-search" placeholder="Поиск..." oninput="searchArchive()" style="margin-bottom:22px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;padding:14px 18px;color:var(--text-main);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none;width:100%;max-width:500px;"><div id="list-archived" class="task-list"></div></div>
+            <div id="archive-view" class="view-content"><h1 style="font-family:'Bodoni Moda',serif;font-weight:600;font-size:32px;letter-spacing:-0.02em;color:var(--text-main);">Архив</h1><input type="text" id="archive-search" placeholder="Поиск..." oninput="searchArchive()" style="margin-bottom:22px;background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;padding:14px 18px;color:var(--text-main);font-family:'Inter', -apple-system, sans-serif;font-size:14px;outline:none;width:100%;max-width:500px;"><div id="list-archived" class="task-list"></div></div>
         </div>
     </div>
 
@@ -427,7 +429,7 @@
                 <h2 id="modal-title" style="color:var(--accent-rose); margin:0;">Новая задача</h2>
                 <span onclick="closeProModal()" style="cursor:pointer; font-size:18px; opacity:0.4;">✕</span>
             </div>
-            <input type="text" id="pro-name" placeholder="Название задачи" autocomplete="off">
+            <input type="text" id="pro-name" placeholder="Название задачи" autocomplete="off" style="width:100%; box-sizing:border-box;">
             <div style="display:flex; gap:12px;">
                 <select id="pro-category" style="flex:1; max-width:200px;">
                     <option value="work">Работа</option>
@@ -436,9 +438,9 @@
                     <option value="dream">Мечты</option>
                 </select>
             </div>
-            <div style="display:flex; gap:12px;">
-                <input type="text" id="pro-start" placeholder="Дата начала" onclick="toggleCalendar(event,'pro-start')" autocomplete="off" style="flex:1;">
-                <input type="text" id="pro-due" placeholder="Дедлайн" onclick="toggleCalendar(event,'pro-due')" autocomplete="off" style="flex:1;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; box-sizing:border-box;">
+                <input type="text" id="pro-start" placeholder="Дата начала" onclick="toggleCalendar(event,'pro-start')" autocomplete="off" style="width:100%; box-sizing:border-box;">
+                <input type="text" id="pro-due" placeholder="Дедлайн" onclick="toggleCalendar(event,'pro-due')" autocomplete="off" style="width:100%; box-sizing:border-box;">
             </div>
             <div style="display:flex; gap:12px;">
                 <select id="pro-size" style="flex:1;">
@@ -450,19 +452,12 @@
 
             <!-- ХРОНИКА СОСТОЯНИЙ / НАБЛЮДЕНИЯ -->
             <div id="logs-block" style="border-top:1px solid var(--border-color); padding-top:14px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <div style="font-size:13px; font-weight:600; color:var(--text-main);">Хроника состояний / Наблюдения</div>
-                </div>
-                <div id="logs-empty" style="text-align:left;">
-                    <button id="logs-add-btn" onclick="openLogInput()" style="background:transparent; border:none; color:var(--text-secondary); font-size:13px; font-weight:500; cursor:pointer; padding:4px 0; font-family:'Plus Jakarta Sans',sans-serif;">+ Добавить наблюдение / мысль</button>
-                </div>
-                <div id="logs-list" style="max-height:180px; overflow-y:auto; display:none; flex-direction:column; gap:4px; margin-bottom:10px;"></div>
-                <div id="logs-input-wrap" style="display:none; flex-direction:column; gap:8px;">
-                    <textarea id="logs-input" rows="2" placeholder="Какая мысль / стопор сейчас?" style="padding:10px 14px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main); font-size:13px; font-family:'Plus Jakarta Sans',sans-serif; resize:none;" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); addTaskLog();}"></textarea>
-                    <div style="display:flex; gap:8px; justify-content:flex-end;">
-                        <button onclick="cancelLogInput()" style="background:var(--confirm-cancel-bg); color:var(--confirm-cancel-text); border:1px solid var(--confirm-cancel-border); border-radius:8px; padding:6px 14px; font-size:12px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Отмена</button>
-                        <button onclick="addTaskLog()" style="background:#00B4D8; color:#fff; border:none; border-radius:8px; padding:6px 16px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Зафиксировать</button>
-                    </div>
+                <div style="font-size:13px; font-weight:600; color:var(--text-main); margin-bottom:8px;">Хроника состояний / Наблюдения</div>
+                <div id="logs-empty" style="color:var(--text-secondary); font-size:12px; margin-bottom:8px; display:none;">Пока нет записей — добавьте первую мысль ниже.</div>
+                <div id="logs-list" style="max-height:160px; overflow-y:auto; display:none; flex-direction:column; gap:4px; margin-bottom:12px;"></div>
+                <div id="logs-input-wrap" style="display:flex; gap:8px; align-items:stretch;">
+                    <textarea id="logs-input" rows="2" placeholder="Какая мысль / стопор сейчас?" style="flex:1; padding:10px 14px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main); font-size:13px; font-family:'Inter', -apple-system, sans-serif; resize:none;" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); addTaskLog();}"></textarea>
+                    <button onclick="addTaskLog()" title="Зафиксировать" style="background:#00B4D8; color:#fff; border:none; border-radius:10px; padding:0 16px; font-size:18px; font-weight:600; cursor:pointer; font-family:'Inter', -apple-system, sans-serif;">+</button>
                 </div>
             </div>
 
@@ -518,8 +513,8 @@
         <div style="background:var(--confirm-bg); border:1px solid var(--confirm-border); border-radius:20px; padding:24px; width:320px; display:flex; flex-direction:column; gap:18px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
             <div style="font-size:16px; font-weight:600; color:var(--text-main);">Удалить этот замер?</div>
             <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button onclick="closeConfirmModal()" style="background:var(--confirm-cancel-bg); color:var(--confirm-cancel-text); border:1px solid var(--confirm-cancel-border); border-radius:10px; padding:8px 16px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Отмена</button>
-                <button id="confirm-delete-btn" onclick="confirmDeleteBodyMetric()" style="background:#E11D48; color:#fff; border:none; border-radius:10px; padding:8px 16px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 4px 14px rgba(225,29,72,0.3);">Удалить</button>
+                <button onclick="closeConfirmModal()" style="background:var(--confirm-cancel-bg); color:var(--confirm-cancel-text); border:1px solid var(--confirm-cancel-border); border-radius:10px; padding:8px 16px; font-weight:500; cursor:pointer; font-family:'Inter', -apple-system, sans-serif;">Отмена</button>
+                <button id="confirm-delete-btn" onclick="confirmDeleteBodyMetric()" style="background:#E11D48; color:#fff; border:none; border-radius:10px; padding:8px 16px; font-weight:600; cursor:pointer; font-family:'Inter', -apple-system, sans-serif; box-shadow:0 4px 14px rgba(225,29,72,0.3);">Удалить</button>
             </div>
         </div>
     </div>
@@ -533,8 +528,8 @@
             </div>
             <input id="tracker-name-input" type="text" placeholder="Например: Чтение, Спорт, Медитация..." style="padding:12px 16px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC; width:100%; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
             <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button onclick="closeTrackerModal()" style="background:var(--confirm-cancel-bg); color:var(--confirm-cancel-text); border:1px solid var(--confirm-cancel-border); border-radius:10px; padding:10px 20px; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Отмена</button>
-                <button onclick="createTracker()" style="background:#00B4D8; color:#fff; border:none; border-radius:10px; padding:10px 20px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 4px 14px rgba(0,180,216,0.35);">Создать</button>
+                <button onclick="closeTrackerModal()" style="background:var(--confirm-cancel-bg); color:var(--confirm-cancel-text); border:1px solid var(--confirm-cancel-border); border-radius:10px; padding:10px 20px; font-weight:500; cursor:pointer; font-family:'Inter', -apple-system, sans-serif;">Отмена</button>
+                <button onclick="createTracker()" style="background:#00B4D8; color:#fff; border:none; border-radius:10px; padding:10px 20px; font-weight:600; cursor:pointer; font-family:'Inter', -apple-system, sans-serif; box-shadow:0 4px 14px rgba(0,180,216,0.35);">Создать</button>
             </div>
         </div>
     </div>
@@ -545,8 +540,8 @@
             <div id="tracker-del-title" style="font-size:15px; font-weight:600; color:#1E293B; margin-bottom:8px;">Удалить трекер?</div>
             <div style="font-size:12px; color:#94A3B8; margin-bottom:20px;">Все отметки за месяц будут удалены</div>
             <div style="display:flex; gap:10px;">
-                <button onclick="closeTrackerDelModal()" style="flex:1; padding:10px; border-radius:10px; background:#F1F5F9; color:#475569; border:none; font-weight:500; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Отмена</button>
-                <button id="tracker-del-confirm" onclick="confirmDeleteTracker()" style="flex:1; padding:10px; border-radius:10px; background:#E11D48; color:#FFFFFF; border:none; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;">Удалить</button>
+                <button onclick="closeTrackerDelModal()" style="flex:1; padding:10px; border-radius:10px; background:#F1F5F9; color:#475569; border:none; font-weight:500; cursor:pointer; font-family:'Inter', -apple-system, sans-serif;">Отмена</button>
+                <button id="tracker-del-confirm" onclick="confirmDeleteTracker()" style="flex:1; padding:10px; border-radius:10px; background:#E11D48; color:#FFFFFF; border:none; font-weight:600; cursor:pointer; font-family:'Inter', -apple-system, sans-serif;">Удалить</button>
             </div>
         </div>
     </div>
@@ -685,7 +680,7 @@
             const prev2Str = fmtDate(dPrev2);
             const missed2 = !markedDates.has(prevStr) && !markedDates.has(prev2Str);
             const remindHtml = missed2
-                ? `<div style="background:#E0F2FE; color:#0369A1; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:500; margin-bottom:8px;">☀ 2 дня паузы — может, 5 минут разминки?</div>`
+                ? `<div style="background:#E0F2FE; color:#0369A1; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:500; margin-bottom:4px;">☀ 2 дня паузы — может, 5 минут разминки?</div>`
                 : '';
 
             const html = `<div class="widget" style="display:flex; flex-direction:column;">
@@ -695,7 +690,7 @@
                 </div>
                 ${remindHtml}
                 <div class="streak-grid-30" style="flex:1 1 auto; align-content:start;">${gridHtml}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:8px; width:100%;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; width:100%;">
                     <div style="flex:1; height:3px; background:var(--progress-track); border-radius:10px; overflow:hidden; margin-right:8px;">
                         <div style="height:100%; background:var(--progress-fill); width:${pct}%; border-radius:10px;"></div>
                     </div>
@@ -741,7 +736,7 @@
                         <span class="action-icon" title="Удалить трекер" style="color:var(--accent-overdue); opacity:0.4;" onclick="deleteTracker(${h.id}, ${JSON.stringify(h.title).replace(/"/g,'&quot;')})">✕</span>
                     </div>
                     <div class="streak-grid-30" style="flex:1 1 auto; align-content:start;">${daysHtml}</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:8px; width:100%;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; width:100%;">
                         <div style="flex:1; height:3px; background:var(--progress-track); border-radius:10px; overflow:hidden; margin-right:8px;">
                             <div style="height:100%; background:var(--progress-fill); width:${pct}%; border-radius:10px;"></div>
                         </div>
@@ -1276,11 +1271,12 @@
             document.getElementById('pro-due').value = '';
             document.getElementById('pro-category').value = document.getElementById('quick-category')?.value || 'work';
             document.getElementById('modal-title').innerText = 'Новая задача';
-            // Новая задача — логов нет, блок свёрнут
+            // Новая задача — логов нет
             currentLogTaskId = null;
             document.getElementById('logs-list').style.display = 'none';
-            document.getElementById('logs-input-wrap').style.display = 'none';
+            document.getElementById('logs-list').innerHTML = '';
             document.getElementById('logs-empty').style.display = 'block';
+            document.getElementById('logs-input').value = '';
             document.getElementById('pro-modal').style.display='flex'; 
         }
         function closeProModal() { document.getElementById('pro-modal').style.display='none'; }
@@ -1291,15 +1287,14 @@
             const logs = t.logs || [];
             const listEl = document.getElementById('logs-list');
             const emptyEl = document.getElementById('logs-empty');
+            // Поле ввода всегда видно; пустое сообщение — только когда записей нет
             if(logs.length === 0) {
                 listEl.style.display = 'none';
                 listEl.innerHTML = '';
                 emptyEl.style.display = 'block';
-                document.getElementById('logs-input-wrap').style.display = 'none';
                 return;
             }
             emptyEl.style.display = 'none';
-            document.getElementById('logs-input-wrap').style.display = 'none';
             // Группировка по датам
             const groups = {};
             logs.forEach(l => {
@@ -1307,7 +1302,6 @@
                 groups[l.date].push(l);
             });
             const today = new Date();
-            const fmt = d => { const p = d.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); };
             const todayStr = new Date().toISOString().split('T')[0];
             const yest = new Date(today); yest.setDate(today.getDate()-1);
             const yestStr = yest.toISOString().split('T')[0];
@@ -1329,26 +1323,22 @@
             });
             listEl.innerHTML = html;
             listEl.style.display = 'flex';
-        }
-        function openLogInput() {
-            document.getElementById('logs-empty').style.display = 'none';
-            document.getElementById('logs-input-wrap').style.display = 'flex';
-            document.getElementById('logs-input').value = '';
-            setTimeout(() => document.getElementById('logs-input').focus(), 0);
-        }
-        function cancelLogInput() {
-            document.getElementById('logs-input-wrap').style.display = 'none';
-            // Если логов нет — показываем кнопку «+ добавить», иначе список
-            if(!document.getElementById('logs-list').innerHTML) document.getElementById('logs-empty').style.display = 'block';
+            // Автоскролл вниз к свежим записям
+            listEl.scrollTop = listEl.scrollHeight;
         }
         async function addTaskLog() {
-            const text = document.getElementById('logs-input').value.trim();
-            if(!text || !currentLogTaskId) return;
-            document.getElementById('logs-input').value = '';
+            const input = document.getElementById('logs-input');
+            const text = input.value.trim();
+            if(!text || !currentLogTaskId) { input.focus(); return; }
+            input.value = '';
             const res = await fetch(`/api/tasks/${currentLogTaskId}/logs`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
             if(res.ok) {
                 const t = await res.json();
                 renderTaskLogs(t);
+                input.focus();
+            } else {
+                input.value = text;
+                input.focus();
             }
         }
         async function deleteTaskLog(taskId, logId) {

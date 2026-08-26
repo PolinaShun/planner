@@ -111,6 +111,15 @@
         .streak-day { width: 30px; height: 30px; background: var(--surface-nested); border: 1px solid var(--nested-border); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
         .streak-day.done { background: rgba(0, 180, 216, 0.15); border: 1px solid rgba(0, 180, 216, 0.35); color: #0096C7; font-weight: 700; box-shadow: 0 0 12px rgba(0, 180, 216, 0.25); }
         .streak-day.future { cursor: default; }
+        /* Циклические трекеры: обязательный день приёма + день паузы */
+        .streak-day.required { border: 2px dashed var(--accent-cyan); color: var(--accent-cyan); font-weight: 600; background: rgba(0, 240, 255, 0.06); }
+        .streak-day.required.done { border-style: solid; }
+        .streak-day.rest { opacity: 0.45; pointer-events: none; cursor: default; background: var(--surface-nested); }
+        .cycle-badge { display: inline-block; padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .cycle-badge.active { background: var(--cal-header-bg); border: 1px solid rgba(0, 240, 255, 0.35); color: var(--accent-cyan); }
+        .cycle-badge.rest { background: var(--surface-nested); border: 1px solid var(--nested-border); color: var(--text-secondary); }
+        .cycle-badge.done { background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35); color: #22C55E; }
+        .cycle-next { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
 
         /* QUICK INPUT */
         .input-box { background: var(--input-bg); border: 1px solid var(--border-color); backdrop-filter: blur(16px); border-radius: 18px; padding: 10px; display: flex; gap: 12px; align-items: center; margin-bottom: 22px; box-shadow: inset 0 1px 0 rgba(0, 240, 255, 0.05); }
@@ -557,12 +566,40 @@
 
     <!-- NEW TRACKER MODAL (замена window.prompt) -->
     <div id="tracker-modal" class="modal-overlay" style="z-index:4000; background:var(--overlay-bg);" onclick="if(event.target===this) closeTrackerModal()">
-        <div style="background:var(--confirm-bg); border:1px solid rgba(0,180,216,0.25); border-radius:20px; padding:24px; width:360px; display:flex; flex-direction:column; gap:16px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+        <div style="background:var(--confirm-bg); border:1px solid rgba(0,180,216,0.25); border-radius:20px; padding:24px; width:400px; display:flex; flex-direction:column; gap:14px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="font-size:18px; font-weight:600; color:var(--text-main);">Новый трекер</div>
                 <span onclick="closeTrackerModal()" style="cursor:pointer; color:var(--text-secondary); font-size:20px; line-height:1;" title="Закрыть">×</span>
             </div>
             <input id="tracker-name-input" type="text" placeholder="Например: Чтение, Спорт, Медитация..." style="padding:12px 16px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC; width:100%; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
+            <!-- Переключатель режима -->
+            <div style="display:flex; gap:8px;">
+                <button id="tracker-mode-daily" onclick="setTrackerMode('daily')" style="flex:1; padding:10px; border-radius:12px; border:1px solid rgba(0,180,216,0.4); background:var(--surface-nested); color:var(--text-main); font-weight:600; cursor:pointer; font-size:13px; font-family:'Inter', -apple-system, sans-serif;">Обычный (каждый день)</button>
+                <button id="tracker-mode-cycle" onclick="setTrackerMode('cycle')" style="flex:1; padding:10px; border-radius:12px; border:1px solid var(--nested-border); background:var(--surface-nested); color:var(--text-secondary); font-weight:500; cursor:pointer; font-size:13px; font-family:'Inter', -apple-system, sans-serif;">Циклический (пульс)</button>
+            </div>
+            <!-- Поля циклического режима -->
+            <div id="cycle-fields" style="display:none; flex-direction:column; gap:10px;">
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                        <label style="font-size:11px; color:var(--text-secondary); font-weight:500;">Дней приёма</label>
+                        <input id="tracker-active-days" type="number" min="1" value="7" style="padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
+                    </div>
+                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                        <label style="font-size:11px; color:var(--text-secondary); font-weight:500;">Дней отдыха</label>
+                        <input id="tracker-rest-days" type="number" min="1" value="21" style="padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                        <label style="font-size:11px; color:var(--text-secondary); font-weight:500;">Кол-во курсов</label>
+                        <input id="tracker-total-cycles" type="number" min="1" value="3" style="padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
+                    </div>
+                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                        <label style="font-size:11px; color:var(--text-secondary); font-weight:500;">Дата старта</label>
+                        <input id="tracker-start-date" type="date" style="padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
+                    </div>
+                </div>
+            </div>
             <div style="display:flex; gap:10px; justify-content:flex-end;">
                 <button onclick="closeTrackerModal()" style="background:var(--confirm-cancel-bg); color:var(--confirm-cancel-text); border:1px solid var(--confirm-cancel-border); border-radius:10px; padding:10px 20px; font-weight:500; cursor:pointer; font-family:'Inter', -apple-system, sans-serif;">Отмена</button>
                 <button onclick="createTracker()" style="background:#00B4D8; color:#fff; border:none; border-radius:10px; padding:10px 20px; font-weight:600; cursor:pointer; font-family:'Inter', -apple-system, sans-serif; box-shadow:0 4px 14px rgba(0,180,216,0.35);">Создать</button>
@@ -757,18 +794,61 @@
             const renderCard = (h) => {
                 const dates = h.grid.dates;
                 let offset = h.grid.start_weekday;
+                const isCycleTracker = h.type === 'cycle' && h.cycle;
+                const activeSet = isCycleTracker ? new Set(h.cycle.active_dates) : null;
+                const todayStr = new Date().toISOString().split('T')[0];
                 let daysHtml = '';
                 for(let i=0; i<offset; i++) daysHtml += '<div></div>';
                 for(let i=0; i<dates.length; i++) {
                     const checked = h.marked_dates.includes(dates[i]);
-                    const isToday = dates[i] === new Date().toISOString().split('T')[0];
+                    const isToday = dates[i] === todayStr;
                     const dayNum = new Date(dates[i] + 'T00:00:00').getDate();
-                    daysHtml += `<div class="streak-day ${checked?'done':''}" style="${isToday ? 'outline:2px solid var(--accent-cyan);outline-offset:-2px;position:relative;' : ''}${checked && isToday ? 'border:2px solid #fff;box-shadow:0 0 0 2px var(--accent-rose),0 0 10px rgba(255,42,133,0.4);' : ''}" onclick="toggleHabit(${h.id}, '${dates[i]}')">${dayNum}</div>`;
+                    let cls = 'streak-day';
+                    let extraStyle = '';
+                    let click = "onclick=\"toggleHabit(" + h.id + ", '" + dates[i] + "')\"";
+                    if(isCycleTracker) {
+                        if(activeSet.has(dates[i])) {
+                            // Обязательный день приёма
+                            cls += checked ? ' required done' : ' required';
+                        } else {
+                            // День паузы — полупрозрачный, некликабельный
+                            cls += ' rest';
+                            click = '';
+                        }
+                    } else if(checked) {
+                        cls += ' done';
+                    }
+                    if(isToday) extraStyle = 'outline:2px solid var(--accent-cyan);outline-offset:-2px;position:relative;';
+                    if(checked && isToday && !isCycleTracker) extraStyle += 'border:2px solid #fff;box-shadow:0 0 0 2px var(--accent-rose),0 0 10px rgba(255,42,133,0.4);';
+                    if(isCycleTracker && isToday) extraStyle += 'opacity:1;';
+                    daysHtml += '<div class="' + cls + '" style="' + extraStyle + '" ' + click + '>' + dayNum + '</div>';
                 }
-                const pct = dates.length > 0 ? (h.progress/dates.length)*100 : 0;
+                // Бейдж текущей фазы (компактный, в шапке карточки)
+                let badgeHtml = '';
+                let progNum, progDen;
+                if(isCycleTracker) {
+                    const ph = h.cycle.phase;
+                    if(ph.active) {
+                        badgeHtml = '<span class="cycle-badge active" title="Курс ' + ph.course + '/' + ph.total_courses + ', день ' + ph.day + '/' + ph.active_days + '">Курс ' + ph.course + '/' + ph.total_courses + '</span>';
+                    } else if(ph.before) {
+                        const sd = (h.start_date || '').split('-');
+                        const startLabel = sd.length === 3 ? sd[2] + '.' + sd[1] : '';
+                        badgeHtml = '<span class="cycle-badge rest">Старт ' + startLabel + '</span>';
+                    } else if(ph.after) {
+                        badgeHtml = '<span class="cycle-badge done">Завершено</span>';
+                    } else {
+                        badgeHtml = '<span class="cycle-badge rest">Отдых · ' + ph.rest_left + '</span>';
+                    }
+                    progNum = ph.course_done;
+                    progDen = ph.course_total;
+                } else {
+                    progNum = h.progress;
+                    progDen = dates.length;
+                }
+                const pct = progDen > 0 ? (progNum/progDen)*100 : 0;
                 return `<div class="widget" style="position:relative; display:flex; flex-direction:column;">
                     <div style="height:36px; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                        <h2 style="margin:0; cursor:pointer;" onclick="showHabitHistory(${h.id})">${h.title}</h2>
+                        <h2 style="margin:0; cursor:pointer; flex-shrink:0;" onclick="showHabitHistory(${h.id})">${h.title}</h2>${isCycleTracker ? '<span style="margin-left:auto;">' + badgeHtml + '</span>' : ''}
                         <span class="action-icon" title="Удалить трекер" style="color:var(--accent-overdue); opacity:0.4;" onclick="deleteTracker(${h.id}, ${JSON.stringify(h.title).replace(/"/g,'&quot;')})">✕</span>
                     </div>
                     <div class="streak-grid-30" style="flex:1 1 auto; align-content:start;">${daysHtml}</div>
@@ -776,7 +856,7 @@
                         <div style="flex:1; height:3px; background:var(--progress-track); border-radius:10px; overflow:hidden; margin-right:8px;">
                             <div style="height:100%; background:var(--progress-fill); width:${pct}%; border-radius:10px;"></div>
                         </div>
-                        <span style="font-size:10px; color:var(--accent-rose); font-weight:600;">${h.progress}/${dates.length}</span>
+                        <span style="font-size:10px; color:var(--accent-rose); font-weight:600;">${progNum}/${progDen}</span>
                     </div>
                 </div>`;
             };
@@ -1122,18 +1202,48 @@
             modal.style.display = 'flex';
             const input = document.getElementById('tracker-name-input');
             input.value = '';
+            // По умолчанию — обычный режим, дата старта = сегодня
+            setTrackerMode('daily');
+            const startEl = document.getElementById('tracker-start-date');
+            if(startEl) startEl.value = new Date().toISOString().split('T')[0];
             setTimeout(() => input.focus(), 0);
         }
         function closeTrackerModal() {
             document.getElementById('tracker-modal').style.display = 'none';
         }
+        function setTrackerMode(mode) {
+            const fields = document.getElementById('cycle-fields');
+            const daily = document.getElementById('tracker-mode-daily');
+            const cycle = document.getElementById('tracker-mode-cycle');
+            const activeStyle = 'flex:1; padding:10px; border-radius:12px; border:1px solid rgba(0,180,216,0.4); background:var(--surface-nested); color:var(--text-main); font-weight:600; cursor:pointer; font-size:13px; font-family:\'Inter\', -apple-system, sans-serif;';
+            const inactiveStyle = 'flex:1; padding:10px; border-radius:12px; border:1px solid var(--nested-border); background:var(--surface-nested); color:var(--text-secondary); font-weight:500; cursor:pointer; font-size:13px; font-family:\'Inter\', -apple-system, sans-serif;';
+            if(mode === 'cycle') {
+                cycle.setAttribute('style', activeStyle);
+                daily.setAttribute('style', inactiveStyle);
+                fields.style.display = 'flex';
+            } else {
+                daily.setAttribute('style', activeStyle);
+                cycle.setAttribute('style', inactiveStyle);
+                fields.style.display = 'none';
+            }
+            window._trackerMode = mode;
+        }
         async function createTracker() {
             const name = document.getElementById('tracker-name-input').value.trim();
             if(!name) { document.getElementById('tracker-name-input').focus(); return; }
+            const mode = window._trackerMode === 'cycle' ? 'cycle' : 'daily';
             closeTrackerModal();
+            let payload = {title: name, target_days: 30, start_date: undefined, type: mode};
+            if(mode === 'cycle') {
+                const activeDays = parseInt(document.getElementById('tracker-active-days').value) || 7;
+                const restDays = parseInt(document.getElementById('tracker-rest-days').value) || 21;
+                const totalCycles = parseInt(document.getElementById('tracker-total-cycles').value) || 3;
+                const startDate = document.getElementById('tracker-start-date').value || new Date().toISOString().split('T')[0];
+                payload = {title: name, type: mode, active_days: activeDays, rest_days: restDays, total_cycles: totalCycles, start_date: startDate};
+            }
             await fetch('/api/habits/create', {
                 method:'POST', headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({title: name, target_days: 30, start_date: undefined})
+                body:JSON.stringify(payload)
             });
             loadAll();
         }

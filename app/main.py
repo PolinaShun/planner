@@ -90,6 +90,16 @@ async def startup():
             task_cols = [col["name"] for col in inspector.get_columns("tasks")]
             if "logs" not in task_cols:
                 conn.execute(sa.text("ALTER TABLE tasks ADD COLUMN logs JSON"))
+            # Миграция: циклические трекеры (пульс-терапия)
+            habit_cols = [col["name"] for col in inspector.get_columns("habits")]
+            if "type" not in habit_cols:
+                conn.execute(sa.text("ALTER TABLE habits ADD COLUMN type VARCHAR(10) DEFAULT 'daily'"))
+            if "active_days" not in habit_cols:
+                conn.execute(sa.text("ALTER TABLE habits ADD COLUMN active_days INTEGER DEFAULT 7"))
+            if "rest_days" not in habit_cols:
+                conn.execute(sa.text("ALTER TABLE habits ADD COLUMN rest_days INTEGER DEFAULT 21"))
+            if "total_cycles" not in habit_cols:
+                conn.execute(sa.text("ALTER TABLE habits ADD COLUMN total_cycles INTEGER DEFAULT 3"))
         await conn.run_sync(check_and_migrate)
     
     # Automated daily backup

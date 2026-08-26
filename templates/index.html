@@ -566,7 +566,7 @@
 
     <!-- NEW TRACKER MODAL (замена window.prompt) -->
     <div id="tracker-modal" class="modal-overlay" style="z-index:4000; background:var(--overlay-bg);" onclick="if(event.target===this) closeTrackerModal()">
-        <div style="background:var(--confirm-bg); border:1px solid rgba(0,180,216,0.25); border-radius:20px; padding:24px; width:400px; display:flex; flex-direction:column; gap:14px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+        <div style="background:var(--confirm-bg); border:1px solid rgba(0,180,216,0.25); border-radius:20px; padding:24px; width:400px; max-width:440px; display:flex; flex-direction:column; gap:14px; box-shadow:0 10px 30px rgba(0,0,0,0.2); box-sizing:border-box; overflow:hidden;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="font-size:18px; font-weight:600; color:var(--text-main);">Новый трекер</div>
                 <span onclick="closeTrackerModal()" style="cursor:pointer; color:var(--text-secondary); font-size:20px; line-height:1;" title="Закрыть">×</span>
@@ -579,24 +579,24 @@
             </div>
             <!-- Поля циклического режима -->
             <div id="cycle-fields" style="display:none; flex-direction:column; gap:10px;">
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; box-sizing:border-box;">
+                    <div style="display:flex; flex-direction:column; gap:4px; min-width:0;">
                         <label style="font-size:11px; color:var(--text-secondary); font-weight:500;">Дней приёма</label>
-                        <input id="tracker-active-days" type="number" min="1" value="7" style="padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
+                        <input id="tracker-active-days" type="number" min="1" value="7" style="width:100%; min-width:0; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main);" />
                     </div>
-                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; flex-direction:column; gap:4px; min-width:0;">
                         <label style="font-size:11px; color:var(--text-secondary); font-weight:500;">Дней отдыха</label>
-                        <input id="tracker-rest-days" type="number" min="1" value="21" style="padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
+                        <input id="tracker-rest-days" type="number" min="1" value="21" style="width:100%; min-width:0; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main);" />
                     </div>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; box-sizing:border-box;">
+                    <div style="display:flex; flex-direction:column; gap:4px; min-width:0;">
                         <label style="font-size:11px; color:var(--text-secondary); font-weight:500;">Кол-во курсов</label>
-                        <input id="tracker-total-cycles" type="number" min="1" value="3" style="padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
+                        <input id="tracker-total-cycles" type="number" min="1" value="3" style="width:100%; min-width:0; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main);" />
                     </div>
-                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; flex-direction:column; gap:4px; min-width:0;">
                         <label style="font-size:11px; color:var(--text-secondary); font-weight:500;">Дата старта</label>
-                        <input id="tracker-start-date" type="date" style="padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main); box-sizing:border-box;" />
+                        <input id="tracker-start-date" type="date" style="width:100%; min-width:0; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:14px; color:var(--text-main);" />
                     </div>
                 </div>
             </div>

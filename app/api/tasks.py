@@ -22,6 +22,7 @@ def _task_to_dict(t):
         "start_date": _d(t.start_date), "due_date": _d(t.due_date),
         "created_at": _d(t.created_at), "completed_at": _d(t.completed_at),
         "parent_id": t.parent_id, "subtasks": [], "size": t.size or "normal",
+        "position": t.position if getattr(t, "position", None) is not None else 0,
         "logs": t.logs or []
     }
 
@@ -53,6 +54,7 @@ async def get_tasks(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Task)
         .filter(Task.archived == False, Task.parent_id == None)
+        .order_by(Task.position.asc(), Task.id.desc())
     )
     tasks = result.scalars().all()
     ids = [t.id for t in tasks]
@@ -184,6 +186,19 @@ async def delete_task_log(task_id: int, log_id: int, db: AsyncSession = Depends(
     await db.commit()
     await db.refresh(task)
     return _task_to_dict(task)
+
+@router.post("/tasks/reorder")
+async def reorder_tasks(payload: dict, db: AsyncSession = Depends(get_db)):
+    """Принимает {task_ids: [id1, id2, ...]} в новом порядке и обновляет position."""
+    ids = payload.get("task_ids") or []
+    # Позиции с 1 (0 = «без порядка» = новые задачи вверху)
+    for pos, task_id in enumerate(ids):
+        result = await db.execute(select(Task).filter(Task.id == int(task_id)))
+        task = result.scalar_one_or_none()
+        if task:
+            task.position = pos + 1
+    await db.commit()
+    return {"status": "ok", "reordered": len(ids)}
 
 @router.post("/tasks/auto-archive")
 async def auto_archive_tasks(db: AsyncSession = Depends(get_db)):

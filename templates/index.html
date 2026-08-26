@@ -132,6 +132,16 @@
         .task-list { display: flex; flex-direction: column; gap: 8px; }
         .task-card { background: var(--surface-nested); border: 1px solid var(--border-color); backdrop-filter: blur(20px); padding: 16px 22px; border-radius: 18px; transition: 0.2s; box-shadow: var(--shadow-sm), 0 0 14px rgba(0, 240, 255, 0.05); }
         .task-card:hover { box-shadow: var(--shadow-md), 0 0 22px rgba(0, 240, 255, 0.12); border-color: rgba(0, 240, 255, 0.26); }
+        /* Drag-and-drop задач в блоке «Фокус дня» */
+        #list-focus-day .task-card { cursor: grab !important; }
+        #list-focus-day .task-card.task-dragging, #list-focus-day .task-card:active { cursor: grabbing !important; }
+        #list-focus-day .task-card .checkbox,
+        #list-focus-day .task-card .action-icon,
+        #list-focus-day .task-card .task-cat,
+        #list-focus-day .task-card button,
+        #list-focus-day .task-card input { cursor: pointer !important; }
+        .task-ghost { opacity: 0.4; transform: scale(0.98); border: 2px dashed #00B4D8; box-shadow: none; }
+        .task-dragging { opacity: 0.9; box-shadow: var(--shadow-md), 0 0 22px rgba(0, 240, 255, 0.15); }
         .task-card.overdue { border-left: 3px solid var(--accent-overdue); background: linear-gradient(90deg, rgba(255, 75, 99, 0.1), var(--card-bg)); }
         .task-card.overdue .overdue-badge { font-size: 10px; font-weight: 600; color: var(--accent-overdue); opacity: 0.85; }
         .checkbox { width: 22px; height: 22px; border: 2px solid var(--checkbox-border); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: var(--accent-cyan); transition: 0.2s; box-shadow: var(--checkbox-glow); }
@@ -997,43 +1007,67 @@
             const now = new Date();
             const todayStr = now.toISOString().split('T')[0];
 
-            const focusTasks = allTasks.filter(t => {
+            const isInFocus = (t) => {
                 const started = t.start_date && t.start_date <= todayStr;
                 const dueToday = t.due_date === todayStr;
                 const isOverdue = (t.due_date && t.due_date < todayStr && !t.completed) || (!t.due_date && t.start_date && t.start_date < todayStr && !t.completed);
                 return started || dueToday || isOverdue;
-            }).sort((a, b) => {
-                // Сначала не просроченные, потом просроченные; внутри — от новых к старым
-                const aOver = (a.due_date && a.due_date < todayStr && !a.completed) || (!a.due_date && a.start_date && a.start_date < todayStr && !a.completed);
-                const bOver = (b.due_date && b.due_date < todayStr && !b.completed) || (!b.due_date && b.start_date && b.start_date < todayStr && !b.completed);
-                if (!aOver && bOver) return -1;
-                if (aOver && !bOver) return 1;
+            };
+
+            const focusTasks = allTasks.filter(isInFocus);
+            const backlogTasks = allTasks.filter(t => !isInFocus(t));
+
+            // Сортировка фокуса: задачи с position>0 — по порядку; без position (новые) — сверху, по id desc
+            focusTasks.sort((a, b) => {
+                const aHas = (a.position || 0) > 0;
+                const bHas = (b.position || 0) > 0;
+                if(aHas && bHas) return a.position - b.position;
+                if(aHas && !bHas) return 1;
+                if(!aHas && bHas) return -1;
                 return b.id - a.id;
             });
 
             const doneFocus = focusTasks.filter(t => t.completed).length;
 
-            allTasks.forEach(t => {
-                const started = t.start_date && t.start_date <= todayStr;
-                const dueToday = t.due_date === todayStr;
-                const isOverdue = (t.due_date && t.due_date < todayStr && !t.completed) || (!t.due_date && t.start_date && t.start_date < todayStr && !t.completed);
-                const inFocus = started || dueToday || isOverdue;
-                
-                if (inFocus) {
-                    if(listFocus) listFocus.innerHTML += renderTaskHTML(t, false, true);
-                } else {
-                    if(listBacklog) listBacklog.innerHTML += renderTaskHTML(t, false, false);
-                }
-            });
-            
-            if(listFocus && !listFocus.innerHTML) listFocus.innerHTML = '<div style="color:var(--text-secondary);opacity:0.5;padding:20px;text-align:center;font-size:14px;">Фокус пуст</div>';
-            if(listBacklog && !listBacklog.innerHTML) listBacklog.innerHTML = '<div style="color:var(--text-secondary);opacity:0.5;padding:20px;text-align:center;font-size:14px;">Бэклог пуст</div>';
+            if(listFocus) listFocus.innerHTML = focusTasks.length ? focusTasks.map(t => renderTaskHTML(t, false, true)).join('') : '<div style="color:var(--text-secondary);opacity:0.5;padding:20px;text-align:center;font-size:14px;">Фокус пуст</div>';
+            if(listBacklog) listBacklog.innerHTML = backlogTasks.length ? backlogTasks.map(t => renderTaskHTML(t, false, false)).join('') : '<div style="color:var(--text-secondary);opacity:0.5;padding:20px;text-align:center;font-size:14px;">Бэклог пуст</div>';
+
+            // Инициализация drag-and-drop (один раз, контейнер переживает перерисовку innerHTML)
+            if(window.Sortable && listFocus && !listFocus._sortable) {
+                listFocus._sortable = new Sortable(listFocus, {
+                    animation: 150,
+                    ghostClass: 'task-ghost',
+                    dragClass: 'task-dragging',
+                    handle: '.task-card',
+                    filter: 'input, button, select, .subtask-list, .checkbox, .task-cat, .action-icon',
+                    preventOnFilter: false,
+                    onEnd: function(evt) { saveTasksOrder(); }
+                });
+            }
 
             const ratioEl = document.getElementById('today-stats-ratio'); 
             if(ratioEl) ratioEl.innerText = `${doneFocus}/${focusTasks.length}`;
             const barEl = document.getElementById('today-stats-bar'); 
             if(barEl) barEl.style.width = (focusTasks.length > 0 ? (doneFocus/focusTasks.length)*100 : 0) + '%';
             if(document.getElementById('full-calendar-view').classList.contains('active-view')) renderFullCalendar();
+        }
+
+        async function saveTasksOrder() {
+            const listFocus = document.getElementById('list-focus-day');
+            if(!listFocus) return;
+            // Собираем id родительских карточек (не подзадач) в текущем порядке DOM
+            const ids = [];
+            listFocus.querySelectorAll('.task-card').forEach(card => {
+                if(card.classList.contains('subtask-card')) return; // подзадачи не двигаем
+                const id = card.getAttribute('data-id');
+                if(id && !ids.includes(id)) ids.push(id);
+            });
+            if(ids.length < 2) return;
+            await fetch('/api/tasks/reorder', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({task_ids: ids})
+            });
+            loadAll();
         }
 
         function renderInsights(insights) {
@@ -1601,5 +1635,6 @@
             }); 
         };
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 </body>
 </html>

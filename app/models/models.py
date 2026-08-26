@@ -24,6 +24,7 @@ class Task(Base):
     parent_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
     subtasks = relationship("Task", backref="parent", remote_side=[id], lazy="selectin")
     size = Column(String, default="normal")  # normal, big, huge
+    position = Column(Integer, default=0)  # порядок в блоке «Фокус дня» (drag-and-drop)
     logs = Column(JSON, default=list)  # список {id, date, time, text} — хроника наблюдений
 
 class Client(Base):

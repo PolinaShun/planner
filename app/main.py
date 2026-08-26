@@ -90,6 +90,9 @@ async def startup():
             task_cols = [col["name"] for col in inspector.get_columns("tasks")]
             if "logs" not in task_cols:
                 conn.execute(sa.text("ALTER TABLE tasks ADD COLUMN logs JSON"))
+            # Миграция: позиция задачи в блоке «Фокус дня» (drag-and-drop)
+            if "position" not in task_cols:
+                conn.execute(sa.text("ALTER TABLE tasks ADD COLUMN position INTEGER DEFAULT 0"))
             # Миграция: циклические трекеры (пульс-терапия)
             habit_cols = [col["name"] for col in inspector.get_columns("habits")]
             if "type" not in habit_cols:

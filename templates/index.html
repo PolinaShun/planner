@@ -162,6 +162,9 @@
         .subtask-row .spacer { flex: 1; }
         .action-icon { cursor: pointer; opacity: 0.35; transition: 0.2s; font-size: 13px; }
         .action-icon:hover { opacity: 1; transform: scale(1.15); }
+        /* Бейдж ссылки внутри текста задачи */
+        .task-link-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: #eef7fb; color: #0088a9; font-size: 12px; font-weight: 500; border-radius: 6px; text-decoration: none; margin-left: 4px; vertical-align: middle; transition: background 0.15s ease, color 0.15s ease; }
+        .task-link-badge:hover { background: #d8eff8; color: #005f77; }
         .task-cat { font-size: 9px; font-weight: 600; padding: 2px 8px; border-radius: 8px; opacity: 0.85; white-space: nowrap; }
 
         /* CALENDAR */
@@ -946,6 +949,18 @@
             loadAll();
         }
 
+        function formatTaskText(text) {
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          return text.replace(urlRegex, (url) => {
+            try {
+              const domain = new URL(url).hostname.replace('www.', '');
+              return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="task-link-badge" onclick="event.stopPropagation();">🔗 ${domain} ↗</a>`;
+            } catch (e) {
+              return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="task-link-badge" onclick="event.stopPropagation();">🔗 Ссылка ↗</a>`;
+            }
+          });
+        }
+
         function renderTaskHTML(t, isSub = false, isInFocus = false) {
             const now = new Date(); now.setHours(0,0,0,0);
             const todayStr = now.toISOString().split('T')[0];
@@ -967,7 +982,7 @@
             const subHtml = hasChildren ? `<div class="subtask-list">${t.subtasks.map(st => `
                 <div class="subtask-row" data-id="${st.id}" onclick="event.stopPropagation(); startEdit(${st.id})">
                     <div class="checkbox ${st.completed?'checked':''}" style="width:16px;height:16px;border-radius:4px;font-size:9px;" onclick="event.stopPropagation(); completeTask(${st.id})">${st.completed?'✓':''}</div>
-                    <span style="${st.completed?'text-decoration:line-through; opacity:0.4;':''}">${st.name}</span>
+                    <span style="${st.completed?'text-decoration:line-through; opacity:0.4;':''}">${formatTaskText(st.name)}</span>
                     ${st.due_date && st.due_date !== t.due_date ? `<span style="font-size:10px; font-weight:600; color:var(--accent-overdue); opacity:0.7;">${st.due_date.split('-').reverse().slice(0,2).join('.')}</span>` : ''}
                     <span class="spacer"></span>
                     <span class="action-icon" title="Удалить" style="color:var(--accent-overdue);" onclick="event.stopPropagation(); deleteTaskPermanently(${st.id})">✕</span>
@@ -990,7 +1005,7 @@
                                 <div class="checkbox ${t.completed?'checked':''}" onclick="event.stopPropagation(); completeTask(${t.id})">${t.completed?'✓':''}</div>
                                 <div class="task-text-block" style="display:flex; flex-direction:column; gap:4px; flex:1; min-width:0;">
                                     <span class="task-text" style="${t.completed?'text-decoration:line-through; opacity:0.4;':''} ${hasChildren?'font-weight:600;':''}font-size:14px;">
-                                        ${t.name}
+                                        ${formatTaskText(t.name)}
                                     </span>
                                     <span class="date-badge">${dateHtml}</span>
                                 </div>

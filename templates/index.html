@@ -694,7 +694,7 @@
     </div>
 
     <script>
-        let allTasks = [], editingTaskId = null, activeParentId = null, activeTaskId = null;
+        let allTasks = [], archivedTasks = [], editingTaskId = null, activeParentId = null, activeTaskId = null;
         let curFullMonth = new Date().getMonth(), curFullYear = new Date().getFullYear();
         let curCalMonth = new Date().getMonth(), curCalYear = new Date().getFullYear();
 
@@ -1665,7 +1665,7 @@
                 } 
                 return null; 
             };
-            const t = findTask(allTasks, id); 
+            const t = findTask(allTasks, id) || findTask(archivedTasks, id); 
             if(t) { 
                 activeParentId = t.parent_id || null; 
                 document.getElementById('modal-title').innerText = 'Редактировать';
@@ -1708,8 +1708,9 @@
             window.searchTimeout = setTimeout(async () => { 
                 const res = await fetch(`/api/tasks/archived?q=${encodeURIComponent(q)}`); 
                 const tasks = await res.json(); 
+                archivedTasks = tasks;
                 document.getElementById('list-archived').innerHTML = tasks.length ? tasks.map(t => `
-                    <div class="task-card" style="opacity:0.7;">
+                    <div class="task-card" style="opacity:0.7; cursor:pointer;" title="Открыть хронику" onclick="startEdit(${t.id})">
                         <div style="display:flex; align-items:center; gap:12px;">
                             <span style="font-size:11px; color:var(--text-secondary); font-weight:600;">#${t.id}</span>
                             <span style="text-decoration:line-through; font-size:14px;">${t.name}</span>

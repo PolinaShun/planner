@@ -820,13 +820,14 @@
 
             const pct = lastDay > 0 ? (done / lastDay) * 100 : 0;
 
-            // Бережное напоминание: пропущены вчера и позавчера (2 дня подряд без отметок)
+            // Бережное напоминание: сегодня НЕ отмечен + пауза 2+ дня (вчера и позавчера без отметок)
             const dPrev = new Date(year, month, today.getDate() - 1);
             const dPrev2 = new Date(year, month, today.getDate() - 2);
             const prevStr = fmtDate(dPrev);
             const prev2Str = fmtDate(dPrev2);
+            const todayMarked = markedDates.has(todayStr);
             const missed2 = !markedDates.has(prevStr) && !markedDates.has(prev2Str);
-            const remindHtml = missed2
+            const remindHtml = (missed2 && !todayMarked)
                 ? `<div style="background:#E0F2FE; color:#0369A1; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:500; margin-bottom:4px;">☀ 2 дня паузы — может, 5 минут разминки?</div>`
                 : '';
 
